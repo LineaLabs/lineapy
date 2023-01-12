@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.utils package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.utils.analytics package" href="lineapy.utils.analytics.html" />
+    <link rel="prev" title="lineapy.transformer package" href="lineapy.transformer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-utils-package">
+<h1>lineapy.utils package<a class="headerlink" href="#lineapy-utils-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.utils.analytics.html">lineapy.utils.analytics package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.analytics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.analytics.html#module-lineapy.utils.analytics.event_schemas">lineapy.utils.analytics.event_schemas module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.analytics.html#module-lineapy.utils.analytics.usage_tracking">lineapy.utils.analytics.usage_tracking module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.analytics.html#module-lineapy.utils.analytics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.utils.benchmarks">
+<span id="lineapy-utils-benchmarks-module"></span><h2>lineapy.utils.benchmarks module<a class="headerlink" href="#module-lineapy.utils.benchmarks" title="Permalink to this heading"></a></h2>
+<p>Utilities for computing statistics on benchmark data.</p>
+<p>Translated from <a class="reference external" href="https://github.com/jupyterlab/jupyterlab/blob/82df0b635dae2c1a70a7c41fe7ee7af1c1caefb2/galata/src/benchmarkReporter.ts#L150-L244">https://github.com/jupyterlab/jupyterlab/blob/82df0b635dae2c1a70a7c41fe7ee7af1c1caefb2/galata/src/benchmarkReporter.ts#L150-L244</a>
+which was originally added in <a class="reference external" href="https://github.com/jupyterlab/benchmarks/blob/f55db969bf4d988f9d627ba187e28823a50153ba/src/compare.ts#L136-L213">https://github.com/jupyterlab/benchmarks/blob/f55db969bf4d988f9d627ba187e28823a50153ba/src/compare.ts#L136-L213</a></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.benchmarks.distribution_change">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.benchmarks.</span></span><span class="sig-name descname"><span class="pre">distribution_change</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_measures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_measures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DistributionChange</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/benchmarks.html#distribution_change"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.benchmarks.distribution_change" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the performance change based on a number of old and new measurements.</p>
+<p>Based on the work by Tomas Kalibera and Richard Jones. See their paper
+“Quantifying Performance Changes with Effect Size Confidence Intervals”, section 6.2,
+formula “Quantifying Performance Change”.</p>
+<p>Note: The measurements must have the same length. As fallback, you could use the minimum
+size of the two measurement sets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>old_measures</strong> – The list of timings from the old system</p></li>
+<li><p><strong>new_measures</strong> – The list of timings from the new system</p></li>
+<li><p><strong>confidence_interval</strong> – The confidence interval for the results.
+The default is a 95% confidence interval (95% of the time the true mean will be
+between the resulting mean +- the resulting CI)</p></li>
+</ul>
+</dd>
+</dl>
+<p># Test against the example in the paper, from Table V, on pages 18-19</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">distribution_change</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">old_measures</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>        <span class="nb">round</span><span class="p">(</span><span class="n">mean</span><span class="p">([</span><span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="nb">round</span><span class="p">(</span><span class="n">mean</span><span class="p">([</span><span class="mi">16</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="nb">round</span><span class="p">(</span><span class="n">mean</span><span class="p">([</span><span class="mi">15</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">],</span>
+<span class="gp">... </span>    <span class="n">new_measures</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>        <span class="nb">round</span><span class="p">(</span><span class="n">mean</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="nb">round</span><span class="p">(</span><span class="n">mean</span><span class="p">([</span><span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">4</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="nb">round</span><span class="p">(</span><span class="n">mean</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">],</span>
+<span class="gp">... </span>    <span class="n">confidence_interval</span><span class="o">=</span><span class="mf">0.95</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">isclose</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">isclose</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="mf">68.3</span> <span class="o">/</span> <span class="mf">74.5</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">isclose</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">confidence_interval</span><span class="p">,</span> <span class="mf">60.2</span> <span class="o">/</span> <span class="mf">74.5</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils.config">
+<span id="lineapy-utils-config-module"></span><h2>lineapy.utils.config module<a class="headerlink" href="#module-lineapy.utils.config" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.config.linea_folder">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.config.</span></span><span class="sig-name descname"><span class="pre">linea_folder</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/config.html#linea_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.config.linea_folder" title="Permalink to this definition"></a></dt>
+<dd><p>Linea folder exists at the root user level (via <cite>Path.home()</cite>).</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils.constants">
+<span id="lineapy-utils-constants-module"></span><h2>lineapy.utils.constants module<a class="headerlink" href="#module-lineapy.utils.constants" title="Permalink to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="lineapy.utils.constants.VERSION_DATE_STRING">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.constants.</span></span><span class="sig-name descname"><span class="pre">VERSION_DATE_STRING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'%Y-%m-%dT%H:%M:%S'</span></em><a class="headerlink" href="#lineapy.utils.constants.VERSION_DATE_STRING" title="Permalink to this definition"></a></dt>
+<dd><p>sqlalchemy defaults to a type of Optional[str] even when a column is set to be not nullable.
+This is per their documentation. One option is to add type:ignore for python objects that
+should not be nulls and are mapped to sqlalchemy ORM objects. Alternately, as is here,
+we can add a placeholder. This will be used like <code class="docutils literal notranslate"><span class="pre">obj.property</span> <span class="pre">=</span> <span class="pre">ormobject.property</span> <span class="pre">or</span> <span class="pre">placeholder</span></code>.
+This should separate out the ORM objects and their policy of setting all columns to be
+Optional vs app objects that should reflect the app’s expectation of not allowing nulls.
+The app object’s property does not get set to None and the ORM object doesn’t need to worry
+about knowing what the app is doing.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils.deprecation_utils">
+<span id="lineapy-utils-deprecation-utils-module"></span><h2>lineapy.utils.deprecation_utils module<a class="headerlink" href="#module-lineapy.utils.deprecation_utils" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.deprecation_utils.get_source_segment">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.deprecation_utils.</span></span><span class="sig-name descname"><span class="pre">get_source_segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/utils/deprecation_utils.html#get_source_segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.deprecation_utils.get_source_segment" title="Permalink to this definition"></a></dt>
+<dd><p>Get source code segment of the <em>source</em> that generated <em>node</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a polyfill for the ast.get_source_segment function
+that was introduced in python 3.8.</p>
+<p>If some location information (<cite>lineno</cite>, <cite>end_lineno</cite>, <cite>col_offset</cite>,
+or <cite>end_col_offset</cite>) is missing, return None.</p>
+<p>If <em>padded</em> is <cite>True</cite>, the first line of a multi-line statement will
+be padded with spaces to match its original position.</p>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.utils.deprecation_utils.singledispatchmethod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.utils.deprecation_utils.</span></span><span class="sig-name descname"><span class="pre">singledispatchmethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/utils/deprecation_utils.html#singledispatchmethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.deprecation_utils.singledispatchmethod" title="Permalink to this definition"></a></dt>
+<dd><p>Single-dispatch generic method descriptor.</p>
+<p>Supports wrapping existing descriptors and handles non-descriptor
+callables as instance methods.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.utils.deprecation_utils.singledispatchmethod.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">func</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/deprecation_utils.html#singledispatchmethod.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.deprecation_utils.singledispatchmethod.register" title="Permalink to this definition"></a></dt>
+<dd><p>Registers a new implementation for the given <em>cls</em> on a <em>generic_method</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils.lineabuiltins">
+<span id="lineapy-utils-lineabuiltins-module"></span><h2>lineapy.utils.lineabuiltins module<a class="headerlink" href="#module-lineapy.utils.lineabuiltins" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.HasName">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">HasName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#HasName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.HasName" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.l_dict">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">l_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">keys_and_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">K</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">V</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">_DictKwargsSentinel</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">K</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">V</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">K</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">V</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#l_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.l_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Build a dict from a number of key value pairs.</p>
+<p>There is a special case for dictionary unpacking. In this case, the
+key will be an instance of _DictKwargsSentinel.</p>
+<p>For example, if the user creates a dict like <code class="docutils literal notranslate"><span class="pre">{1:</span> <span class="pre">2,</span> <span class="pre">**d,</span> <span class="pre">3:</span> <span class="pre">4}</span></code>,
+then it will create a call like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">l_dict</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="n">l_dict_kwargs_sentinel</span><span class="p">(),</span> <span class="n">d</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We use a sentinel value instead of None, because None can be a valid
+dictionary key.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.l_exec_expr">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">l_exec_expr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#l_exec_expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.l_exec_expr" title="Permalink to this definition"></a></dt>
+<dd><p>Executes code expressions. These typically are ast nodes that inherit from ast.expr.
+Examples include ast.ListComp, ast.Lambda</p>
+<p>Execute the <cite>code</cite> with <cite>input_locals</cite> set as locals,
+and returns a list of the <cite>output_locals</cite> pulled from the environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>it will return the result as well as the last argument.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.l_exec_statement">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">l_exec_statement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#l_exec_statement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.l_exec_statement" title="Permalink to this definition"></a></dt>
+<dd><p>Executes code statements. These typically are ast nodes that inherit from ast.stmt.
+Examples include ast.ClassDef, ast.If, ast.For, ast.FunctionDef, ast.While, ast.Try, ast.With</p>
+<p>Execute the <cite>code</cite> with <cite>input_locals</cite> set as locals,
+and returns a list of the <cite>output_locals</cite> pulled from the environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None. Since the code is a statement, it will not return anything</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.l_import">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">l_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">module</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">module</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#l_import"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.l_import" title="Permalink to this definition"></a></dt>
+<dd><p>Imports and returns a module. If the base_module is provided, the module
+will be a submodule of the base.</p>
+<p>If a <cite>base_module</cite> is provided, the base_module will be flagged as ‘mutated’ by our annotations.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.l_unpack_ex">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">l_unpack_ex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#l_unpack_ex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.l_unpack_ex" title="Permalink to this definition"></a></dt>
+<dd><p>Slits the iterable <cite>xs</cite> into three pieces and then joins them <cite>[*first, middle, *list]</cite>
+The first of length <cite>before</cite>, the last of length <cite>after</cite>, and the middle whatever is remaining.</p>
+<p>Modeled after the UNPACK_EX bytecode to be used in unpacking.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.lineabuiltins.l_unpack_sequence">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.lineabuiltins.</span></span><span class="sig-name descname"><span class="pre">l_unpack_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/utils/lineabuiltins.html#l_unpack_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.lineabuiltins.l_unpack_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Asserts the iterable <cite>xs</cite> is of length <cite>n</cite> and turns it into a list.</p>
+<p>The same as <cite>l_list</cite> but asserts the length. This was modeled after the UNPACK_SEQUENCE
+bytecode to be used in unpacking</p>
+<p>The result should be a view of the input.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils.logging_config">
+<span id="lineapy-utils-logging-config-module"></span><h2>lineapy.utils.logging_config module<a class="headerlink" href="#module-lineapy.utils.logging_config" title="Permalink to this heading"></a></h2>
+<p>Setup logging config for CLI and debugging.</p>
+<p>We don’t do this in our init, because if imported as a library we don’t
+want to mess up others logging configuration.</p>
+</section>
+<section id="module-lineapy.utils.tree_logger">
+<span id="lineapy-utils-tree-logger-module"></span><h2>lineapy.utils.tree_logger module<a class="headerlink" href="#module-lineapy.utils.tree_logger" title="Permalink to this heading"></a></h2>
+<p>Logging util for outputting function calls as trees!</p>
+<p>This is currently exposed through the <cite>–tree-log</cite> pytest command, which will log each test case to stdout.</p>
+<p>We log every method of the CLASSES, so to change what is logged, modify that list.
+Also, we color the statements, based on the class, using the CLASS_TO_COLOR mapping.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.tree_logger.print_tree_log">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.tree_logger.</span></span><span class="sig-name descname"><span class="pre">print_tree_log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/tree_logger.html#print_tree_log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.tree_logger.print_tree_log" title="Permalink to this definition"></a></dt>
+<dd><p>Print the tree log with rich.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.tree_logger.start_tree_log">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.tree_logger.</span></span><span class="sig-name descname"><span class="pre">start_tree_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/tree_logger.html#start_tree_log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.tree_logger.start_tree_log" title="Permalink to this definition"></a></dt>
+<dd><p>Starts logging, by overriding the classes, and also sets the top level label for the tree.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils.utils">
+<span id="lineapy-utils-utils-module"></span><h2>lineapy.utils.utils module<a class="headerlink" href="#module-lineapy.utils.utils" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.utils.get_value_type">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.utils.</span></span><span class="sig-name descname"><span class="pre">get_value_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ValueType" title="lineapy.data.types.ValueType"><span class="pre">ValueType</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/utils/utils.html#get_value_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.utils.get_value_type" title="Permalink to this definition"></a></dt>
+<dd><p>Got a little hacky so as to avoid dependency on external libraries.
+Current method is to check if the dependent library is already imported,
+if they are, then we can reference them.</p>
+<p>Note:
+- Watch out for error here if the Executor tests fail.
+TODO
+- We currently just silently ignore cases we cant handle</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.utils.listify">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.utils.</span></span><span class="sig-name descname"><span class="pre">listify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CALLABLE</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CALLABLE</span></span></span><a class="reference internal" href="../_modules/lineapy/utils/utils.html#listify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.utils.listify" title="Permalink to this definition"></a></dt>
+<dd><p>TODO: Once we switch to Python 3.10, we can type this properly
+<a class="reference external" href="https://www.python.org/dev/peps/pep-0612/">https://www.python.org/dev/peps/pep-0612/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.utils.remove_duplicates">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.utils.</span></span><span class="sig-name descname"><span class="pre">remove_duplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/utils/utils.html#remove_duplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.utils.remove_duplicates" title="Permalink to this definition"></a></dt>
+<dd><p>Remove all duplicate items, maintaining order.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.utils.utils.remove_value">
+<span class="sig-prename descclassname"><span class="pre">lineapy.utils.utils.</span></span><span class="sig-name descname"><span class="pre">remove_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/utils/utils.html#remove_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.utils.utils.remove_value" title="Permalink to this definition"></a></dt>
+<dd><p>Remove all items equal to x.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.utils" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.transformer.html" class="btn btn-neutral float-left" title="lineapy.transformer package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.utils.analytics.html" class="btn btn-neutral float-right" title="lineapy.utils.analytics package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

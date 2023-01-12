@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.visualizer.visual_graph &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../visualizer.html">lineapy.visualizer</a> &raquo;</li>
+      <li>lineapy.visualizer.visual_graph</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.visualizer.visual_graph</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">An abstract graph representation that is conducive to being visualized easily.</span>
+
+<span class="sd">We include in this graph:</span>
+
+<span class="sd">* From the DB about this session:</span>
+<span class="sd">  * Nodes</span>
+<span class="sd">  * Artifacts</span>
+<span class="sd">  * Source code</span>
+<span class="sd">* From the tracer:</span>
+<span class="sd">  * Mutation and view edges</span>
+<span class="sd">  * Variables</span>
+
+<span class="sd">We currently don&#39;t include, but could:</span>
+
+<span class="sd">* Node values</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">FrozenSet</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.graph</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CallNode</span><span class="p">,</span>
+    <span class="n">GlobalNode</span><span class="p">,</span>
+    <span class="n">ImportNode</span><span class="p">,</span>
+    <span class="n">LineaID</span><span class="p">,</span>
+    <span class="n">LiteralNode</span><span class="p">,</span>
+    <span class="n">LookupNode</span><span class="p">,</span>
+    <span class="n">MutateNode</span><span class="p">,</span>
+    <span class="n">Node</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.tracer</span> <span class="kn">import</span> <span class="n">Tracer</span>
+
+
+<div class="viewcode-block" id="VisualGraphOptions"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualGraphOptions">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">VisualGraphOptions</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to store options for the visualizer, so that we can properly type them</span>
+<span class="sd">    as we pass this down the stack.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">graph</span><span class="p">:</span> <span class="n">Graph</span>
+    <span class="c1"># The tracer is optional, if provided, will let us show some additional</span>
+    <span class="c1"># information, like variables.</span>
+    <span class="n">tracer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tracer</span><span class="p">]</span>
+
+    <span class="c1"># Whether to highlight a certain node.</span>
+    <span class="c1"># For now, this will only show that node and its ancestors.</span>
+    <span class="c1"># In the future, it will grey out the rest, but still show them</span>
+    <span class="n">highlight_node</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="c1"># Whether to add edges for the implied views in the tracer (requires tracer)</span>
+    <span class="n">show_implied_mutations</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="c1"># Whether to add edges for the views kept in the tracer (requires tracer)</span>
+    <span class="n">show_views</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="c1"># Whether to show artifacts (requires tracer)</span>
+    <span class="n">show_artifacts</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="c1"># Whether to show variables (requires tracer)</span>
+    <span class="n">show_variables</span><span class="p">:</span> <span class="nb">bool</span></div>
+
+
+<div class="viewcode-block" id="to_visual_graph"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.to_visual_graph">[docs]</a><span class="k">def</span> <span class="nf">to_visual_graph</span><span class="p">(</span><span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisualGraph</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a visual graph based on the options.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tracer</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">tracer</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">graph</span>
+    <span class="n">vg</span> <span class="o">=</span> <span class="n">VisualGraph</span><span class="p">()</span>
+
+    <span class="c1"># We will create some mappings to start, so that we can add the</span>
+    <span class="c1"># variables and artifacts to each node</span>
+
+    <span class="c1"># First create a mapping of each node ID to all of its artifact names</span>
+    <span class="n">id_to_artifacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_artifacts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tracer</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot show artifacts without tracer&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">tracer</span><span class="o">.</span><span class="n">session_artifacts</span><span class="p">():</span>
+            <span class="n">id_to_artifacts</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">node_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># Then create a mapping of each node to the variables which point to it</span>
+    <span class="n">id_to_variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_variables</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tracer</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot show implied mutations without tracer&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">tracer</span><span class="o">.</span><span class="n">variable_name_to_node</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">id_to_variables</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># First add all the nodes from the session</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+        <span class="n">extra_labels</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ExtraLabel</span><span class="p">(</span><span class="n">a</span> <span class="ow">or</span> <span class="s2">&quot;Unnamed Artifact&quot;</span><span class="p">,</span> <span class="n">ExtraLabelType</span><span class="o">.</span><span class="n">ARTIFACT</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">id_to_artifacts</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">ExtraLabel</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">ExtraLabelType</span><span class="o">.</span><span class="n">VARIABLE</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">id_to_variables</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">process_node</span><span class="p">(</span><span class="n">vg</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">VisualNode</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">node_type</span><span class="p">,</span> <span class="n">contents</span><span class="p">,</span> <span class="n">extra_labels</span><span class="p">))</span>
+
+    <span class="c1"># For now, our algorithm for making nodes based on source locations is:</span>
+    <span class="c1"># 1. Whenever we encounter a node, if we haven&#39;t made a source code node</span>
+    <span class="c1">#    for that pair of start and end lines, make one and add an edge</span>
+    <span class="c1">#    from the previous to it.</span>
+    <span class="c1"># 2. We add an edge from that source node to the node.</span>
+
+    <span class="c1"># This assumes that we iterate through nodes in line order, and that</span>
+    <span class="c1">#  we skip printing any lines that don&#39;t appear in nodes.</span>
+    <span class="c1"># It also assumes that we have no overlapping line number ranges,</span>
+    <span class="c1"># i.e. a node that is from lines 1-3 and another node just on line 3</span>
+    <span class="c1"># If this does occur, we will end up print line 3&#39;s source code twice.</span>
+
+    <span class="n">added_source_ids</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">last_added_source_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Then add the source code nodes</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+        <span class="n">source_location</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">source_location</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_location</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">id_</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source_location</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">source_location</span><span class="o">.</span><span class="n">lineno</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">source_location</span><span class="o">.</span><span class="n">end_lineno</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">id_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">added_source_ids</span><span class="p">:</span>
+            <span class="n">added_source_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span>
+            <span class="c1"># Use \l instead of \n for left aligned code</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">r</span><span class="s2">&quot;\l&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">source_location</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span>
+                        <span class="n">source_location</span><span class="o">.</span><span class="n">lineno</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">source_location</span><span class="o">.</span><span class="n">end_lineno</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot;\l&quot;</span>
+            <span class="p">)</span>
+            <span class="n">vg</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">VisualNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">SourceLineType</span><span class="p">(),</span> <span class="n">contents</span><span class="p">,</span> <span class="p">[]))</span>
+
+            <span class="k">if</span> <span class="n">last_added_source_id</span><span class="p">:</span>
+                <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                    <span class="n">VisualEdge</span><span class="p">(</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">last_added_source_id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">id_</span><span class="p">),</span>
+                        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">NEXT_LINE</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">last_added_source_id</span> <span class="o">=</span> <span class="n">id_</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+            <span class="n">VisualEdge</span><span class="p">(</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">id_</span><span class="p">),</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">SOURCE_CODE</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="c1"># Then we can add all the additional information from the tracer</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_implied_mutations</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tracer</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot show implied mutations without tracer&quot;</span><span class="p">)</span>
+        <span class="c1"># the mutate nodes</span>
+        <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">mutate</span> <span class="ow">in</span> <span class="n">tracer</span><span class="o">.</span><span class="n">mutation_tracker</span><span class="o">.</span><span class="n">source_to_mutate</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                <span class="n">VisualEdge</span><span class="p">(</span>
+                    <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">source</span><span class="p">),</span>
+                    <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">mutate</span><span class="p">),</span>
+                    <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">LATEST_MUTATE_SOURCE</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_views</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tracer</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot show views without tracer&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create a set of unique pairs of viewers, where order doesn&#39;t matter</span>
+        <span class="c1"># Since they aren&#39;t directed</span>
+        <span class="n">viewer_pairs</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="n">FrozenSet</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">frozenset</span><span class="p">([</span><span class="n">source</span><span class="p">,</span> <span class="n">viewer</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">viewers</span> <span class="ow">in</span> <span class="n">tracer</span><span class="o">.</span><span class="n">mutation_tracker</span><span class="o">.</span><span class="n">viewers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="n">viewers</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">viewer_pairs</span><span class="p">:</span>
+            <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                <span class="n">VisualEdge</span><span class="p">(</span>
+                    <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">source</span><span class="p">),</span>
+                    <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">target</span><span class="p">),</span>
+                    <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">highlight_node</span><span class="p">:</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">highlight_ancestors</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">highlight_node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vg</span></div>
+
+
+<span class="c1"># TODO: Make single dispatch based on node type</span>
+<div class="viewcode-block" id="process_node"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.process_node">[docs]</a><span class="k">def</span> <span class="nf">process_node</span><span class="p">(</span>
+    <span class="n">vg</span><span class="p">:</span> <span class="n">VisualGraph</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the contents of a node and add its edges.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_id</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ImportNode</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">CallNode</span><span class="p">):</span>
+        <span class="c1"># The call node body is in struct format to allow pointing to each</span>
+        <span class="c1"># variable independently</span>
+        <span class="c1"># https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="s2">&quot;&lt;fn&gt; fn&quot;</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+            <span class="n">VisualEdge</span><span class="p">(</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">function_id</span><span class="p">),</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">,</span> <span class="s2">&quot;fn&quot;</span><span class="p">),</span>
+                <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">FUNCTION</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">:</span>
+            <span class="n">args_contents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">):</span>
+                <span class="n">sub_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">args_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="n">sub_id</span><span class="si">}</span><span class="s2">&gt; </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                    <span class="n">VisualEdge</span><span class="p">(</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">p_id</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">,</span> <span class="n">sub_id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">POSITIONAL_ARG</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">contents</span> <span class="o">+=</span> <span class="s2">&quot;| {{&quot;</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args_contents</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;} | args }&quot;</span>
+
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">keyword_args</span><span class="p">:</span>
+            <span class="n">kwargs_contents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keyword_args</span><span class="p">:</span>
+                <span class="n">sub_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;k_</span><span class="si">{</span><span class="n">kw</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">kwargs_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="n">sub_id</span><span class="si">}</span><span class="s2">&gt; </span><span class="si">{</span><span class="n">kw</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                    <span class="n">VisualEdge</span><span class="p">(</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">kw</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">,</span> <span class="n">sub_id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">KEYWORD_ARG</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">contents</span> <span class="o">+=</span> <span class="s2">&quot;| {{&quot;</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kwargs_contents</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;} | kwargs }&quot;</span>
+
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">global_reads</span><span class="p">:</span>
+            <span class="n">global_reads_contents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">global_reads</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">sub_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;v_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">global_reads_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="n">sub_id</span><span class="si">}</span><span class="s2">&gt; </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                    <span class="n">VisualEdge</span><span class="p">(</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">v</span><span class="p">),</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">,</span> <span class="n">sub_id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">GLOBAL_READ</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">contents</span> <span class="o">+=</span> <span class="s2">&quot;| {{&quot;</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">global_reads_contents</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;} | vars }&quot;</span>
+
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">implicit_dependencies</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">im_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">implicit_dependencies</span><span class="p">):</span>
+                <span class="n">sub_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;i_</span><span class="si">{</span><span class="n">ii</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                    <span class="n">VisualEdge</span><span class="p">(</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">im_id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">),</span>
+                        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">IMPLICIT_DEPENDENCY</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">contents</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">LiteralNode</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">LookupNode</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">MutateNode</span><span class="p">):</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+            <span class="n">VisualEdge</span><span class="p">(</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">source_id</span><span class="p">),</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">),</span>
+                <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">MUTATE_SOURCE</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+            <span class="n">VisualEdge</span><span class="p">(</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">),</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">,</span> <span class="s2">&quot;call&quot;</span><span class="p">),</span>
+                <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">MUTATE_CALL</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;src&gt; src|&lt;call&gt; call&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">GlobalNode</span><span class="p">):</span>
+        <span class="n">vg</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+            <span class="n">VisualEdge</span><span class="p">(</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">),</span>
+                <span class="n">VisualEdgeID</span><span class="p">(</span><span class="n">n_id</span><span class="p">),</span>
+                <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="VisualGraph"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualGraph">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">VisualGraph</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A visual graph contains a number of nodes and directed edges</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Make these private and add property lookups so that</span>
+    <span class="c1"># we are forced to used helper methods to add edges and nodes</span>
+    <span class="n">_nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">VisualNode</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">_edges</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">VisualEdge</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="c1"># Keep these mappings for more performant traversal, when filtering to highlight ancestors</span>
+    <span class="c1"># Mapping from each node id to all its parent edges</span>
+    <span class="n">_node_id_to_parent_edges</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">VisualEdge</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">_node_id_to_node</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">VisualNode</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">VisualEdge</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">VisualNode</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span>
+
+    <span class="k">def</span> <span class="nf">node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">VisualNode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_node_id_to_node</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+
+    <span class="k">def</span> <span class="nf">edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge</span><span class="p">:</span> <span class="n">VisualEdge</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+        <span class="c1"># If this is a a pointer from source code to next line, don&#39;t add it</span>
+        <span class="c1"># since this doesn&#39;t count as a dependency</span>
+        <span class="k">if</span> <span class="n">edge</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">NEXT_LINE</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Add this edge as a parent edge for the target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_node_id_to_parent_edges</span><span class="p">[</span><span class="n">edge</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">node_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VisualGraph.highlight_ancestors"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualGraph.highlight_ancestors">[docs]</a>    <span class="k">def</span> <span class="nf">highlight_ancestors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update a graph to only highlight the ancestors of a certain node.</span>
+
+<span class="sd">        We could instead do this graph traversal with the original nodes,</span>
+<span class="sd">        as we do when computing the program slice. However we have some graph only nodes,</span>
+<span class="sd">        like the source code, so for now we are re-walking the graph to determine</span>
+<span class="sd">        the slice at the visual graph level.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Set every node to un-highlighted</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">highlighted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span>
+            <span class="n">edge</span><span class="o">.</span><span class="n">highlighted</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Traverse the graph, from the node to all its ancestors,</span>
+        <span class="c1"># every time we encounter a node, set it to highlighted.</span>
+        <span class="c1"># and then mark it to be traversed.</span>
+        <span class="n">frontier</span> <span class="o">=</span> <span class="p">{</span><span class="n">node_id</span><span class="p">}</span>
+        <span class="n">seen</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">frontier</span><span class="p">:</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="n">frontier</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_node_id_to_node</span><span class="p">[</span><span class="n">id_</span><span class="p">]</span><span class="o">.</span><span class="n">highlighted</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_node_id_to_parent_edges</span><span class="p">[</span><span class="n">id_</span><span class="p">]:</span>
+                <span class="n">edge</span><span class="o">.</span><span class="n">highlighted</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">parent_id</span> <span class="o">=</span> <span class="n">edge</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">node_id</span>
+                <span class="k">if</span> <span class="n">parent_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="n">frontier</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent_id</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">get_node_id</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="n">ExtraLabels</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ExtraLabel&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SourceLineType"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.SourceLineType">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">SourceLineType</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Type used to represent a source code line</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+<span class="n">VisualNodeType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">NodeType</span><span class="p">,</span> <span class="n">SourceLineType</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="VisualNode"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualNode">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">VisualNode</span><span class="p">:</span>
+    <span class="c1"># A unique ID for the node</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1"># The type of the node, used for coloring</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">VisualNodeType</span>
+    <span class="c1"># The contents of the cell, either a string for its label</span>
+    <span class="c1"># or a string in the struct format</span>
+    <span class="c1"># https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py</span>
+    <span class="n">contents</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="c1"># A list of &quot;extra labels&quot; that are associated with the node</span>
+    <span class="n">extra_labels</span><span class="p">:</span> <span class="n">ExtraLabels</span>
+
+    <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ExtraLabel"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.ExtraLabel">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ExtraLabel</span><span class="p">:</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">ExtraLabelType</span></div>
+
+
+<div class="viewcode-block" id="ExtraLabelType"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.ExtraLabelType">[docs]</a><span class="k">class</span> <span class="nc">ExtraLabelType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">VARIABLE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">ARTIFACT</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="VisualEdge"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualEdge">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">VisualEdge</span><span class="p">:</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">VisualEdgeID</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">VisualEdgeID</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">VisualEdgeType</span>
+    <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualEdgeID"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualEdgeID">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">VisualEdgeID</span><span class="p">:</span>
+    <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1"># The port the edge is related to</span>
+    <span class="c1"># https://graphviz.org/doc/info/shapes.html#record</span>
+    <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualEdgeType"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.VisualEdgeType">[docs]</a><span class="k">class</span> <span class="nc">VisualEdgeType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A visual edges includes all the possible edges in our DB types,</span>
+<span class="sd">    as well as the edges we store temporarily to assist in tracing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># From a function to the node which calls it</span>
+    <span class="n">FUNCTION</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="c1"># From a node to the call node that uses it as positional arg</span>
+    <span class="n">POSITIONAL_ARG</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="c1"># From a node to the call node that uses it as keyword arg</span>
+    <span class="n">KEYWORD_ARG</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="c1"># From a node to a call node which reads it from globals</span>
+    <span class="n">GLOBAL_READ</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+
+    <span class="c1"># From a source node to the mutate node which represents a mutated</span>
+    <span class="c1"># version of it</span>
+    <span class="n">MUTATE_SOURCE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="c1"># From a call node to the mutate node which it created for any args it mutated</span>
+    <span class="n">MUTATE_CALL</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+
+    <span class="c1"># Mapping from a source node to the latest node that they mutate</span>
+    <span class="n">LATEST_MUTATE_SOURCE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="c1"># Mapping from a source node to a node that has a view of it</span>
+    <span class="n">VIEW</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+
+    <span class="c1"># Edge from a line of source to the next line</span>
+    <span class="n">NEXT_LINE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="c1"># Edge from a line of source to a node that results from it</span>
+    <span class="n">SOURCE_CODE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+
+    <span class="c1"># Edge from a node to global node that reads a value from it</span>
+    <span class="n">GLOBAL</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+
+    <span class="n">IMPLICIT_DEPENDENCY</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.data package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.db package" href="lineapy.db.html" />
+    <link rel="prev" title="lineapy.cli package" href="lineapy.cli.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.data package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-data-package">
+<h1>lineapy.data package<a class="headerlink" href="#lineapy-data-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.data.graph">
+<span id="lineapy-data-graph-module"></span><h2>lineapy.data.graph module<a class="headerlink" href="#module-lineapy.data.graph" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.data.graph.queue_get_when">
+<span class="sig-prename descclassname"><span class="pre">lineapy.data.graph.</span></span><span class="sig-name descname"><span class="pre">queue_get_when</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Queue</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T</span></span></span><a class="reference internal" href="../_modules/lineapy/data/graph.html#queue_get_when"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.graph.queue_get_when" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the first element in the queue that satisfies the filter function.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.data.types">
+<span id="lineapy-data-types-module"></span><h2>lineapy.data.types module<a class="headerlink" href="#module-lineapy.data.types" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.Artifact">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">Artifact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_created</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#Artifact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.Artifact" title="Permalink to this definition"></a></dt>
+<dd><p>An artifact points to the value of a node during some execution.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.BaseNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">BaseNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.Node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#BaseNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.BaseNode" title="Permalink to this definition"></a></dt>
+<dd><ul class="simple">
+<li><p>id: string version of UUID, which we chose because
+we do not need to coordinate to make it unique</p></li>
+<li><p>lineno, col_offset, end_lino, end_col_offsets: these record the position
+of the calls. They are optional because it’s not required some nodes,
+such as side-effects nodes, which do not correspond to a line of code.</p></li>
+<li><p><cite>class Config</cite>’s orm_mode allows us to use from_orm to convert ORM
+objects to pydantic objects</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.data.types.BaseNode.parents">
+<span class="sig-name descname"><span class="pre">parents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/data/types.html#BaseNode.parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.BaseNode.parents" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the parents of this node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.CallNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">CallNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.CallNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positional_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">PositionalArgument</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keyword_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">KeywordArgument</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_reads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implicit_dependencies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#CallNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.CallNode" title="Permalink to this definition"></a></dt>
+<dd><ul class="simple">
+<li><p><cite>function_id</cite>: node containing the value of the function call, which
+could be from various places: (1) locally defined, (2) imported, and
+(3) magically existing, e.g. from builtins (<cite>min</cite>), or environment
+like <cite>get_ipython</cite>.</p></li>
+<li><p><cite>value</cite>: value of the call result, filled at runtime. It may be cached
+by the data asset manager</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.data.types.CallNode.parents">
+<span class="sig-name descname"><span class="pre">parents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/data/types.html#CallNode.parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.CallNode.parents" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the parents of this node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.Execution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">Execution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#Execution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.Execution" title="Permalink to this definition"></a></dt>
+<dd><p>An execution is one session of running many nodes and recording their values.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.GlobalNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">GlobalNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.GlobalNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#GlobalNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.GlobalNode" title="Permalink to this definition"></a></dt>
+<dd><p>Represents a lookup of a global variable, that was set as a side effect
+in another node.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.data.types.GlobalNode.parents">
+<span class="sig-name descname"><span class="pre">parents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/data/types.html#GlobalNode.parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.GlobalNode.parents" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the parents of this node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.ImportNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">ImportNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.ImportNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#ImportNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.ImportNode" title="Permalink to this definition"></a></dt>
+<dd><p>Imported libraries.</p>
+<p><cite>version</cite> and <cite>package_name</cite> are retrieved at runtime.
+<cite>package_name</cite> may be different from import name, see get_lib_package_version.</p>
+<p>These are optional because the info is acquired at runtime.</p>
+<dl class="simple">
+<dt>Note that this node is not actually used for execution (using <cite>l_import</cite> CallNodes),</dt><dd><p>but more a decoration for metadata retrieval.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.LiteralNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">LiteralNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.LiteralNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#LiteralNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.LiteralNode" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.LiteralType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">LiteralType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#LiteralType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.LiteralType" title="Permalink to this definition"></a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.LookupNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">LookupNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.LookupNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#LookupNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.LookupNode" title="Permalink to this definition"></a></dt>
+<dd><p>For unknown/undefined variables e.g. SQLcontext, get_ipython, int.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.MutateNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">MutateNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NodeType.MutateNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#MutateNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.MutateNode" title="Permalink to this definition"></a></dt>
+<dd><p>Represents a mutation of a node’s value.</p>
+<p>After a call mutates a node then later references to that node will
+instead refer to this mutate node.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.data.types.MutateNode.parents">
+<span class="sig-name descname"><span class="pre">parents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/data/types.html#MutateNode.parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.MutateNode.parents" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the parents of this node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.NodeType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">NodeType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#NodeType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.NodeType" title="Permalink to this definition"></a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.PipelineType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">PipelineType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#PipelineType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.PipelineType" title="Permalink to this definition"></a></dt>
+<dd><p>Pipeline types allow the to_pipeline to know what to expect
+- SCRIPT : the pipeline is wrapped as a python script
+- AIRFLOW : the pipeline is wrapped as an airflow dag</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.SessionContext">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">SessionContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SessionType" title="lineapy.data.types.SessionType"><span class="pre">SessionType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">working_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#SessionContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.SessionContext" title="Permalink to this definition"></a></dt>
+<dd><p>Each trace of a script/notebook is a “Session”.
+:param working_directory: captures where the code ran by the user</p>
+<ul class="simple">
+<li><p>we should remove the dependency on the working_directory because
+its brittle</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.SessionType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">SessionType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#SessionType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.SessionType" title="Permalink to this definition"></a></dt>
+<dd><p>Session types allow the tracer to know what to expect
+- JUPYTER: the tracer need to progressively add more nodes to the graph
+- SCRIPT: the easiest case, run everything until the end</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.SourceCode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">SourceCode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">JupyterCell</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#SourceCode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.SourceCode" title="Permalink to this definition"></a></dt>
+<dd><p>The source code of the code that was executed.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.SourceLocation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">SourceLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineno</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_lineno</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_col_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.data.types.SourceCode" title="lineapy.data.types.SourceCode"><span class="pre">SourceCode</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#SourceLocation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.SourceLocation" title="Permalink to this definition"></a></dt>
+<dd><p>The location of the original source.</p>
+<p>eventually we need to also be able to support fused locations, like MLIR:
+<a class="reference external" href="https://mlir.llvm.org/docs/Dialects/Builtin/#location-attributes">https://mlir.llvm.org/docs/Dialects/Builtin/#location-attributes</a>
+but for now we just point at the original user source location.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.data.types.ValueType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.data.types.</span></span><span class="sig-name descname"><span class="pre">ValueType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#ValueType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.data.types.ValueType" title="Permalink to this definition"></a></dt>
+<dd><p>Lower case because the API with the frontend assume the characters “chart”
+exactly as is.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>FIXME</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>rename (need coordination with linea-server):</dt><dd><ul>
+<li><p>really <cite>dataset</cite> is a table</p></li>
+<li><p><cite>value</cite> means its a literal  (e.g., int/str)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.data">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.data" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.cli.html" class="btn btn-neutral float-left" title="lineapy.cli package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.db.html" class="btn btn-neutral float-right" title="lineapy.db package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interfaces" href="interfaces.html" />
+    <link rel="prev" title="Installation" href="setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Quick Start</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/fundamentals/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="quick-start">
+<span id="quickstart"></span><h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure that you have LineaPy installed. You can find relevant instructions
+in the <a class="reference internal" href="setup.html#setup"><span class="std std-ref">Installation</span></a> section.</p>
+</div>
+<p>Once LineaPy is installed, we are ready to start using the package. We start with a simple
+example using the <a class="reference external" href="https://en.wikipedia.org/wiki/Iris_flower_data_set">Iris dataset</a> to demonstrate how to use LineaPy to 1) store a variable’s history, 2) get its cleaned-up code,
+and 3) build an executable pipeline for the variable.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lineapy</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span><span class="p">,</span> <span class="n">ElasticNet</span>
+
+<span class="c1"># Load data</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># Some very basic feature engineering</span>
+<span class="n">color_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Setosa&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Versicolor&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Virginica&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">color_map</span><span class="p">)</span>
+<span class="n">df2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">df2</span><span class="p">[</span><span class="s2">&quot;d_versicolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Versicolor&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">df2</span><span class="p">[</span><span class="s2">&quot;d_virginica&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Virginica&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Initialize two models</span>
+<span class="n">model1</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+<span class="n">model2</span> <span class="o">=</span> <span class="n">ElasticNet</span><span class="p">()</span>
+
+<span class="c1"># Fit both models</span>
+<span class="n">model1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">X</span><span class="o">=</span><span class="n">df2</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;d_versicolor&quot;</span><span class="p">,</span> <span class="s2">&quot;d_virginica&quot;</span><span class="p">]],</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">df2</span><span class="p">[</span><span class="s2">&quot;sepal.width&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">model2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;variety_color&quot;</span><span class="p">]],</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;sepal.width&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we reach the end of our development session and decide to save the ElasticNet model.
+We can store the model as a LineaPy <a class="reference internal" href="concepts.html#concepts"><span class="std std-ref">artifact</span></a> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Store the model as an artifact</span>
+<span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model2</span><span class="p">,</span> <span class="s2">&quot;iris_elasticnet_model&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A LineaPy artifact encapsulates both the value <em>and</em> code, so we can easily retrieve
+the model’s code, like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve the model artifact</span>
+<span class="n">artifact</span> <span class="o">=</span> <span class="n">lineapy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iris_elasticnet_model&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check code for the model artifact</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">get_code</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>which will print:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+from sklearn.linear_model import ElasticNet
+
+df = pd.read_csv(
+    &quot;https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv&quot;
+)
+color_map = {&quot;Setosa&quot;: 0, &quot;Versicolor&quot;: 1, &quot;Virginica&quot;: 2}
+df[&quot;variety_color&quot;] = df[&quot;variety&quot;].map(color_map)
+model2 = ElasticNet()
+model2.fit(
+    X=df[[&quot;petal.width&quot;, &quot;variety_color&quot;]],
+    y=df[&quot;sepal.width&quot;],
+)
+</pre></div>
+</div>
+<p>Note that these are the minimal essential steps to produce the model. That is, LineaPy has automatically
+cleaned up the original code by removing extraneous operations that do not affect the model.</p>
+<p>Say we are now asked to retrain the model on a regular basis to account for any updates in the source data.
+We need to set up a pipeline to train the model, and LineaPy make it as simple as a single line of code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lineapy</span><span class="o">.</span><span class="n">to_pipeline</span><span class="p">(</span>
+    <span class="n">artifacts</span><span class="o">=</span><span class="p">[</span><span class="n">artifact</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+    <span class="n">pipeline_name</span><span class="o">=</span><span class="s2">&quot;iris_model_pipeline&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;output/&quot;</span><span class="p">,</span>
+    <span class="n">framework</span><span class="o">=</span><span class="s2">&quot;AIRFLOW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>which generates several files that can be used to execute the pipeline from the UI or CLI.</p>
+<p>In sum, LineaPy automates time-consuming, manual steps in a data science workflow, helping us move
+our work into production more quickly.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To learn more about LineaPy’s API, check out <a class="reference external" href="https://docs.lineapy.org/en/latest/tutorials/00_api_basics.html">this</a> tutorial.</p>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="setup.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="interfaces.html" class="btn btn-neutral float-right" title="Interfaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

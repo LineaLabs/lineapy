@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.execution.executor &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.execution.executor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.execution.executor</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">builtins</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">chdir</span><span class="p">,</span> <span class="n">getcwd</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">Hashable</span><span class="p">,</span>
+    <span class="n">Iterable</span><span class="p">,</span>
+    <span class="n">List</span><span class="p">,</span>
+    <span class="n">Optional</span><span class="p">,</span>
+    <span class="n">Tuple</span><span class="p">,</span>
+    <span class="n">cast</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.graph</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CallNode</span><span class="p">,</span>
+    <span class="n">Execution</span><span class="p">,</span>
+    <span class="n">GlobalNode</span><span class="p">,</span>
+    <span class="n">ImportNode</span><span class="p">,</span>
+    <span class="n">LineaID</span><span class="p">,</span>
+    <span class="n">LiteralNode</span><span class="p">,</span>
+    <span class="n">LookupNode</span><span class="p">,</span>
+    <span class="n">MutateNode</span><span class="p">,</span>
+    <span class="n">Node</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.db</span> <span class="kn">import</span> <span class="n">RelationalLineaDB</span>
+<span class="kn">from</span> <span class="nn">lineapy.editors.ipython_cell_storage</span> <span class="kn">import</span> <span class="n">get_location_path</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.db_exceptions</span> <span class="kn">import</span> <span class="n">ArtifactSaveException</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.l_import_error</span> <span class="kn">import</span> <span class="n">LImportError</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.user_exception</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AddFrame</span><span class="p">,</span>
+    <span class="n">RemoveFrames</span><span class="p">,</span>
+    <span class="n">RemoveFramesWhile</span><span class="p">,</span>
+    <span class="n">TracebackChange</span><span class="p">,</span>
+    <span class="n">UserException</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.execution.context</span> <span class="kn">import</span> <span class="n">set_context</span><span class="p">,</span> <span class="n">teardown_context</span>
+<span class="kn">from</span> <span class="nn">lineapy.execution.inspect_function</span> <span class="kn">import</span> <span class="n">FunctionInspector</span>
+<span class="kn">from</span> <span class="nn">lineapy.execution.side_effects</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ID</span><span class="p">,</span>
+    <span class="n">ExecutorPointer</span><span class="p">,</span>
+    <span class="n">ImplicitDependencyNode</span><span class="p">,</span>
+    <span class="n">MutatedNode</span><span class="p">,</span>
+    <span class="n">SideEffect</span><span class="p">,</span>
+    <span class="n">ViewOfNodes</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.annotation_spec</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BoundSelfOfFunction</span><span class="p">,</span>
+    <span class="n">ExternalState</span><span class="p">,</span>
+    <span class="n">ImplicitDependencyValue</span><span class="p">,</span>
+    <span class="n">InspectFunctionSideEffect</span><span class="p">,</span>
+    <span class="n">KeywordArgument</span><span class="p">,</span>
+    <span class="n">MutatedValue</span><span class="p">,</span>
+    <span class="n">PositionalArg</span><span class="p">,</span>
+    <span class="n">Result</span><span class="p">,</span>
+    <span class="n">ValuePointer</span><span class="p">,</span>
+    <span class="n">ViewOfValues</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.lineabuiltins</span> <span class="kn">import</span> <span class="n">LINEA_BUILTINS</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">get_new_id</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">singledispatchmethod</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="c1"># this is the fallback for python &lt; 3.8</span>
+    <span class="c1"># https://stackoverflow.com/questions/24601722</span>
+    <span class="kn">from</span> <span class="nn">lineapy.utils.deprecation_utils</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># type: ignore</span>
+        <span class="n">singledispatchmethod</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># Need to define first in file, even though private, since used as type param</span>
+<span class="c1"># for single dispatch decorator and that requires typings to resolve</span>
+<div class="viewcode-block" id="PrivateExecuteResult"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.PrivateExecuteResult">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PrivateExecuteResult</span><span class="p">:</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">object</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">end_time</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">side_effects</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SideEffect</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Executor"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.Executor">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Executor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An executor that is responsible for executing a graph, either node by</span>
+<span class="sd">    node as it is created, or in a batch, after the fact.</span>
+
+<span class="sd">    To use the executor, you first instantiate it. Then you can execute nodes, by calling</span>
+<span class="sd">    `execute_node`. This returns a list of side effects that executing that node causes.</span>
+
+<span class="sd">    You can also query for the time a node took to execute or its value, using `get_value` and `get_execution_time`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># The database to use for saving the execution</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">RelationalLineaDB</span>
+
+    <span class="c1"># The globals for this execution, to use when trying to lookup a value</span>
+    <span class="c1"># Note: This is set in Jupyter so that `get_ipython` is defined</span>
+    <span class="n">_globals</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span>
+
+    <span class="c1"># The __file__ for the module being executed</span>
+    <span class="c1"># https://docs.python.org/3/reference/import.html#file__</span>
+    <span class="n">module_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># The execution to record the values in</span>
+    <span class="c1"># This is accessed via the ExecutionContext, which is set when executing a node</span>
+    <span class="c1"># so that artifacts created during the execution know which execution they should refer to.</span>
+    <span class="n">execution</span><span class="p">:</span> <span class="n">Execution</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">_function_inspector</span><span class="p">:</span> <span class="n">FunctionInspector</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="n">FunctionInspector</span>
+    <span class="p">)</span>
+    <span class="n">_id_to_value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">_execution_time</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span>
+    <span class="p">)</span>
+    <span class="c1"># Mapping of bound method node ids to the ID of the instance they are bound to</span>
+    <span class="n">_node_to_bound_self</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="c1"># Mapping of call node to the values of the globals that were updated</span>
+    <span class="c1"># Saved so that when we get these globals, we know their values</span>
+    <span class="c1"># TODO: rename to variable</span>
+    <span class="n">_node_to_globals</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Mapping of values to their nodes. Currently the only values</span>
+    <span class="c1"># in here are external state values</span>
+    <span class="n">_value_to_node</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execution</span> <span class="o">=</span> <span class="n">Execution</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">get_new_id</span><span class="p">(),</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">write_execution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Executor.get_execution_time"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.Executor.get_execution_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_execution_time</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the (startime, endtime) for a node that was execute.</span>
+
+<span class="sd">        Only applies for function call nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execution_time</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Executor.get_value"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.Executor.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the Python in memory value for a node which was already executed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Executor.execute_node"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.Executor.execute_node">[docs]</a>    <span class="k">def</span> <span class="nf">execute_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">SideEffect</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Variables is the mapping from local variable names to their nodes. It</span>
+<span class="sd">        is passed in on the first execution, but on re-executions it is empty.</span>
+
+<span class="sd">        At that point we know which variables each call node depends on, since</span>
+<span class="sd">        the first time we executed we captured that.</span>
+
+<span class="sd">        Does the following:</span>
+
+<span class="sd">        - Executes a node</span>
+<span class="sd">        - And records</span>
+
+<span class="sd">          - value (currently: only for call nodes and all call nodes)</span>
+<span class="sd">          - execution time</span>
+
+<span class="sd">        - Add a new frame to the stack to support error reporting. Without it,</span>
+<span class="sd">          the traceback will be empty.</span>
+<span class="sd">        - Returns the `SideEffects` of this node that&#39;s analyzed at runtime (hence in the executor).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing node </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+
+        <span class="c1"># To use if we need to raise an exception and change the frame</span>
+        <span class="n">default_changes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AddFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># If we know the source location, add that frame at the top</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="p">:</span>
+            <span class="n">location</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">location</span>
+            <span class="n">default_changes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">AddFrame</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">get_location_path</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()),</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">default_changes</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execution_time</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">end_time</span>
+        <span class="c1"># If this is some external state node, save it by its value,</span>
+        <span class="c1"># so we can look it up later if we try access it</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ExternalState</span><span class="p">):</span>
+            <span class="c1"># If we already know about this node, add an implicit</span>
+            <span class="c1"># dependency from the old version to the new one</span>
+
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_to_node</span><span class="p">:</span>
+                <span class="c1"># However, don&#39;t add any edges for mutate nodes, since</span>
+                <span class="c1"># they already should have it from the source</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">MutateNode</span><span class="p">):</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">side_effects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">ImplicitDependencyNode</span><span class="p">(</span><span class="n">ID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value_to_node</span><span class="p">[</span><span class="n">value</span><span class="p">]))</span>
+                    <span class="p">)</span>
+                <span class="c1"># If this is a mutate node, then update the value to node to the new</span>
+                <span class="c1"># value, so we always get the last one</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_value_to_node</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span>
+
+            <span class="c1"># Otherwise, this is the first time we are seeing it, so</span>
+            <span class="c1"># add it to our lookup</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_value_to_node</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">side_effects</span></div>
+
+    <span class="nd">@singledispatchmethod</span>
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes a node, returning the resulting value, the start and end times,</span>
+<span class="sd">        and any side effects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Don&#39;t know how to execute node type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nd">@_execute</span><span class="o">.</span><span class="n">register</span>
+    <span class="k">def</span> <span class="nf">_execute_lookup</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">LookupNode</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+        <span class="c1"># If we get a lookup error, change it to a name error to match python</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lookup_value</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># Matches Python&#39;s message---our execution causes a KeyError,</span>
+            <span class="c1"># but for the same user code, vanilla Python would throw NameError</span>
+            <span class="c1"># which is why we needed to change the error type.</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;name &#39;</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is not defined&quot;</span>
+            <span class="k">raise</span> <span class="n">UserException</span><span class="p">(</span><span class="ne">NameError</span><span class="p">(</span><span class="n">message</span><span class="p">),</span> <span class="o">*</span><span class="n">changes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PrivateExecuteResult</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="nd">@_execute</span><span class="o">.</span><span class="n">register</span>
+    <span class="k">def</span> <span class="nf">_execute_call</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">CallNode</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Callable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">function_id</span><span class="p">])</span>
+
+        <span class="c1"># If we are getting an attribute, save the value in case</span>
+        <span class="c1"># we later call it as a bound method and need to track its mutations</span>
+        <span class="c1"># For example, for `a = [1]; a.append(2)`</span>
+        <span class="c1"># We need to trace `a`, as opposed to `a.append` when tracking the</span>
+        <span class="c1"># mutation.</span>
+        <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="nb">getattr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_node_to_bound_self</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p_arg</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p_arg</span><span class="o">.</span><span class="n">starred</span><span class="p">:</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Iterable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">p_arg</span><span class="o">.</span><span class="n">id</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">p_arg</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keyword_args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">starred</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">value</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">value</span><span class="p">]})</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Calling function </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Set up our execution context, with our globals and node</span>
+        <span class="n">set_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">ArtifactSaveException</span><span class="p">:</span>
+            <span class="c1"># keep the error stack if its artifact save</span>
+            <span class="k">raise</span>
+        <span class="k">except</span> <span class="n">LImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="c1"># Remove all importlib frames</span>
+            <span class="c1"># There are a different number depending on whether the import</span>
+            <span class="c1"># can be resolved</span>
+            <span class="nb">filter</span> <span class="o">=</span> <span class="n">RemoveFramesWhile</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">frame</span><span class="p">:</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+                    <span class="s2">&quot;&lt;frozen importlib&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">UserException</span><span class="p">(</span>
+                <span class="n">exc</span><span class="o">.</span><span class="n">__cause__</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="c1"># Remove the first two frames, which are always there</span>
+                <span class="n">RemoveFrames</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+                <span class="c1"># Then filter all frozen importlib frames</span>
+                <span class="nb">filter</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">changes</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="c1"># this is user error, so use the custom exception so we can clean</span>
+            <span class="c1"># up our call stack</span>
+            <span class="k">raise</span> <span class="n">UserException</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">RemoveFrames</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">changes</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Tearing down context&quot;</span><span class="p">)</span>
+            <span class="c1"># Check what has been changed and accessed in the globals</span>
+            <span class="c1"># Do this in a finally, so its always torn down even after exceptions</span>
+            <span class="n">globals_result</span> <span class="o">=</span> <span class="n">teardown_context</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_node_to_globals</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">globals_result</span><span class="o">.</span><span class="n">added_or_modified</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add all side effects from context as well as side effects from </span>
+<span class="sd">           inspecting function.</span>
+<span class="sd">        `side_effects` is an iterable, so that each translated </span>
+<span class="sd">          side effect is resolved after the previous one has been executed </span>
+<span class="sd">          (the control is yielded). Consider </span>
+<span class="sd">          ```</span>
+<span class="sd">          with open(&quot;...&quot;, &quot;w&quot;) as f</span>
+<span class="sd">          ```</span>
+<span class="sd">          We create both the node that represents the side-effect, and a view node</span>
+<span class="sd">          so the side-effect from the inspect_function in the executor, if the </span>
+<span class="sd">          executor sees that there is no node (first time), then sends to tracer,</span>
+<span class="sd">          tracer creates a lookup node, then give back to executor to process it.</span>
+
+<span class="sd">        NOTE: we have a near term eng goal to refactor how side-effect is</span>
+<span class="sd">              handled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolving side effects&quot;</span><span class="p">)</span>
+        <span class="n">side_effects</span> <span class="o">=</span> <span class="n">globals_result</span><span class="o">.</span><span class="n">side_effects</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_translate_side_effect</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_function_inspector</span><span class="o">.</span><span class="n">inspect</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">PrivateExecuteResult</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">side_effects</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Executor.lookup_external_state"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.Executor.lookup_external_state">[docs]</a>    <span class="k">def</span> <span class="nf">lookup_external_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ExternalState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the node ID if we have created a node already for some external state.</span>
+
+<span class="sd">        Otherwise, returns None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_to_node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+    <span class="nd">@_execute</span><span class="o">.</span><span class="n">register</span>
+    <span class="k">def</span> <span class="nf">_execute_import</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">ImportNode</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+
+        <span class="c1"># Dummy</span>
+        <span class="k">return</span> <span class="n">PrivateExecuteResult</span><span class="p">(</span>
+            <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="n">end_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="n">side_effects</span><span class="o">=</span><span class="p">[],</span>
+        <span class="p">)</span>
+
+    <span class="nd">@_execute</span><span class="o">.</span><span class="n">register</span>
+    <span class="k">def</span> <span class="nf">_execute_literal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">LiteralNode</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PrivateExecuteResult</span><span class="p">(</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="p">[]</span>
+        <span class="p">)</span>
+
+    <span class="nd">@_execute</span><span class="o">.</span><span class="n">register</span>
+    <span class="k">def</span> <span class="nf">_execute_global</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">GlobalNode</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PrivateExecuteResult</span><span class="p">(</span>
+            <span class="c1"># An execute global is looking up a global set by a call node so,</span>
+            <span class="c1"># Copy the result and the timing from the call node</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_node_to_globals</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">][</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_execution_time</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">],</span>
+            <span class="p">[],</span>
+        <span class="p">)</span>
+
+    <span class="nd">@_execute</span><span class="o">.</span><span class="n">register</span>
+    <span class="k">def</span> <span class="nf">_execute_mutate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node</span><span class="p">:</span> <span class="n">MutateNode</span><span class="p">,</span>
+        <span class="n">changes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TracebackChange</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrivateExecuteResult</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PrivateExecuteResult</span><span class="p">(</span>
+            <span class="c1"># Copy the result and the timing from the source node</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_value</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">source_id</span><span class="p">],</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_execution_time</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ViewOfNodes</span><span class="p">([</span><span class="n">ID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">ID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">source_id</span><span class="p">)])],</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Executor.execute_graph"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.executor.Executor.execute_graph">[docs]</a>    <span class="k">def</span> <span class="nf">execute_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">Graph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes a graph in visit order making sure to setup the working directory first.</span>
+
+<span class="sd">        TODO: Possibly move to graph instead of on executor, since it rather cleanly uses the</span>
+<span class="sd">        executor&#39;s public API? Or move to function?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing graph </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+        <span class="n">prev_working_dir</span> <span class="o">=</span> <span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">chdir</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">session_context</span><span class="o">.</span><span class="n">working_directory</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">visit_order</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">chdir</span><span class="p">(</span><span class="n">prev_working_dir</span><span class="p">)</span>
+        <span class="c1"># Add executed nodes to DB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_translate_pointer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">CallNode</span><span class="p">,</span> <span class="n">pointer</span><span class="p">:</span> <span class="n">ValuePointer</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExecutorPointer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Maps from a pointer output by the inspect function, to one output by the executor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">PositionalArg</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ID</span><span class="p">(</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">[</span><span class="n">pointer</span><span class="o">.</span><span class="n">positional_argument_index</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">KeywordArgument</span><span class="p">):</span>
+            <span class="c1"># these come from annotation specs so should not need to worry about ** dicts</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keyword_args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pointer</span><span class="o">.</span><span class="n">argument_keyword</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ID</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">Result</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">BoundSelfOfFunction</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_to_bound_self</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">function_id</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">ExternalState</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">pointer</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown pointer </span><span class="si">{</span><span class="n">pointer</span><span class="si">}</span><span class="s2">, of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">pointer</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_translate_side_effect</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">CallNode</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">InspectFunctionSideEffect</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SideEffect</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">MutatedValue</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">MutatedNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_translate_pointer</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">mutated_value</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">ImplicitDependencyValue</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ImplicitDependencyNode</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_translate_pointer</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">dependency</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">ViewOfValues</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ViewOfNodes</span><span class="p">(</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_translate_pointer</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ptr</span><span class="p">)</span> <span class="k">for</span> <span class="n">ptr</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">views</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown side effect </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_lookup_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Lookup a value from a string identifier.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;__file__&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_file</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_file</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No __file__ set&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">LINEA_BUILTINS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LINEA_BUILTINS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

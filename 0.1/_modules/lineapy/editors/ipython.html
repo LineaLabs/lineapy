@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.editors.ipython &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.editors.ipython</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.editors.ipython</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Transforms all executions in IPython to execute with lineapy, by adding to</span>
+<span class="sd">`input_transformers_post`. You can find more documentations below:</span>
+<span class="sd">https://ipython.readthedocs.io/en/stable/config/inputtransforms.html</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">IPython.core.interactiveshell</span> <span class="kn">import</span> <span class="n">InteractiveShell</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">DisplayHandle</span><span class="p">,</span> <span class="n">DisplayObject</span><span class="p">,</span> <span class="n">display</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">JupyterCell</span><span class="p">,</span> <span class="n">SessionType</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.db</span> <span class="kn">import</span> <span class="n">RelationalLineaDB</span>
+<span class="kn">from</span> <span class="nn">lineapy.editors.ipython_cell_storage</span> <span class="kn">import</span> <span class="n">cleanup_cells</span><span class="p">,</span> <span class="n">get_cell_path</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.excepthook</span> <span class="kn">import</span> <span class="n">transform_except_hook_args</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.flag</span> <span class="kn">import</span> <span class="n">REWRITE_EXCEPTIONS</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.user_exception</span> <span class="kn">import</span> <span class="n">AddFrame</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.tracer</span> <span class="kn">import</span> <span class="n">Tracer</span>
+<span class="kn">from</span> <span class="nn">lineapy.transformer.node_transformer</span> <span class="kn">import</span> <span class="n">transform</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.analytics</span> <span class="kn">import</span> <span class="n">send_lib_info_from_db</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.logging_config</span> <span class="kn">import</span> <span class="n">configure_logging</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_end_cell&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="s2">&quot;stop&quot;</span><span class="p">,</span> <span class="s2">&quot;visualize&quot;</span><span class="p">]</span>
+
+<span class="c1"># The state of the ipython extension works like:</span>
+<span class="c1"># 1. Originally starts at `None``, meaning that no ipython transformations are active</span>
+<span class="c1"># 2. After calling `start`, it transitions to `Started`, which means that the</span>
+<span class="c1">#    the transformer is registered and the exceptions will be transformed.</span>
+<span class="c1"># 3. After the first cell is executed, the state changes to `CellsExecuted`,</span>
+<span class="c1">#    which means we have connected to the database and have started saving traces.</span>
+<span class="c1">#    Note: We wait to connect to the DB till the first cell is executed, so that</span>
+<span class="c1">#    any logging printed during this connection, or errors raised during this connection</span>
+<span class="c1">#    are displayed to users, instead of being lost, if the start is called during</span>
+<span class="c1">#    an extension load during ipython startup.</span>
+<span class="c1"># SS: do not explicitly set the state to `None` here</span>
+<span class="n">STATE</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">StartedState</span><span class="p">,</span> <span class="n">CellsExecutedState</span><span class="p">]</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">StartedState</span><span class="p">:</span>
+    <span class="c1"># Save the ipython in the started state, because we can&#39;t look it</span>
+    <span class="c1"># up during our transformation, and we need it to get the globals</span>
+    <span class="n">ipython</span><span class="p">:</span> <span class="n">InteractiveShell</span>
+
+    <span class="c1"># Optionally overrides for the session name and DB URL</span>
+    <span class="n">session_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">db_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CellsExecutedState</span><span class="p">:</span>
+    <span class="n">tracer</span><span class="p">:</span> <span class="n">Tracer</span>
+    <span class="c1"># The code for this cell&#39;s execution</span>
+    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1"># If set, we should update this display on every cell execution.</span>
+    <span class="n">visualize_display_handle</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DisplayHandle</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">create_visualize_display_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DisplayObject</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a jupyter display object for the visualization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">lineapy.visualizer</span> <span class="kn">import</span> <span class="n">Visualizer</span>
+
+        <span class="k">return</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">for_public</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="p">)</span><span class="o">.</span><span class="n">ipython_display_object</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="start"><a class="viewcode-back" href="../../../autogen/lineapy.editors.html#lineapy.start">[docs]</a><span class="k">def</span> <span class="nf">start</span><span class="p">(</span>
+    <span class="n">session_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">db_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ipython</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InteractiveShell</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializing the runtime so that the cells are traced with lineapy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">STATE</span>
+    <span class="n">ipython</span> <span class="o">=</span> <span class="n">ipython</span> <span class="ow">or</span> <span class="n">get_ipython</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+    <span class="c1"># IPython does not use exceptionhook, so instead we monkeypatch</span>
+    <span class="c1"># how it processes the exceptions, in order to add our handler</span>
+    <span class="c1"># that removes the outer frames.</span>
+    <span class="k">if</span> <span class="n">REWRITE_EXCEPTIONS</span><span class="p">:</span>
+        <span class="n">InteractiveShell</span><span class="o">.</span><span class="n">_get_exc_info</span> <span class="o">=</span> <span class="n">custom_get_exc_info</span>
+
+    <span class="n">ipython</span><span class="o">.</span><span class="n">input_transformers_post</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_transformer_post</span><span class="p">)</span>
+    <span class="n">STATE</span> <span class="o">=</span> <span class="n">StartedState</span><span class="p">(</span><span class="n">ipython</span><span class="p">,</span> <span class="n">session_name</span><span class="o">=</span><span class="n">session_name</span><span class="p">,</span> <span class="n">db_url</span><span class="o">=</span><span class="n">db_url</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">input_transformer_post</span><span class="p">(</span><span class="n">lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translate the lines of code for the cell provided by ipython.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">STATE</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">STATE</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;input_transformer_post shouldn&#39;t be called when we don&#39;t have an active tracer&quot;</span>
+        <span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    <span class="c1"># If we have just started, first start everything up</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">STATE</span><span class="p">,</span> <span class="n">StartedState</span><span class="p">):</span>
+        <span class="n">configure_logging</span><span class="p">()</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">RelationalLineaDB</span><span class="o">.</span><span class="n">from_environment</span><span class="p">(</span><span class="n">STATE</span><span class="o">.</span><span class="n">db_url</span><span class="p">)</span>
+        <span class="c1"># pass in globals from ipython so that `get_ipython()` works</span>
+        <span class="c1"># and things like `!cat df.csv` work in the notebook</span>
+        <span class="n">ipython_globals</span> <span class="o">=</span> <span class="n">STATE</span><span class="o">.</span><span class="n">ipython</span><span class="o">.</span><span class="n">user_global_ns</span>
+        <span class="n">tracer</span> <span class="o">=</span> <span class="n">Tracer</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">SessionType</span><span class="o">.</span><span class="n">JUPYTER</span><span class="p">,</span> <span class="n">STATE</span><span class="o">.</span><span class="n">session_name</span><span class="p">,</span> <span class="n">ipython_globals</span>
+        <span class="p">)</span>
+
+        <span class="n">STATE</span> <span class="o">=</span> <span class="n">CellsExecutedState</span><span class="p">(</span><span class="n">tracer</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">STATE</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+
+    <span class="k">return</span> <span class="n">RETURNED_LINES</span>
+
+
+<span class="c1"># We always return the same two lines for IPython to use as input.</span>
+<span class="c1"># They will run our internal end cell function, which wil return the proper</span>
+<span class="c1"># return value for the cell, so ipython can display it. They will also clean</span>
+<span class="c1"># up the tracer if we stopped in that cell.</span>
+<span class="n">RETURNED_LINES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;import lineapy.editors.ipython</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lineapy.editors.ipython._end_cell()</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_end_cell</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the last value that was executed, used when rendering the cell.</span>
+<span class="sd">    We also write each ipython cell to its own temporary file, so that if an</span>
+<span class="sd">    exception is raised it will have proper tracebacks (this is how ipython</span>
+<span class="sd">    handles error reporting as well). There are more details in the README</span>
+<span class="sd">    file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">STATE</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">STATE</span><span class="p">,</span> <span class="n">CellsExecutedState</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We need to be executing cells to get the last value&quot;</span><span class="p">)</span>
+
+    <span class="n">execution_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">execution_count</span>  <span class="c1"># type: ignore</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">JupyterCell</span><span class="p">(</span>
+        <span class="n">execution_count</span><span class="o">=</span><span class="n">execution_count</span><span class="p">,</span>
+        <span class="n">session_id</span><span class="o">=</span><span class="n">STATE</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">get_session_id</span><span class="p">(),</span>
+    <span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">STATE</span><span class="o">.</span><span class="n">code</span>
+    <span class="c1"># Write the code text to a file for error reporting</span>
+    <span class="n">get_cell_path</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+    <span class="n">last_node</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">STATE</span><span class="o">.</span><span class="n">tracer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">visualize_display_handle</span><span class="p">:</span>
+        <span class="n">STATE</span><span class="o">.</span><span class="n">visualize_display_handle</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">STATE</span><span class="o">.</span><span class="n">create_visualize_display_object</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Return the last value so it will be printed, if we don&#39;t end</span>
+    <span class="c1"># in a semicolon</span>
+    <span class="n">ends_with_semicolon</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ends_with_semicolon</span> <span class="ow">and</span> <span class="n">last_node</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">STATE</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">last_node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+
+<div class="viewcode-block" id="visualize"><a class="viewcode-back" href="../../../autogen/lineapy.editors.html#lineapy.visualize">[docs]</a><span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">live</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Display a visualization of the Linea graph from this session using Graphviz.</span>
+
+<span class="sd">    If `live=True`, then this visualization will live update after cell execution.</span>
+<span class="sd">    Note that this comes with a substantial performance penalty, so it is False</span>
+<span class="sd">    by default.</span>
+
+<span class="sd">    Note: If the visualization is not live, it will print out the visualization</span>
+<span class="sd">    as of the previous cell execution, not the one where `visualize` is executed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">STATE</span><span class="p">,</span> <span class="n">CellsExecutedState</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot visualize before we have started executing cells&quot;</span>
+        <span class="p">)</span>
+    <span class="n">display_object</span> <span class="o">=</span> <span class="n">STATE</span><span class="o">.</span><span class="n">create_visualize_display_object</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">live</span><span class="p">:</span>
+        <span class="c1"># If we have an existing display handle, display a new version of it.</span>
+        <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">visualize_display_handle</span><span class="p">:</span>
+            <span class="n">STATE</span><span class="o">.</span><span class="n">visualize_display_handle</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display_object</span><span class="p">)</span>
+        <span class="c1"># Otherwise, create a new one</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">STATE</span><span class="o">.</span><span class="n">visualize_display_handle</span> <span class="o">=</span> <span class="n">display</span><span class="p">(</span>
+                <span class="n">display_object</span><span class="p">,</span> <span class="n">display_id</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Otherwise, just display the visualization</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">display_object</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="stop"><a class="viewcode-back" href="../../../autogen/lineapy.editors.html#lineapy.stop">[docs]</a><span class="k">def</span> <span class="nf">stop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stop tracing if the `stop()` was called in the cell and should_stop was set.</span>
+<span class="sd">    Also track the lib information (would be the most complete).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">STATE</span><span class="p">,</span> <span class="n">CellsExecutedState</span><span class="p">):</span>
+        <span class="n">send_lib_info_from_db</span><span class="p">(</span><span class="n">STATE</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">STATE</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">get_session_id</span><span class="p">())</span>
+        <span class="n">STATE</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">cleanup_cells</span><span class="p">()</span></div>
+
+
+<span class="c1"># Save the original get_exc_info so that we can call it in our custom one</span>
+<span class="c1"># after transforming</span>
+<span class="n">original_get_exc_info</span> <span class="o">=</span> <span class="n">InteractiveShell</span><span class="o">.</span><span class="n">_get_exc_info</span>
+
+
+<span class="k">def</span> <span class="nf">custom_get_exc_info</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A custom get_exc_info which will transform exceptions raised from the users</span>
+<span class="sd">    code to remove our frames that we have added.</span>
+
+<span class="sd">    Add an extra frame on top (in the `AddFrame` call), since ipython will</span>
+<span class="sd">    strip out the first one (might change in future versions), which is</span>
+<span class="sd">    probably also for similar reasons as us.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">transform_except_hook_args</span><span class="p">(</span>
+        <span class="n">original_get_exc_info</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">AddFrame</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

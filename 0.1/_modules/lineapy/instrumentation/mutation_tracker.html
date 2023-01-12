@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.instrumentation.mutation_tracker &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.instrumentation.mutation_tracker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.instrumentation.mutation_tracker</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">LineaID</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">get_new_id</span><span class="p">,</span> <span class="n">remove_duplicates</span><span class="p">,</span> <span class="n">remove_value</span>
+
+
+<div class="viewcode-block" id="MutationTracker"><a class="viewcode-back" href="../../../autogen/lineapy.instrumentation.html#lineapy.instrumentation.mutation_tracker.MutationTracker">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MutationTracker</span><span class="p">:</span>
+
+    <span class="c1">##</span>
+    <span class="c1"># We store information on two types of relationships between nodes:</span>
+    <span class="c1">#</span>
+    <span class="c1"># 1. Source -&gt; Mutate nodes, which is a directed relationship meaning</span>
+    <span class="c1">#    whenever a new node is created that refers to the source node, it</span>
+    <span class="c1">#    instead should refer to the mutate node.</span>
+    <span class="c1"># 2. Undirected view relationships. If two nodes are a view of each other,</span>
+    <span class="c1">#    they a mutating one may mutate the other, so if one is mutated, mutate</span>
+    <span class="c1">#    nodes need to be made for all the other nodes that are views. This is</span>
+    <span class="c1">#    a transitive relationship.</span>
+    <span class="c1">#</span>
+    <span class="c1"># We use lists in the data structures to store these relationships, but no</span>
+    <span class="c1"># entry should repeat. Ordering is not important for correctness</span>
+    <span class="c1"># but for having deterministic node ordering, which is needed for</span>
+    <span class="c1"># deterministic snapshot generation and comparison.</span>
+    <span class="c1">##</span>
+
+    <span class="c1"># Mapping of mutated nodes, from their original node id, to the immediate</span>
+    <span class="c1"># mutate node id they are the source of</span>
+    <span class="c1"># a = []       CallNode ID: i1</span>
+    <span class="c1"># a.append(1)  MutateNodeID: i2</span>
+    <span class="c1"># a.append(2)  MutateNodeID: i3</span>
+    <span class="c1"># source_to_mutate = {i1: i2, i2: i3}</span>
+    <span class="n">source_to_mutate</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="c1"># Mapping from each node to every node which has a view of it,</span>
+    <span class="c1"># meaning that if that node is mutated, the view node will be as well</span>
+    <span class="c1"># a = []    CallNode ID: i1</span>
+    <span class="c1"># b = [a]   CallNode ID: i2</span>
+    <span class="c1"># c = [b]   CallNode ID: i3</span>
+    <span class="c1"># viewers: {i1: [i2, i3], i2: [i1, i3], i3: [i1, i2]}</span>
+    <span class="c1"># NOTE that b = a would not constitute a view relationship</span>
+    <span class="n">viewers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="MutationTracker.set_as_viewers_of_each_other"><a class="viewcode-back" href="../../../autogen/lineapy.instrumentation.html#lineapy.instrumentation.mutation_tracker.MutationTracker.set_as_viewers_of_each_other">[docs]</a>    <span class="k">def</span> <span class="nf">set_as_viewers_of_each_other</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ids</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        To process adding views between nodes, update the `viewers` data structure</span>
+<span class="sd">        with all new viewers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">set_as_viewers_generic</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewers</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MutationTracker.get_latest_mutate_node"><a class="viewcode-back" href="../../../autogen/lineapy.instrumentation.html#lineapy.instrumentation.mutation_tracker.MutationTracker.get_latest_mutate_node">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_mutate_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LineaID</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the latest mutate node, that refers to it.</span>
+<span class="sd">        Call this before creating a object based on another node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Keep looking up to see if their is a new mutated version of this</span>
+        <span class="c1"># node</span>
+        <span class="k">while</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_to_mutate</span><span class="p">:</span>
+            <span class="n">node_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_to_mutate</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">node_id</span></div>
+
+<div class="viewcode-block" id="MutationTracker.set_as_mutated"><a class="viewcode-back" href="../../../autogen/lineapy.instrumentation.html#lineapy.instrumentation.mutation_tracker.MutationTracker.set_as_mutated">[docs]</a>    <span class="k">def</span> <span class="nf">set_as_mutated</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">source_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        To process mutating a node, we create new mutate nodes for each views of</span>
+<span class="sd">        this node and update the source to view mapping to point to the new nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create a mutation node for every node that was mutated,</span>
+        <span class="c1"># Which are all the views + the node itself</span>
+        <span class="c1"># Note: must resolve generator before iterating, so that get_latest_mutate_node</span>
+        <span class="c1"># is called eagerly, otherwise we end up with duplicate mutate nodes.</span>
+        <span class="n">source_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">remove_duplicates</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_latest_mutate_node</span><span class="p">,</span>
+                    <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">viewers</span><span class="p">[</span><span class="n">source_id</span><span class="p">],</span> <span class="n">source_id</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="n">source_ids</span><span class="p">:</span>
+            <span class="n">mutate_node_id</span> <span class="o">=</span> <span class="n">get_new_id</span><span class="p">()</span>
+
+            <span class="c1"># First we update the forward mapping, mapping them to the new mutate node</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_to_mutate</span><span class="p">[</span><span class="n">source_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">mutate_node_id</span>
+
+            <span class="k">yield</span> <span class="n">mutate_node_id</span><span class="p">,</span> <span class="n">source_id</span></div></div>
+
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_as_viewers_generic"><a class="viewcode-back" href="../../../autogen/lineapy.instrumentation.html#lineapy.instrumentation.mutation_tracker.set_as_viewers_generic">[docs]</a><span class="k">def</span> <span class="nf">set_as_viewers_generic</span><span class="p">(</span><span class="n">ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">viewers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic version of method, so that we can use it in the settrace tracker as well</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># First, iterate through all items in the view</span>
+    <span class="c1"># and create a complete view set adding all their views as well</span>
+    <span class="c1"># since it is a transitivity relationship.</span>
+    <span class="n">complete_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">remove_duplicates</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">viewers</span><span class="p">[</span><span class="n">id_</span><span class="p">]</span> <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">)))</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Now update the viewers data structure to include all the viewers,</span>
+    <span class="c1"># apart the id itself, which is not kept in the mapping.</span>
+    <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">complete_ids</span><span class="p">:</span>
+        <span class="n">viewers</span><span class="p">[</span><span class="n">id_</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">remove_value</span><span class="p">(</span><span class="n">complete_ids</span><span class="p">,</span> <span class="n">id_</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

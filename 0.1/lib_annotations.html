@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What library annotations are &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> lineapy
+            <img src="_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>What library annotations are</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/lib_annotations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<p id="lib-annotations">This document describes how to add new library annotations.</p>
+<section id="what-library-annotations-are">
+<h1>What library annotations are<a class="headerlink" href="#what-library-annotations-are" title="Permalink to this heading"></a></h1>
+<p>Linea requires library functions to be annotated of their “side effects”, such
+as whether a class method mutates the original object.</p>
+<p>Linea uses these annotations for both <a class="reference external" href="https://github.com/LineaLabs/lineapy/blob/main/lineapy/internal.annotations.yaml">internal</a>
+libraries, such as <code class="docutils literal notranslate"><span class="pre">os</span></code> and <code class="docutils literal notranslate"><span class="pre">_operator</span></code>, and <a class="reference external" href="https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml">external</a>
+libraries, such as <code class="docutils literal notranslate"><span class="pre">pandas</span></code> and <code class="docutils literal notranslate"><span class="pre">boto3</span></code>.</p>
+</section>
+<section id="what-we-currently-support">
+<h1>What we currently support<a class="headerlink" href="#what-we-currently-support" title="Permalink to this heading"></a></h1>
+<p>We are in the process of augmenting <a class="reference external" href="https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml">external</a>
+libraries. We plan to add support
+for widely used languages in the following libraries:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NumPy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SciPy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Pandas</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SciKit-Learn</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PyTorch</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TensorFlow</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">XGboost</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Keras</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Matplotlib</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Seaborn</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Bokeh</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Plotly</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pydot</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Presto</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Scrapy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BeautifulSoup</span></code></p></li>
+</ul>
+<p>So the rest of the libraries not mentioned are not yet supported or on our roadmap.</p>
+</section>
+<section id="how-to-contribute-to-library-specs">
+<h1>How to contribute to library specs<a class="headerlink" href="#how-to-contribute-to-library-specs" title="Permalink to this heading"></a></h1>
+<p>There are a long tail of libraries that data scientists could be using, and we
+would love to get community support for adding new annotations.</p>
+<p>The module <a class="reference internal" href="autogen/lineapy.instrumentation.html#module-lineapy.instrumentation" title="lineapy.instrumentation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.instrumentation</span></code></a> contains all the annotation types we support,
+along with examples library calls and yaml annotations. We recommend that you start viewing from the top-level entry point
+is <a class="reference internal" href="autogen/lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ModuleAnnotation" title="lineapy.instrumentation.annotation_spec.ModuleAnnotation"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModuleAnnotation</span></code></a>, to see how the different parts work together.</p>
+<p>With yaml, you need to be careful with the indentations levels which could get
+confusing. You can run the following bash script (from root): ``
+./tests/tools/test_validate_annotation_spec.py`` to test the annotations you added. It would also be easier to copy off from <a class="reference external" href="https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml">existing instrumentations</a>.</p>
+<p><em>If there are any syntax that the existing instrumentation doesn’t support</em>,
+please <a class="reference external" href="https://github.com/LineaLabs/lineapy/issues/new?assignees=&amp;labels=bug%2C+alpha-user&amp;template=bug_report.md&amp;title=">file an issue on GitHub</a>,
+with the library you are using and the mutation/side effects documented.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

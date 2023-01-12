@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.api package" href="lineapy.api.html" />
+    <link rel="prev" title="lineapy" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">lineapy package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+      <li>lineapy package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-package">
+<h1>lineapy package<a class="headerlink" href="#lineapy-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.api.html">lineapy.api package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.api.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.api.html#module-lineapy.api.api">lineapy.api.api module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.api.html#module-lineapy.api">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.cli.html">lineapy.cli package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.cli.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.cli.html#module-lineapy.cli.cli">lineapy.cli.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.cli.html#module-lineapy.cli">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.data.html">lineapy.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.data.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.data.html#module-lineapy.data.graph">lineapy.data.graph module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.data.html#module-lineapy.data.types">lineapy.data.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.data.html#module-lineapy.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.db.html">lineapy.db package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.db.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.db.html#module-lineapy.db.db">lineapy.db.db module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.db.html#module-lineapy.db.relational">lineapy.db.relational module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.db.html#module-lineapy.db.utils">lineapy.db.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.db.html#module-lineapy.db">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.editors.html">lineapy.editors package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.editors.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.editors.html#module-lineapy.editors.ipython">lineapy.editors.ipython module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.editors.html#module-lineapy.editors.ipython_cell_storage">lineapy.editors.ipython_cell_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.editors.html#module-lineapy.editors">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.exceptions.html">lineapy.exceptions package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions.create_frame">lineapy.exceptions.create_frame module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions.db_exceptions">lineapy.exceptions.db_exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions.excepthook">lineapy.exceptions.excepthook module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions.flag">lineapy.exceptions.flag module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions.l_import_error">lineapy.exceptions.l_import_error module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions.user_exception">lineapy.exceptions.user_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.exceptions.html#module-lineapy.exceptions">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.execution.html">lineapy.execution package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#module-lineapy.execution.context">lineapy.execution.context module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#module-lineapy.execution.executor">lineapy.execution.executor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#module-lineapy.execution.globals_dict">lineapy.execution.globals_dict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#module-lineapy.execution.inspect_function">lineapy.execution.inspect_function module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#module-lineapy.execution.side_effects">lineapy.execution.side_effects module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.execution.html#module-lineapy.execution">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.graph_reader.html">lineapy.graph_reader package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.graph_reader.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.graph_reader.html#module-lineapy.graph_reader.api_utils">lineapy.graph_reader.api_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.graph_reader.html#module-lineapy.graph_reader.apis">lineapy.graph_reader.apis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.graph_reader.html#module-lineapy.graph_reader.graph_printer">lineapy.graph_reader.graph_printer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.graph_reader.html#module-lineapy.graph_reader.program_slice">lineapy.graph_reader.program_slice module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.graph_reader.html#module-lineapy.graph_reader">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.instrumentation.html">lineapy.instrumentation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.instrumentation.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.instrumentation.html#module-lineapy.instrumentation.annotation_spec">lineapy.instrumentation.annotation_spec module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.instrumentation.html#module-lineapy.instrumentation.mutation_tracker">lineapy.instrumentation.mutation_tracker module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.instrumentation.html#module-lineapy.instrumentation.tracer">lineapy.instrumentation.tracer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.instrumentation.html#module-lineapy.instrumentation.tracer_context">lineapy.instrumentation.tracer_context module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.instrumentation.html#module-lineapy.instrumentation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.plugins.html">lineapy.plugins package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#module-lineapy.plugins.airflow">lineapy.plugins.airflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#module-lineapy.plugins.base">lineapy.plugins.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#module-lineapy.plugins.script">lineapy.plugins.script module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#module-lineapy.plugins.task">lineapy.plugins.task module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#module-lineapy.plugins.utils">lineapy.plugins.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.plugins.html#module-lineapy.plugins">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.system_tracing.html">lineapy.system_tracing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.system_tracing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.system_tracing.html#module-lineapy.system_tracing.exec_and_record_function_calls">lineapy.system_tracing.exec_and_record_function_calls module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.system_tracing.html#module-lineapy.system_tracing.function_call">lineapy.system_tracing.function_call module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.system_tracing.html#module-lineapy.system_tracing.function_calls_to_side_effects">lineapy.system_tracing.function_calls_to_side_effects module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.system_tracing.html#module-lineapy.system_tracing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.transformer.html">lineapy.transformer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.transformer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.transformer.html#module-lineapy.transformer.node_transformer">lineapy.transformer.node_transformer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.transformer.html#module-lineapy.transformer.source_giver">lineapy.transformer.source_giver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.transformer.html#module-lineapy.transformer.transformer_util">lineapy.transformer.transformer_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.transformer.html#module-lineapy.transformer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.utils.html">lineapy.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.benchmarks">lineapy.utils.benchmarks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.config">lineapy.utils.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.constants">lineapy.utils.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.deprecation_utils">lineapy.utils.deprecation_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.lineabuiltins">lineapy.utils.lineabuiltins module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.logging_config">lineapy.utils.logging_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.tree_logger">lineapy.utils.tree_logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils.utils">lineapy.utils.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.utils.html#module-lineapy.utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lineapy.visualizer.html">lineapy.visualizer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.visualizer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.visualizer.html#module-lineapy.visualizer.graphviz">lineapy.visualizer.graphviz module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.visualizer.html#module-lineapy.visualizer.optimize_svg">lineapy.visualizer.optimize_svg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.visualizer.html#module-lineapy.visualizer.visual_graph">lineapy.visualizer.visual_graph module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lineapy.visualizer.html#module-lineapy.visualizer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-lineapy">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.SessionType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">SessionType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#SessionType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.SessionType" title="Permalink to this definition"></a></dt>
+<dd><p>Session types allow the tracer to know what to expect
+- JUPYTER: the tracer need to progressively add more nodes to the graph
+- SCRIPT: the easiest case, run everything until the end</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.Tracer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">Tracer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">db:</span> <span class="pre">lineapy.db.db.RelationalLineaDB,</span> <span class="pre">session_type:</span> <span class="pre">dataclasses.InitVar[SessionType],</span> <span class="pre">session_name:</span> <span class="pre">dataclasses.InitVar[typing.Optional[str]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">globals_:</span> <span class="pre">dataclasses.InitVar[typing.Optional[typing.Dict[str,</span> <span class="pre">object]]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">variable_name_to_node:</span> <span class="pre">Dict[str,</span> <span class="pre">Union[lineapy.data.types.ImportNode,</span> <span class="pre">lineapy.data.types.CallNode,</span> <span class="pre">lineapy.data.types.LiteralNode,</span> <span class="pre">lineapy.data.types.LookupNode,</span> <span class="pre">lineapy.data.types.MutateNode,</span> <span class="pre">lineapy.data.types.GlobalNode]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">mutation_tracker:</span> <span class="pre">lineapy.instrumentation.mutation_tracker.MutationTracker</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer" title="Permalink to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="lineapy.Tracer.assign">
+<span class="sig-name descname"><span class="pre">assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer.assign"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer.assign" title="Permalink to this definition"></a></dt>
+<dd><p>Assign updates a local mapping of variable nodes.</p>
+<p>It doesn’t save this to the graph, and currently the source
+location for the assignment is discarded. In the future, if we need
+to trace where in some code a node is assigned, we can record that again.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.Tracer.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">arguments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">keyword_arguments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a></span></span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer.call"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer.call" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>function_node</strong> – the function node to call/execute</p></li>
+<li><p><strong>source_location</strong> – the source info from user code</p></li>
+<li><p><strong>arguments</strong> – positional arguments. These are passed as either Nodes (named nodes, constants, etc)
+or tuples (starred, the node) where the starred is a boolean to indicate whether
+the argument is supposed to be splatted before passing to the function (This is
+the case where you might call a function like so <code class="docutils literal notranslate"><span class="pre">foo(1,</span> <span class="pre">*[2,</span> <span class="pre">3])</span></code> ). The boolean is made
+optional simply to support the legacy way of calling this function and not having to pass
+the tuples for every single case from node_transformer</p></li>
+<li><p><strong>keyword_arguments</strong> – keyword arguments. These are passed as a dictionary of keyword arguments to the
+function. Similar to <code class="docutils literal notranslate"><span class="pre">*positional_arguments</span></code>, the keyword arguments can also be splatted
+by naming the key as <code class="docutils literal notranslate"><span class="pre">unpack_&lt;index&gt;</span></code> where &lt;index&gt; is the index of the argument. In this
+case, the dictionary will be unpacked and passed as keyword arguments to the function.
+The keyword arguments are processed in order of passing so any keyword conflicts will
+result in the last value accepted as the value for the keyword.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a call node</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>It’s important for the call to return the call node
+so that we can programmatically chain the the nodes together,
+e.g., for the assignment call to modify the previous call node.</p></li>
+<li><p>The call looks up if it’s a locally defined function. We decided
+that this is better for program slicing.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.Tracer.import_module">
+<span class="sig-name descname"><span class="pre">import_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer.import_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer.import_module" title="Permalink to this definition"></a></dt>
+<dd><p>Import a module. If we have already imported it, just return its ID.
+Otherwise, create new module nodes for each submodule in its parents and return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.Tracer.lookup_node">
+<span class="sig-name descname"><span class="pre">lookup_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer.lookup_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer.lookup_node" title="Permalink to this definition"></a></dt>
+<dd><p>Cases for the node that we are looking up:</p>
+<ul class="simple">
+<li><p>user defined variable &amp; function definitions</p></li>
+<li><p>imported libs</p></li>
+<li><p>unknown runtime magic functions—special case to LookupNode</p>
+<ul>
+<li><p>builtin functions, e.g., min</p></li>
+<li><p>custom runtime, e.g., get_ipython</p></li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.Tracer.process_node">
+<span class="sig-name descname"><span class="pre">process_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer.process_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer.process_node" title="Permalink to this definition"></a></dt>
+<dd><p>Execute a node, and adds it to the database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.Tracer.trace_import">
+<span class="sig-name descname"><span class="pre">trace_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.SourceLocation" title="lineapy.data.types.SourceLocation"><span class="pre">SourceLocation</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/instrumentation/tracer.html#Tracer.trace_import"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.Tracer.trace_import" title="Permalink to this definition"></a></dt>
+<dd><ul class="simple">
+<li><p><cite>name</cite>: the name of the module</p></li>
+<li><p><cite>alias</cite>: the module could be aliased, e.g., import pandas as pd</p></li>
+<li><dl class="simple">
+<dt><cite>attributes</cite>: a list of functions imported from the library.</dt><dd><p>It keys the aliased name to the original name.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>The input args would _either_ have alias or attributes, but not both</p></li>
+<li><p>Didn’t call the function import because I think that’s a protected name</p></li>
+</ul>
+<p>note that version and path will be introspected at runtime</p>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="lineapy.Tracer.values">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#lineapy.Tracer.values" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a mapping of variable names to their values, by joining
+the scoping information with the executor values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.ValueType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">ValueType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/data/types.html#ValueType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.ValueType" title="Permalink to this definition"></a></dt>
+<dd><p>Lower case because the API with the frontend assume the characters “chart”
+exactly as is.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>FIXME</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>rename (need coordination with linea-server):</dt><dd><ul>
+<li><p>really <cite>dataset</cite> is a table</p></li>
+<li><p><cite>value</cite> means its a literal  (e.g., int/str)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.catalog">
+<span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">catalog</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaCatalog" title="lineapy.graph_reader.apis.LineaCatalog"><span class="pre">LineaCatalog</span></a></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.catalog" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An object of the class <cite>LineaCatalog</cite> that allows for printing and exporting artifacts metadata.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaCatalog" title="lineapy.graph_reader.apis.LineaCatalog">LineaCatalog</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.get">
+<span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifact_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact"><span class="pre">LineaArtifact</span></a></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.get" title="Permalink to this definition"></a></dt>
+<dd><p>Gets an artifact from the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>artifact_name</strong> (<em>str</em>) – name of the artifact. Note that if you do not remember the artifact,
+you can use the catalog to browse the options</p></li>
+<li><p><strong>version</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – version of the artifact. If None, the latest version will be returned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returned value offers methods to access
+information we have stored about the artifact</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact">LineaArtifact</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.save">
+<span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact"><span class="pre">LineaArtifact</span></a></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.save" title="Permalink to this definition"></a></dt>
+<dd><p>Publishes the object to the Linea DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<em>Union</em><em>[</em><em>object</em><em>, </em><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ExternalState" title="lineapy.instrumentation.annotation_spec.ExternalState"><em>ExternalState</em></a><em>]</em>) – The reference could be a variable name, in which case Linea will save
+the value of the variable, with out default serialization mechanism.
+Alternatively, it could be a “side effect” reference, which currently includes either <code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.file_system</span></code> or <a class="reference internal" href="lineapy.db.html#module-lineapy.db" title="lineapy.db"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.db</span></code></a>.
+Linea will save the associated process that creates the final side effects.
+We are in the process of adding more side effect references, including <cite>assert</cite> statements.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returned value offers methods to access
+information we have stored about the artifact (value, version), and other automation capabilities, such as <a class="reference internal" href="#lineapy.to_pipeline" title="lineapy.to_pipeline"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_pipeline()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact">LineaArtifact</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.to_pipeline">
+<span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">to_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifacts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framework</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'SCRIPT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependencies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_dag_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.plugins.html#lineapy.plugins.airflow.AirflowDagConfig" title="lineapy.plugins.airflow.AirflowDagConfig"><span class="pre">AirflowDagConfig</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#to_pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.to_pipeline" title="Permalink to this definition"></a></dt>
+<dd><p>Writes the pipeline job to a path on disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>artifacts</strong> – list of artifact names to be included in the DAG.</p></li>
+<li><p><strong>framework</strong> – ‘AIRFLOW’ or ‘SCRIPT’</p></li>
+<li><p><strong>pipeline_name</strong> – name of the pipeline</p></li>
+<li><p><strong>dependencies</strong> – tasks dependencies in graphlib format {‘B’:{‘A’,’C’}},
+this means task A and C are prerequisites for task B.</p></li>
+<li><p><strong>output_dir_path</strong> – Directory of the DAG and the python file it is
+saved in; only use for PipelineType.AIRFLOW</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string containing the path of the DAG file that was exported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualize">
+<span class="sig-prename descclassname"><span class="pre">lineapy.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/editors/ipython.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualize" title="Permalink to this definition"></a></dt>
+<dd><p>Display a visualization of the Linea graph from this session using Graphviz.</p>
+<p>If <cite>live=True</cite>, then this visualization will live update after cell execution.
+Note that this comes with a substantial performance penalty, so it is False
+by default.</p>
+<p>Note: If the visualization is not live, it will print out the visualization
+as of the previous cell execution, not the one where <cite>visualize</cite> is executed.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="lineapy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.api.html" class="btn btn-neutral float-right" title="lineapy.api package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

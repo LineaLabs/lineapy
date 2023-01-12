@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.transformer.node_transformer &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.transformer.node_transformer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.transformer.node_transformer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CallNode</span><span class="p">,</span>
+    <span class="n">LiteralNode</span><span class="p">,</span>
+    <span class="n">Node</span><span class="p">,</span>
+    <span class="n">SourceCode</span><span class="p">,</span>
+    <span class="n">SourceCodeLocation</span><span class="p">,</span>
+    <span class="n">SourceLocation</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.editors.ipython_cell_storage</span> <span class="kn">import</span> <span class="n">get_location_path</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.user_exception</span> <span class="kn">import</span> <span class="n">RemoveFrames</span><span class="p">,</span> <span class="n">UserException</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.tracer</span> <span class="kn">import</span> <span class="n">Tracer</span>
+<span class="kn">from</span> <span class="nn">lineapy.transformer.transformer_util</span> <span class="kn">import</span> <span class="n">create_lib_attributes</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.constants</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ADD</span><span class="p">,</span>
+    <span class="n">BITAND</span><span class="p">,</span>
+    <span class="n">BITOR</span><span class="p">,</span>
+    <span class="n">BITXOR</span><span class="p">,</span>
+    <span class="n">DEL_ATTR</span><span class="p">,</span>
+    <span class="n">DEL_ITEM</span><span class="p">,</span>
+    <span class="n">DIV</span><span class="p">,</span>
+    <span class="n">EQ</span><span class="p">,</span>
+    <span class="n">FLOORDIV</span><span class="p">,</span>
+    <span class="n">GET_ITEM</span><span class="p">,</span>
+    <span class="n">GETATTR</span><span class="p">,</span>
+    <span class="n">GT</span><span class="p">,</span>
+    <span class="n">GTE</span><span class="p">,</span>
+    <span class="n">IN</span><span class="p">,</span>
+    <span class="n">INVERT</span><span class="p">,</span>
+    <span class="n">IS</span><span class="p">,</span>
+    <span class="n">ISNOT</span><span class="p">,</span>
+    <span class="n">LSHIFT</span><span class="p">,</span>
+    <span class="n">LT</span><span class="p">,</span>
+    <span class="n">LTE</span><span class="p">,</span>
+    <span class="n">MATMUL</span><span class="p">,</span>
+    <span class="n">MOD</span><span class="p">,</span>
+    <span class="n">MULT</span><span class="p">,</span>
+    <span class="n">NEG</span><span class="p">,</span>
+    <span class="n">NOT</span><span class="p">,</span>
+    <span class="n">NOTEQ</span><span class="p">,</span>
+    <span class="n">POS</span><span class="p">,</span>
+    <span class="n">POW</span><span class="p">,</span>
+    <span class="n">RSHIFT</span><span class="p">,</span>
+    <span class="n">SET_ATTR</span><span class="p">,</span>
+    <span class="n">SET_ITEM</span><span class="p">,</span>
+    <span class="n">SUB</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.lineabuiltins</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">l_alias</span><span class="p">,</span>
+    <span class="n">l_assert</span><span class="p">,</span>
+    <span class="n">l_dict</span><span class="p">,</span>
+    <span class="n">l_dict_kwargs_sentinel</span><span class="p">,</span>
+    <span class="n">l_exec_expr</span><span class="p">,</span>
+    <span class="n">l_exec_statement</span><span class="p">,</span>
+    <span class="n">l_list</span><span class="p">,</span>
+    <span class="n">l_unpack_ex</span><span class="p">,</span>
+    <span class="n">l_unpack_sequence</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">get_new_id</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="transform"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.transform">[docs]</a><span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
+    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span> <span class="n">SourceCodeLocation</span><span class="p">,</span> <span class="n">tracer</span><span class="p">:</span> <span class="n">Tracer</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Traces the given code, executing it and writing the results to the DB.</span>
+
+<span class="sd">    It returns the node corresponding to the last statement in the code,</span>
+<span class="sd">    if it exists.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_transformer</span> <span class="o">=</span> <span class="n">NodeTransformer</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">tracer</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
+            <span class="n">code</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">get_location_path</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()),</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">SyntaxError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UserException</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">RemoveFrames</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">asttokens</span> <span class="kn">import</span> <span class="n">ASTTokens</span>
+
+        <span class="kn">from</span> <span class="nn">lineapy.transformer.source_giver</span> <span class="kn">import</span> <span class="n">SourceGiver</span>
+
+        <span class="c1"># if python version is 3.7 or below, we need to run the source_giver</span>
+        <span class="c1"># to add the end_lineno&#39;s to the nodes. We do this in two steps - first</span>
+        <span class="c1"># the asttoken lib does its thing and adds tokens to the nodes</span>
+        <span class="c1"># and then we swoop in and copy the end_lineno from the tokens</span>
+        <span class="c1"># and claim credit for their hard work</span>
+        <span class="n">ASTTokens</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">parse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tree</span><span class="p">)</span>
+        <span class="n">SourceGiver</span><span class="p">()</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+
+    <span class="n">node_transformer</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+
+    <span class="n">tracer</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">node_transformer</span><span class="o">.</span><span class="n">last_statement_result</span></div>
+
+
+<div class="viewcode-block" id="NodeTransformer"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer">[docs]</a><span class="k">class</span> <span class="nc">NodeTransformer</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeTransformer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">    - Need to be careful about the order by which these calls are invoked</span>
+<span class="sd">      so that the transformation do not get called more than once.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">location</span><span class="p">:</span> <span class="n">SourceCodeLocation</span><span class="p">,</span>
+        <span class="n">tracer</span><span class="p">:</span> <span class="n">Tracer</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_code</span> <span class="o">=</span> <span class="n">SourceCode</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">get_new_id</span><span class="p">(),</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span>
+        <span class="p">)</span>
+        <span class="n">tracer</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">write_source_code</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_code</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span> <span class="o">=</span> <span class="n">tracer</span>
+        <span class="c1"># Set __file__ to the pathname of the file</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+            <span class="n">tracer</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">module_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+        <span class="c1"># The result of the last line, a node if it was an expression,</span>
+        <span class="c1"># None if it was a statement. Used by ipython to grab the last value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_statement_result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_get_code_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">lineapy.utils.deprecation_utils</span> <span class="kn">import</span> <span class="n">get_source_segment</span>
+
+            <span class="k">return</span> <span class="n">get_source_segment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">padded</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">padded</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="NodeTransformer.generic_visit"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.generic_visit">[docs]</a>    <span class="k">def</span> <span class="nf">generic_visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This will capture any generic blackboxes. Now that we have a clean scope</span>
+<span class="sd">        handling, we can separate them out into two types: expressions that return</span>
+<span class="sd">        something and statements that return nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">node</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">stmt</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">FunctionDef</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">decorator_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="p">):</span>
+                <span class="n">min_decorator_line</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">decorator</span><span class="o">.</span><span class="n">lineno</span> <span class="k">for</span> <span class="n">decorator</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">decorator_list</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="c1"># this might not be needed but adding in case older python has weirdness</span>
+                <span class="k">if</span> <span class="n">min_decorator_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_decorator_line</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">lineno</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exec_statement</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">expr</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exec_expression</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Don&#39;t know how to transform </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Ellipsis"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Ellipsis">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Ellipsis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Ellipsis</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LiteralNode</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+
+<span class="sd">        Deprecated in Python 3.8</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Ellipsis nodes are deprecated since Python 3.8&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Str"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Str">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LiteralNode</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+
+<span class="sd">        Deprecated in Python 3.8</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Str nodes are deprecated since Python 3.8&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Num"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Num">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Num</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LiteralNode</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+
+<span class="sd">        Deprecated in Python 3.8</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Num nodes are deprecated since Python 3.8&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="NodeTransformer.visit_NameConstant"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_NameConstant">[docs]</a>    <span class="k">def</span> <span class="nf">visit_NameConstant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">NameConstant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LiteralNode</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+
+<span class="sd">        Deprecated in Python 3.8</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Num nodes are deprecated since Python 3.8&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">))</span></div>
+
+    <span class="c1"># FIXME - this is deprecated</span>
+    <span class="k">def</span> <span class="nf">visit_Starred</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Starred</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">LiteralNode</span><span class="p">]:</span>
+        <span class="n">elemlist</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">):</span>
+            <span class="n">elemlist</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Iterable</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">):</span>
+            <span class="n">elemlist</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Iterable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Str</span><span class="p">):</span>
+            <span class="n">elemlist</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Iterable</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="n">elem_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="n">ele</span><span class="p">))</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">elemlist</span><span class="p">)]</span>
+        <span class="k">yield from</span> <span class="n">elem_nodes</span>
+
+    <span class="k">def</span> <span class="nf">visit_Raise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Raise</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">visit_Raise</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_statement_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Assert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Assert</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">test</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">msg</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">msg</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_assert</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Import"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Import">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Import</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Import</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Similar to `visit_ImportFrom`, slightly different class syntax</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">trace_import</span><span class="p">(</span>
+                <span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                <span class="n">alias</span><span class="o">=</span><span class="n">lib</span><span class="o">.</span><span class="n">asname</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">visit_ImportFrom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">ImportFrom</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">node</span><span class="o">.</span><span class="n">module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">trace_import</span><span class="p">(</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">module</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">create_lib_attributes</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">names</span><span class="p">),</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Index"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Index">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+
+<span class="sd">        Deprecated in Python 3.9</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Index nodes are deprecated in Python 3.9&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NodeTransformer.visit_ExtSlice"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_ExtSlice">[docs]</a>    <span class="k">def</span> <span class="nf">visit_ExtSlice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">ExtSlice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+
+<span class="sd">        Deprecated in Python 3.9</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;ExtSlice nodes are deprecated in Python 3.9&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">elem_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">tuple</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">elem_nodes</span><span class="p">,</span>
+                <span class="n">source_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Call"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Call">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CallNode</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns None if visiting special publish linea publish,</span>
+<span class="sd">          which cannot be chained</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># this is the normal case, non-publish</span>
+        <span class="n">argument_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="c1"># special case for starred, we need to unpack shit</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Starred</span><span class="p">):</span>
+                <span class="c1"># for n in self.visit(arg):</span>
+                <span class="c1">#    argument_nodes.append(n)</span>
+                <span class="n">argument_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">value</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argument_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
+        <span class="n">keyword_argument_nodes</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">arg</span><span class="o">.</span><span class="n">arg</span><span class="p">)</span> <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">arg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;unpack_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">keywords</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">function_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="n">function_node</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">argument_nodes</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">keyword_argument_nodes</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">visit_Delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Delete</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;We do not support un-assigning a variable&quot;</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Subscript</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">DEL_ITEM</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">slice</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">DEL_ATTR</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">attr</span><span class="p">)),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;We do not support deleting </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="NodeTransformer.visit_Assign"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_Assign">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Assign</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO</span>
+<span class="sd">        ----</span>
+<span class="sd">        - None variable assignment, should be turned into a setattr call</span>
+<span class="sd">          not an assignment, so we might need to change the return signature</span>
+<span class="sd">          from ast.Expr.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># target assignments are handled from left to right in Python</span>
+        <span class="c1"># x = y = z -&gt; x = z, y = z</span>
+        <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">targets</span><span class="p">:</span>
+            <span class="c1"># handle special case of assigning aliases e.g. x = y</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span>
+            <span class="p">):</span>
+                <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_alias</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="n">new_node</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit_assign_value</span><span class="p">(</span>
+                    <span class="n">target</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                <span class="p">)</span></div>
+
+<div class="viewcode-block" id="NodeTransformer.visit_assign_value"><a class="viewcode-back" href="../../../autogen/lineapy.transformer.html#lineapy.transformer.node_transformer.NodeTransformer.visit_assign_value">[docs]</a>    <span class="k">def</span> <span class="nf">visit_assign_value</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">,</span>
+        <span class="n">value_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span>
+        <span class="n">source_location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SourceLocation</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visits assigning a target node to a value. This is extracted out of</span>
+<span class="sd">        visit_assign, so we can call it multiple times and pass in the value as a node,</span>
+<span class="sd">        instead of as AST, when we are assigning to a tuple.</span>
+<span class="sd">        Assign currently special cases for:</span>
+<span class="sd">        - Subscript, e.g., `ls[0] = 1`</span>
+<span class="sd">        - Constant, e.g., `a = 1`</span>
+<span class="sd">        - Call, e.g., `a = foo()`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Subscript</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">slice</span>
+            <span class="c1"># note: isinstance(index, ast.List) only works for pandas,</span>
+            <span class="c1">#  not Python lists</span>
+            <span class="c1"># if isinstance(index, (ast.Constant, ast.Name, ast.List, ast.Slice)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">SET_ITEM</span><span class="p">),</span>
+                <span class="n">source_location</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">index</span><span class="p">),</span>
+                <span class="n">value_node</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="c1"># e.g. `x.y = 10`</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">SET_ATTR</span><span class="p">),</span>
+                <span class="n">source_location</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">attr</span><span class="p">)),</span>
+                <span class="n">value_node</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">List</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Tuple</span><span class="p">):</span>
+            <span class="c1"># Assigning to a tuple or list of values, is like indexing the value</span>
+            <span class="c1"># and then assigning to each.</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_el</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Starred</span><span class="p">)</span> <span class="k">for</span> <span class="n">target_el</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">elts</span>
+            <span class="p">):</span>
+                <span class="c1"># count number of elements before and after the Starred item</span>
+                <span class="n">before</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">target_el</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">elts</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_el</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Starred</span><span class="p">):</span>
+                        <span class="k">break</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">before</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">after</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">elts</span><span class="p">)</span> <span class="o">-</span> <span class="n">before</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="c1"># get a proper unpacked list of CallNode</span>
+                <span class="n">unpacked_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_unpack_ex</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+                    <span class="n">source_location</span><span class="p">,</span>
+                    <span class="n">value_node</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">before</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">after</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># get a proper unpacked list of CallNode</span>
+                <span class="n">unpacked_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_unpack_sequence</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+                    <span class="n">source_location</span><span class="p">,</span>
+                    <span class="n">value_node</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">elts</span><span class="p">)),</span>
+                <span class="p">)</span>
+            <span class="c1"># visit all elements of the new list</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">target_el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">elts</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_el</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Starred</span><span class="p">):</span>
+                    <span class="n">target_el</span> <span class="o">=</span> <span class="n">target_el</span><span class="o">.</span><span class="n">value</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit_assign_value</span><span class="p">(</span>
+                    <span class="n">target_el</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">GET_ITEM</span><span class="p">),</span>
+                        <span class="n">source_location</span><span class="p">,</span>
+                        <span class="n">unpacked_nodes</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                    <span class="p">),</span>
+                    <span class="n">source_location</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">):</span>
+            <span class="n">variable_name</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">variable_name</span><span class="p">,</span>
+                <span class="n">value_node</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Other assignment types are not supported&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="nf">visit_UnaryOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">ast_to_op_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Invert</span><span class="p">:</span> <span class="n">INVERT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Not</span><span class="p">:</span> <span class="n">NOT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">UAdd</span><span class="p">:</span> <span class="n">POS</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">:</span> <span class="n">NEG</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">ast_to_op_map</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">op</span><span class="p">)]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">operand</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_List</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">List</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">elem_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">elts</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_list</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">elem_nodes</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">elem_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">elts</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">tuple</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">elem_nodes</span><span class="p">,</span>
+            <span class="n">source_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_BinOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">BinOp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">ast_to_op_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Add</span><span class="p">:</span> <span class="n">ADD</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Sub</span><span class="p">:</span> <span class="n">SUB</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Mult</span><span class="p">:</span> <span class="n">MULT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span> <span class="n">DIV</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">FloorDiv</span><span class="p">:</span> <span class="n">FLOORDIV</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Mod</span><span class="p">:</span> <span class="n">MOD</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">:</span> <span class="n">POW</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">LShift</span><span class="p">:</span> <span class="n">LSHIFT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">RShift</span><span class="p">:</span> <span class="n">RSHIFT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">BitOr</span><span class="p">:</span> <span class="n">BITOR</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">BitXor</span><span class="p">:</span> <span class="n">BITXOR</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">BitAnd</span><span class="p">:</span> <span class="n">BITAND</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">MatMult</span><span class="p">:</span> <span class="n">MATMUL</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">ast_to_op_map</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="vm">__class__</span><span class="p">]</span>
+        <span class="n">argument_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">op</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">argument_nodes</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_BoolOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">BoolOp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">ast_to_op_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Or</span><span class="p">:</span> <span class="n">BITOR</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">And</span><span class="p">:</span> <span class="n">BITAND</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">ast_to_op_map</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="vm">__class__</span><span class="p">]</span>
+        <span class="n">value_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">op</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">value_nodes</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Compare</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">ast_to_op_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Eq</span><span class="p">:</span> <span class="n">EQ</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">NotEq</span><span class="p">:</span> <span class="n">NOTEQ</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Lt</span><span class="p">:</span> <span class="n">LT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">LtE</span><span class="p">:</span> <span class="n">LTE</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Gt</span><span class="p">:</span> <span class="n">GT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">GtE</span><span class="p">:</span> <span class="n">GTE</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">Is</span><span class="p">:</span> <span class="n">IS</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">IsNot</span><span class="p">:</span> <span class="n">ISNOT</span><span class="p">,</span>
+            <span class="n">ast</span><span class="o">.</span><span class="n">In</span><span class="p">:</span> <span class="n">IN</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+        <span class="c1"># TODO: either add more comments or refactor, hard to understand</span>
+        <span class="c1"># ast.Compare can have an arbitrary number of operators</span>
+        <span class="c1"># e.g., a &lt; b &lt;= c</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">ops</span><span class="p">)):</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">ops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">comparators</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">In</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">NotIn</span><span class="p">):</span>
+                <span class="c1"># flip left and right since in(a, b) = b.contains(a)</span>
+                <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="p">,</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">in</span> <span class="n">ast_to_op_map</span><span class="p">:</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">ast_to_op_map</span><span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="vm">__class__</span><span class="p">]),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                    <span class="n">left</span><span class="p">,</span>
+                    <span class="n">right</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">NotIn</span><span class="p">):</span>
+                <span class="c1"># need to call operator.not_ on __contains___</span>
+                <span class="n">inside</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">ast_to_op_map</span><span class="p">[</span><span class="n">ast</span><span class="o">.</span><span class="n">In</span><span class="p">]),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                    <span class="n">left</span><span class="p">,</span>
+                    <span class="n">right</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">NOT</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+                    <span class="n">inside</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">left</span>
+
+    <span class="k">def</span> <span class="nf">visit_Slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">stop_node</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">upper</span><span class="p">)</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">upper</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># From https://docs.python.org/3/library/functions.html?highlight=slice#slice</span>
+        <span class="c1"># slice can be called in two ways:</span>
+        <span class="c1"># 1. slice(stop) when the start and step are None</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">stop_node</span><span class="p">]</span>
+        <span class="c1"># 2. slice(start, stop, [step]) otherwise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start_node</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">lower</span>
+                <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">start_node</span><span class="p">,</span> <span class="n">stop_node</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">step</span><span class="p">:</span>
+                <span class="n">step_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">step_node</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="nb">slice</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Subscript</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Subscript</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">)]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">slice</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">GET_ITEM</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Attribute</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">GETATTR</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">attr</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_exec_statement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_code_from_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_exec_statement</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">code</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_exec_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_code_from_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">code</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_exec_expr</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">code</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit_Dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallNode</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">keys</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">values</span>
+        <span class="c1"># Build a dict call from a list of tuples of each key, mapping to each value</span>
+        <span class="c1"># If the key is None, use a sentinel value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span><span class="n">l_dict</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="o">*</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">tuple</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">lookup_node</span><span class="p">(</span>
+                            <span class="n">l_dict_kwargs_sentinel</span><span class="o">.</span><span class="vm">__name__</span>
+                        <span class="p">),</span>
+                        <span class="kc">None</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">v</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SourceLocation</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">&quot;lineno&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">SourceLocation</span><span class="p">(</span>
+            <span class="n">source_code</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source_code</span><span class="p">,</span>
+            <span class="n">lineno</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span>
+            <span class="n">col_offset</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">col_offset</span><span class="p">,</span>
+            <span class="n">end_lineno</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">end_lineno</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">end_col_offset</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">end_col_offset</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.data.types &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.data.types</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.data.types</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">NewType</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+
+<div class="viewcode-block" id="SessionType"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.SessionType">[docs]</a><span class="k">class</span> <span class="nc">SessionType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Session types allow the tracer to know what to expect</span>
+<span class="sd">    - JUPYTER: the tracer need to progressively add more nodes to the graph</span>
+<span class="sd">    - SCRIPT: the easiest case, run everything until the end</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">JUPYTER</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SCRIPT</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Following are the types used to construct the Linea IR. These should be fairly</span>
+<span class="sd">  stable as changing them will likely result in major refactor.</span>
+
+<span class="sd">You can find extensive examples in tests/stub_data.</span>
+
+<span class="sd">The orm_mode allows us to use from_orm to convert ORM </span>
+<span class="sd">  objects to pydantic objects</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># Use a NewType instead of a string so that we can look at annotations of</span>
+<span class="c1"># fields in pydantic models that use this to differentiate between strings and</span>
+<span class="c1"># IDs when pretty printing</span>
+<span class="n">LineaID</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;LineaID&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SessionContext"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.SessionContext">[docs]</a><span class="k">class</span> <span class="nc">SessionContext</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Each trace of a script/notebook is a &quot;Session&quot;.</span>
+<span class="sd">    :param working_directory: captures where the code ran by the user</span>
+
+<span class="sd">    - we should remove the dependency on the working_directory because</span>
+<span class="sd">      its brittle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="n">LineaID</span>  <span class="c1"># populated on creation by uuid.uuid4()</span>
+    <span class="n">environment_type</span><span class="p">:</span> <span class="n">SessionType</span>
+    <span class="n">creation_time</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
+    <span class="n">working_directory</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># must be passed in for now</span>
+    <span class="n">session_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">user_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># The ID of the corresponding execution</span>
+    <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="NodeType"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.NodeType">[docs]</a><span class="k">class</span> <span class="nc">NodeType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Node</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">CallNode</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">LiteralNode</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">ImportNode</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">LookupNode</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">MutateNode</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">GlobalNode</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LiteralType"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.LiteralType">[docs]</a><span class="k">class</span> <span class="nc">LiteralType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">String</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">Integer</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">Float</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">Boolean</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">NoneType</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="bp">Ellipsis</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ValueType"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.ValueType">[docs]</a><span class="k">class</span> <span class="nc">ValueType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lower case because the API with the frontend assume the characters &quot;chart&quot;</span>
+<span class="sd">    exactly as is.</span>
+
+<span class="sd">    TODO</span>
+<span class="sd">    ----</span>
+<span class="sd">    FIXME</span>
+
+<span class="sd">    - rename (need coordination with linea-server):</span>
+<span class="sd">        - really `dataset` is a table</span>
+<span class="sd">        - `value` means its a literal  (e.g., int/str)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">chart</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># includes int, string, bool</span></div>
+
+
+<span class="k">class</span> <span class="nc">NodeValue</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="c1"># A pointer to the current execution</span>
+    <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">value_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ValueType</span><span class="p">]</span>
+
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
+    <span class="n">end_time</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="Execution"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.Execution">[docs]</a><span class="k">class</span> <span class="nc">Execution</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An execution is one session of running many nodes and recording their values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Artifact"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.Artifact">[docs]</a><span class="k">class</span> <span class="nc">Artifact</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An artifact points to the value of a node during some execution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span>
+
+    <span class="n">date_created</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<span class="k">class</span> <span class="nc">JupyterCell</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="c1"># The execution number of the cell</span>
+    <span class="c1"># https://nbformat.readthedocs.io/en/latest/format_description.html#code-cells</span>
+    <span class="n">execution_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="c1"># The session context ID for this execution</span>
+    <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span>
+
+
+<span class="n">SourceCodeLocation</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">JupyterCell</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SourceCode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.SourceCode">[docs]</a><span class="k">class</span> <span class="nc">SourceCode</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The source code of the code that was executed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">location</span><span class="p">:</span> <span class="n">SourceCodeLocation</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SourceCode</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">id</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the this source code comes before the other, only applies</span>
+<span class="sd">        to Jupyter sources.</span>
+
+<span class="sd">        It will return not implemented, if they are not from the same file</span>
+<span class="sd">        or the same Jupyter session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SourceCode</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="n">self_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span>
+        <span class="n">other_location</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">location</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_location</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">other_location</span><span class="p">,</span> <span class="n">Path</span>
+        <span class="p">):</span>
+            <span class="c1"># If they are of different files, we can&#39;t compare them</span>
+            <span class="k">if</span> <span class="n">self_location</span> <span class="o">!=</span> <span class="n">other_location</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">NotImplemented</span>
+            <span class="c1"># Otherwise, they are equal so not lt</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_location</span><span class="p">,</span> <span class="n">JupyterCell</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">other_location</span><span class="p">,</span> <span class="n">JupyterCell</span>
+        <span class="p">):</span>
+            <span class="c1"># If they are from different sessions, we cant compare them.</span>
+            <span class="k">if</span> <span class="n">self_location</span><span class="o">.</span><span class="n">session_id</span> <span class="o">!=</span> <span class="n">other_location</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">NotImplemented</span>
+            <span class="c1"># Compare jupyter cells first by execution count, then line number</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">self_location</span><span class="o">.</span><span class="n">execution_count</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span>
+                <span class="n">other_location</span><span class="o">.</span><span class="n">execution_count</span>
+            <span class="p">)</span>
+        <span class="c1"># If they are different source locations, we don&#39;t know how to compare</span>
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">self_location</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other_location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+
+<div class="viewcode-block" id="SourceLocation"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.SourceLocation">[docs]</a><span class="k">class</span> <span class="nc">SourceLocation</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The location of the original source.</span>
+
+<span class="sd">    eventually we need to also be able to support fused locations, like MLIR:</span>
+<span class="sd">    https://mlir.llvm.org/docs/Dialects/Builtin/#location-attributes</span>
+<span class="sd">    but for now we just point at the original user source location.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lineno</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">col_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">end_lineno</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">end_col_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">source_code</span><span class="p">:</span> <span class="n">SourceCode</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the this source location comes before the other.</span>
+
+<span class="sd">        It will return not implemented, if they are not from the same file</span>
+<span class="sd">        or the same Jupyter session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SourceLocation</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="n">source_code_lt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_code</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">source_code</span>
+        <span class="c1"># If they are different source locations, we don&#39;t know how to compare</span>
+        <span class="k">if</span> <span class="n">source_code_lt</span> <span class="o">==</span> <span class="bp">NotImplemented</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="c1"># Otherwise, if they are from the same source, compare by line number</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">location</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">location</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_offset</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span>
+                <span class="n">other</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span>
+                <span class="n">other</span><span class="o">.</span><span class="n">col_offset</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">source_code_lt</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="BaseNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.BaseNode">[docs]</a><span class="k">class</span> <span class="nc">BaseNode</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    - id: string version of UUID, which we chose because</span>
+<span class="sd">      we do not need to coordinate to make it unique</span>
+<span class="sd">    - lineno, col_offset, end_lino, end_col_offsets: these record the position</span>
+<span class="sd">      of the calls. They are optional because it&#39;s not required some nodes,</span>
+<span class="sd">      such as side-effects nodes, which do not correspond to a line of code.</span>
+
+<span class="sd">    - `class Config`&#39;s orm_mode allows us to use from_orm to convert ORM</span>
+<span class="sd">      objects to pydantic objects</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># refers to SessionContext.id</span>
+    <span class="n">node_type</span><span class="p">:</span> <span class="n">NodeType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">source_location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SourceLocation</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">orm_mode</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort nodes by line number and column, putting those without line numbers</span>
+<span class="sd">        at the beginning.</span>
+
+<span class="sd">        Used to break ties in topological node ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">BaseNode</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">source_location</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_location</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_location</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">source_location</span>
+
+<div class="viewcode-block" id="BaseNode.parents"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.BaseNode.parents">[docs]</a>    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the parents of this node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make an empty generator by yielding from an empty list</span>
+
+        <span class="k">yield from</span> <span class="p">[]</span></div></div>
+
+
+<div class="viewcode-block" id="ImportNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.ImportNode">[docs]</a><span class="k">class</span> <span class="nc">ImportNode</span><span class="p">(</span><span class="n">BaseNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imported libraries.</span>
+
+<span class="sd">    `version` and `package_name` are retrieved at runtime.</span>
+<span class="sd">    `package_name` may be different from import name, see get_lib_package_version.</span>
+
+<span class="sd">    These are optional because the info is acquired at runtime.</span>
+
+<span class="sd">    Note that this node is not actually used for execution (using `l_import` CallNodes),</span>
+<span class="sd">      but more a decoration for metadata retrieval.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_type</span><span class="p">:</span> <span class="n">NodeType</span> <span class="o">=</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">ImportNode</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">package_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<span class="k">class</span> <span class="nc">PositionalArgument</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">starred</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">class</span> <span class="nc">KeywordArgument</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">starred</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="CallNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.CallNode">[docs]</a><span class="k">class</span> <span class="nc">CallNode</span><span class="p">(</span><span class="n">BaseNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    - `function_id`: node containing the value of the function call, which</span>
+<span class="sd">      could be from various places: (1) locally defined, (2) imported, and</span>
+<span class="sd">      (3) magically existing, e.g. from builtins (`min`), or environment</span>
+<span class="sd">      like `get_ipython`.</span>
+<span class="sd">    - `value`: value of the call result, filled at runtime. It may be cached</span>
+<span class="sd">      by the data asset manager</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_type</span><span class="p">:</span> <span class="n">NodeType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">CallNode</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">function_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="n">positional_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PositionalArgument</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">keyword_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">KeywordArgument</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Mapping of global variables that need to be set to call this function</span>
+    <span class="n">global_reads</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># TODO: add documentation</span>
+    <span class="n">implicit_dependencies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="CallNode.parents"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.CallNode.parents">[docs]</a>    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_id</span>
+        <span class="k">yield from</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">positional_args</span><span class="p">]</span>
+        <span class="k">yield from</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyword_args</span><span class="p">]</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_reads</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">implicit_dependencies</span></div></div>
+
+
+<div class="viewcode-block" id="LiteralNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.LiteralNode">[docs]</a><span class="k">class</span> <span class="nc">LiteralNode</span><span class="p">(</span><span class="n">BaseNode</span><span class="p">):</span>
+    <span class="n">node_type</span><span class="p">:</span> <span class="n">NodeType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">LiteralNode</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Any</span></div>
+
+
+<div class="viewcode-block" id="LookupNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.LookupNode">[docs]</a><span class="k">class</span> <span class="nc">LookupNode</span><span class="p">(</span><span class="n">BaseNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For unknown/undefined variables e.g. SQLcontext, get_ipython, int.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_type</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">LookupNode</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<div class="viewcode-block" id="MutateNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.MutateNode">[docs]</a><span class="k">class</span> <span class="nc">MutateNode</span><span class="p">(</span><span class="n">BaseNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a mutation of a node&#39;s value.</span>
+
+<span class="sd">    After a call mutates a node then later references to that node will</span>
+<span class="sd">    instead refer to this mutate node.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_type</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">MutateNode</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Points to the original node that was mutated</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="n">LineaID</span>
+
+    <span class="c1"># Points to the CallNode that did the mutation</span>
+    <span class="n">call_id</span><span class="p">:</span> <span class="n">LineaID</span>
+
+<div class="viewcode-block" id="MutateNode.parents"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.MutateNode.parents">[docs]</a>    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_id</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_id</span></div></div>
+
+
+<div class="viewcode-block" id="GlobalNode"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.GlobalNode">[docs]</a><span class="k">class</span> <span class="nc">GlobalNode</span><span class="p">(</span><span class="n">BaseNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a lookup of a global variable, that was set as a side effect</span>
+<span class="sd">    in another node.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">node_type</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">GlobalNode</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># The name of the variable to look up from the result of the call</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="c1"># Points to the call node that updated the global</span>
+    <span class="n">call_id</span><span class="p">:</span> <span class="n">LineaID</span>
+
+<div class="viewcode-block" id="GlobalNode.parents"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.GlobalNode.parents">[docs]</a>    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_id</span></div></div>
+
+
+<span class="c1"># We can use this for more precise type definitions, to make sure we hit</span>
+<span class="c1"># all the node cases</span>
+<span class="n">Node</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="n">ImportNode</span><span class="p">,</span> <span class="n">CallNode</span><span class="p">,</span> <span class="n">LiteralNode</span><span class="p">,</span> <span class="n">LookupNode</span><span class="p">,</span> <span class="n">MutateNode</span><span class="p">,</span> <span class="n">GlobalNode</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="PipelineType"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.PipelineType">[docs]</a><span class="k">class</span> <span class="nc">PipelineType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pipeline types allow the to_pipeline to know what to expect</span>
+<span class="sd">    - SCRIPT : the pipeline is wrapped as a python script</span>
+<span class="sd">    - AIRFLOW : the pipeline is wrapped as an airflow dag</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SCRIPT</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">AIRFLOW</span> <span class="o">=</span> <span class="mi">2</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

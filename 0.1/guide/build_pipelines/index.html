@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Pipelines &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Managing Artifacts" href="../manage_artifacts/index.html" />
+    <link rel="prev" title="Refactoring Code" href="../refactor_code/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> lineapy
+            <img src="../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Building Pipelines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basics">Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-files">Output Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-locally">Testing Locally</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Building Pipelines</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/guide/build_pipelines/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="building-pipelines">
+<h1>Building Pipelines<a class="headerlink" href="#building-pipelines" title="Permalink to this heading"></a></h1>
+<section id="basics">
+<h2>Basics<a class="headerlink" href="#basics" title="Permalink to this heading"></a></h2>
+<p>Data science workflows revolve around building and refining pipelines, i.e., a series of processes that transform data into useful information/product
+(read more about pipelines <a class="reference internal" href="../../fundamentals/concepts.html#concepts"><span class="std std-ref">here</span></a>).</p>
+<p>Traditionally, this is often manual and time-consuming work as data scientists (or production engineers) need to transform messy development code
+into deployable scripts for the target system (e.g., Airflow).</p>
+<p>Having the complete development process stored in artifacts, LineaPy can automate such code transformation, accelerating transition from development to production.</p>
+<p>For example, consider a simple pipeline that 1) pre-processes raw data and 2) trains a model with the pre-processed data.</p>
+<a class="reference internal image-reference" href="../../_images/pipeline.png"><img alt="Pipeline Example" class="align-center" src="../../_images/pipeline.png" style="width: 600px;" /></a>
+<p>Once we have the pre-processed data and the trained model stored as LineaPy artifacts (which can be done during development sessions),
+building a pipeline reduces to “stitching” these artifacts, like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lineapy</span>
+
+<span class="c1"># Load artifacts to use in pipeline building</span>
+<span class="n">preprocessing_art</span> <span class="o">=</span> <span class="n">lineapy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iris_preprocessed&quot;</span><span class="p">)</span>
+<span class="n">modeling_art</span> <span class="o">=</span> <span class="n">lineapy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iris_model&quot;</span><span class="p">)</span>
+
+<span class="c1"># Build an Airflow pipeline using artifacts</span>
+<span class="n">lineapy</span><span class="o">.</span><span class="n">to_pipeline</span><span class="p">(</span>
+   <span class="n">artifacts</span><span class="o">=</span><span class="p">[</span>
+      <span class="n">preprocessing_art</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+      <span class="n">modeling_art</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+   <span class="p">],</span>
+   <span class="n">pipeline_name</span><span class="o">=</span><span class="s2">&quot;demo_airflow_pipeline&quot;</span><span class="p">,</span>
+   <span class="n">dependencies</span><span class="o">=</span><span class="p">{</span>
+      <span class="n">modeling_art</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span> <span class="n">preprocessing_art</span><span class="o">.</span><span class="n">name</span><span class="p">},</span>
+   <span class="p">},</span>
+   <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;output/02_build_pipelines/demo_airflow_pipeline/&quot;</span><span class="p">,</span>
+   <span class="n">framework</span><span class="o">=</span><span class="s2">&quot;AIRFLOW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>where</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">artifacts</span></code> is the list of artifact names to be used for the pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pipeline_name</span></code> is the name of the pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dependencies</span></code> is the dependency graph among artifacts</p>
+<ul>
+<li><p>If artifact A depends on artifacts B and C, then the graph is specified as <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">A:</span> <span class="pre">{</span> <span class="pre">B,</span> <span class="pre">C</span> <span class="pre">}</span> <span class="pre">}</span></code></p></li>
+<li><p>If A depends on B and B depends on C, then the graph is specified as <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">A:</span> <span class="pre">{</span> <span class="pre">B</span> <span class="pre">},</span> <span class="pre">B:</span> <span class="pre">{</span> <span class="pre">C</span> <span class="pre">}</span> <span class="pre">}</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_dir</span></code> is the location to put the files for running the pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">framework</span></code> is the name of orchestration framework to use</p>
+<ul>
+<li><p>LineaPy currently supports <code class="docutils literal notranslate"><span class="pre">&quot;AIRFLOW&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;SCRIPT&quot;</span></code></p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">&quot;AIRFLOW&quot;</span></code>, it will generate files that can run Airflow DAGs</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">&quot;SCRIPT&quot;</span></code>, it will generate files that can run the pipeline as a Python script</p></li>
+</ul>
+</li>
+</ul>
+<p>Running <a class="reference internal" href="../../autogen/lineapy.html#lineapy.to_pipeline" title="lineapy.to_pipeline"><code class="xref py py-func docutils literal notranslate"><span class="pre">lineapy.to_pipeline()</span></code></a> generates several files that can be used to execute the pipeline from the UI or CLI, including:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;pipeline_name&gt;.py</span></code>: Contains the artifact code packaged as a function module</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;pipeline_name&gt;_dag.py</span></code>: Uses the packaged function(s) to define the pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;pipeline_name&gt;_requirements.txt</span></code>: Lists any package dependencies for running the pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;pipeline_name&gt;_Dockerfile</span></code>: Contains commands to set up the environment to run the pipeline</p></li>
+</ul>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;pipeline_name&gt;</span></code> is <code class="docutils literal notranslate"><span class="pre">demo_airflow_pipeline</span></code> in the current example.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want hands-on practice,
+check out <a class="reference external" href="https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb">this</a> tutorial notebook.</p>
+</div>
+</section>
+<section id="output-files">
+<h2>Output Files<a class="headerlink" href="#output-files" title="Permalink to this heading"></a></h2>
+<p>Let’s take a closer look at these files. First, we have <code class="docutils literal notranslate"><span class="pre">demo_airflow_pipeline.py</span></code> looking as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pickle</span>
+
+
+<span class="k">def</span> <span class="nf">iris_preprocessed</span><span class="p">():</span>
+
+   <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+   <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+      <span class="s2">&quot;https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv&quot;</span>
+   <span class="p">)</span>
+   <span class="n">color_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Setosa&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;Versicolor&quot;</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;Virginica&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">}</span>
+   <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">color_map</span><span class="p">)</span>
+   <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d_versicolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Versicolor&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+   <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d_virginica&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Virginica&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+   <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/Users/sangyoonpark/.lineapy/linea_pickles/JIzXR8u&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">iris_model</span><span class="p">():</span>
+
+   <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+
+   <span class="n">df_processed</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+      <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/Users/sangyoonpark/.lineapy/linea_pickles/JIzXR8u&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+   <span class="p">)</span>
+   <span class="n">mod</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+   <span class="n">mod</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+      <span class="n">X</span><span class="o">=</span><span class="n">df_processed</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;d_versicolor&quot;</span><span class="p">,</span> <span class="s2">&quot;d_virginica&quot;</span><span class="p">]],</span>
+      <span class="n">y</span><span class="o">=</span><span class="n">df_processed</span><span class="p">[</span><span class="s2">&quot;sepal.width&quot;</span><span class="p">],</span>
+   <span class="p">)</span>
+   <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/Users/sangyoonpark/.lineapy/linea_pickles/k5pyaTX&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We can see that LineaPy used artifacts to automatically 1) clean up their code to retain only essential operations and 2) package the cleaned-up code into importable functions.</p>
+<p>And we see <code class="docutils literal notranslate"><span class="pre">demo_airflow_pipeline_dag.py</span></code> automatically composing an Airflow DAG with these functions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">demo_airflow_pipeline</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.python_operator</span> <span class="kn">import</span> <span class="n">PythonOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.dates</span> <span class="kn">import</span> <span class="n">days_ago</span>
+
+<span class="n">default_dag_args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;airflow&quot;</span><span class="p">,</span> <span class="s2">&quot;retries&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">)}</span>
+
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span>
+   <span class="n">dag_id</span><span class="o">=</span><span class="s2">&quot;demo_airflow_pipeline_dag&quot;</span><span class="p">,</span>
+   <span class="n">schedule_interval</span><span class="o">=</span><span class="s2">&quot;*/15 * * * *&quot;</span><span class="p">,</span>
+   <span class="n">max_active_runs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+   <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+   <span class="n">default_args</span><span class="o">=</span><span class="n">default_dag_args</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">iris_preprocessed</span> <span class="o">=</span> <span class="n">PythonOperator</span><span class="p">(</span>
+   <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">,</span>
+   <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;iris_preprocessed_task&quot;</span><span class="p">,</span>
+   <span class="n">python_callable</span><span class="o">=</span><span class="n">demo_airflow_pipeline</span><span class="o">.</span><span class="n">iris_preprocessed</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">iris_model</span> <span class="o">=</span> <span class="n">PythonOperator</span><span class="p">(</span>
+   <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">,</span>
+   <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;iris_model_task&quot;</span><span class="p">,</span>
+   <span class="n">python_callable</span><span class="o">=</span><span class="n">demo_airflow_pipeline</span><span class="o">.</span><span class="n">iris_model</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">iris_preprocessed</span> <span class="o">&gt;&gt;</span> <span class="n">iris_model</span>
+</pre></div>
+</div>
+<p>Next, we see <code class="docutils literal notranslate"><span class="pre">demo_airflow_pipeline_requirements.txt</span></code> listing dependencies for running the pipeline:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>matplotlib==3.5.1
+numpy==1.21.5
+lineapy==0.0.5
+</pre></div>
+</div>
+<p>Finally, we have the automatically generated Dockerfile (<code class="docutils literal notranslate"><span class="pre">demo_airflow_pipeline_Dockerfile</span></code>), which facilitates pipeline execution:</p>
+<div class="highlight-docker notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:latest</span>
+
+<span class="k">RUN</span><span class="w"> </span>mkdir /tmp/installers
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/tmp/installers</span>
+
+<span class="c"># copy all the requirements to run the current dag</span>
+<span class="k">COPY</span><span class="w"> </span>./demo_airflow_pipeline_requirements.txt ./
+<span class="c"># install the required libs</span>
+<span class="k">RUN</span><span class="w"> </span>pip install -r ./demo_airflow_pipeline_requirements.txt
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/opt/airflow/dags</span>
+<span class="k">COPY</span><span class="w"> </span>. .
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/opt/airflow</span>
+
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;standalone&quot;</span><span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-locally">
+<span id="testingairflow"></span><h2>Testing Locally<a class="headerlink" href="#testing-locally" title="Permalink to this heading"></a></h2>
+<p>With these automatically generated files, we can quickly test running the pipeline locally.
+First, we run the following command to build a Docker image:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build -t &lt;image_name&gt; . -f &lt;pipeline_name&gt;_Dockerfile
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;pipeline_name&gt;_Dockerfile</span></code> is the name of the automatically generated Dockerfile and
+<code class="docutils literal notranslate"><span class="pre">&lt;image_name&gt;</span></code> is the image name of our choice.</p>
+<p>We then stand up a container instance with the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it -p <span class="m">8080</span>:8080 &lt;image_name&gt;
+</pre></div>
+</div>
+<p>In the current example where we set <code class="docutils literal notranslate"><span class="pre">framework=&quot;AIRFLOW&quot;</span></code>, this will result in an Airflow instance
+with an executable DAG in it.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../refactor_code/index.html" class="btn btn-neutral float-left" title="Refactoring Code" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../manage_artifacts/index.html" class="btn btn-neutral float-right" title="Managing Artifacts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

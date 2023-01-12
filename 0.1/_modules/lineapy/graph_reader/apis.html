@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.graph_reader.apis &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.graph_reader.apis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.graph_reader.apis</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">User exposed objects through the :mod:`lineapy.apis`.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.graph</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">LineaID</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.db</span> <span class="kn">import</span> <span class="n">RelationalLineaDB</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.relational</span> <span class="kn">import</span> <span class="n">ArtifactORM</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.utils</span> <span class="kn">import</span> <span class="n">FilePickler</span>
+<span class="kn">from</span> <span class="nn">lineapy.execution.executor</span> <span class="kn">import</span> <span class="n">Executor</span>
+<span class="kn">from</span> <span class="nn">lineapy.graph_reader.api_utils</span> <span class="kn">import</span> <span class="n">de_lineate_code</span>
+<span class="kn">from</span> <span class="nn">lineapy.graph_reader.program_slice</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_slice_graph</span><span class="p">,</span>
+    <span class="n">get_source_code_from_graph</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.analytics</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GetCodeEvent</span><span class="p">,</span>
+    <span class="n">GetValueEvent</span><span class="p">,</span>
+    <span class="n">GetVersionEvent</span><span class="p">,</span>
+    <span class="n">track</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.deprecation_utils</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">prettify</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="LineaArtifact"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">LineaArtifact</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;LineaArtifact</span>
+<span class="sd">    exposes functionalities we offer around the artifact.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">db</span><span class="p">:</span> <span class="n">RelationalLineaDB</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_execution_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_node_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;node id of the artifact in the graph&quot;&quot;&quot;</span>
+    <span class="n">_session_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;session id of the session that created the artifact&quot;&quot;&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="sd">&quot;&quot;&quot;name of the artifact&quot;&quot;&quot;</span>
+    <span class="n">_version</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="sd">&quot;&quot;&quot;version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`&quot;&quot;&quot;</span>
+    <span class="n">date_created</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># setting repr to false for date_created for now since it duplicates version</span>
+    <span class="sd">&quot;&quot;&quot;Optional because date_created cannot be set by the user. </span>
+<span class="sd">    it is supposed to be automatically set when the </span>
+<span class="sd">    artifact gets saved to the db. so when creating lineaArtifact </span>
+<span class="sd">    the first time, it will be unset. When you get the artifact or </span>
+<span class="sd">    catalog of artifacts, we retrieve the date from db and </span>
+<span class="sd">    it will be set.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">track</span><span class="p">(</span><span class="n">GetVersionEvent</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>
+
+<div class="viewcode-block" id="LineaArtifact.get_value"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact.get_value">[docs]</a>    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get and return the value of the artifact</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_node_value_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execution_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO - set unicode etc here</span>
+            <span class="n">track</span><span class="p">(</span><span class="n">GetValueEvent</span><span class="p">(</span><span class="n">has_value</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">FilePickler</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+    <span class="c1"># Note that I removed the @properties because they were not working</span>
+    <span class="c1"># well with the lru_cache</span>
+    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_subgraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keep_lineapy_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Graph</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the slice subgraph for the artifact.</span>
+
+<span class="sd">        :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.</span>
+<span class="sd">                Defaults to ``False``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get_slice_graph</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_graph</span><span class="p">(),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_id</span><span class="p">],</span> <span class="n">keep_lineapy_save</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LineaArtifact.get_code"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact.get_code">[docs]</a>    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">use_lineapy_serialization</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">keep_lineapy_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the slices code for the artifact</span>
+
+<span class="sd">        :param use_lineapy_serialization: If ``True``, will use the lineapy serialization to get the code.</span>
+<span class="sd">                We will hide the serialization and the value pickler irrespective of the value type.</span>
+<span class="sd">                If ``False``, will use remove all the lineapy references and instead use the underlying serializer directly.</span>
+<span class="sd">                Currently, we use the native ``pickle`` serializer.</span>
+<span class="sd">        :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.</span>
+<span class="sd">                Defaults to ``False``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME: this seems a little heavy to just get the slice?</span>
+        <span class="n">track</span><span class="p">(</span>
+            <span class="n">GetCodeEvent</span><span class="p">(</span>
+                <span class="n">use_lineapy_serialization</span><span class="o">=</span><span class="n">use_lineapy_serialization</span><span class="p">,</span>
+                <span class="n">is_session_code</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="n">get_source_code_from_graph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_subgraph</span><span class="p">(</span><span class="n">keep_lineapy_save</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_lineapy_serialization</span><span class="p">:</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="n">de_lineate_code</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prettify</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineaArtifact.get_session_code"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact.get_session_code">[docs]</a>    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_session_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_lineapy_serialization</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the raw session code for the artifact. This will include any</span>
+<span class="sd">        comments and non-code lines.</span>
+
+<span class="sd">        :param use_lineapy_serialization: If ``True``, will use the lineapy serialization to get the code.</span>
+<span class="sd">                We will hide the serialization and the value pickler irrespective of the value type.</span>
+<span class="sd">                If ``False``, will use remove all the lineapy references and instead use the underlying serializer directly.</span>
+<span class="sd">                Currently, we use the native ``pickle`` serializer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># using this over get_source_code_from_graph because it will process the</span>
+        <span class="c1"># graph code and not return the original code with comments etc.</span>
+        <span class="n">track</span><span class="p">(</span>
+            <span class="n">GetCodeEvent</span><span class="p">(</span>
+                <span class="n">use_lineapy_serialization</span><span class="o">=</span><span class="n">use_lineapy_serialization</span><span class="p">,</span>
+                <span class="n">is_session_code</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_source_code_for_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_lineapy_serialization</span><span class="p">:</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="n">de_lineate_code</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+        <span class="c1"># NOTE: we are not prettifying this code because we want to preserve what</span>
+        <span class="c1"># the user wrote originally, without processing</span>
+        <span class="k">return</span> <span class="n">code</span></div>
+
+    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Graph</span><span class="p">:</span>
+        <span class="n">session_context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_session_context</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session_id</span><span class="p">)</span>
+        <span class="c1"># FIXME: copied cover from tracer, we might want to refactor</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_nodes_for_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">session_context</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LineaArtifact.visualize"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Displays the graph for this artifact.</span>
+
+<span class="sd">        If a path is provided, will save it to that file instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># adding this inside function to lazy import graphviz.</span>
+        <span class="c1"># This way we can import lineapy without having graphviz installed.</span>
+        <span class="kn">from</span> <span class="nn">lineapy.visualizer</span> <span class="kn">import</span> <span class="n">Visualizer</span>
+
+        <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">for_public_node</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_graph</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_node_id</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">visualizer</span><span class="o">.</span><span class="n">render_pdf_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">visualizer</span><span class="o">.</span><span class="n">ipython_display_object</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="LineaArtifact.execute"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the artifact graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slice_exec</span> <span class="o">=</span> <span class="n">Executor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
+        <span class="n">slice_exec</span><span class="o">.</span><span class="n">execute_graph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_subgraph</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">slice_exec</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_id</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="LineaCatalog"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaCatalog">[docs]</a><span class="k">class</span> <span class="nc">LineaCatalog</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;LineaCatalog</span>
+
+<span class="sd">    A simple way to access meta data about artifacts in Linea</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        - The export is pretty limited right now and we should expand later.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="n">db_artifacts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ArtifactORM</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_artifacts</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaArtifact</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">LineaArtifact</span><span class="p">(</span>
+                <span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+                <span class="n">_execution_id</span><span class="o">=</span><span class="n">db_artifact</span><span class="o">.</span><span class="n">execution_id</span><span class="p">,</span>
+                <span class="n">_node_id</span><span class="o">=</span><span class="n">db_artifact</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span>
+                <span class="n">_session_id</span><span class="o">=</span><span class="n">db_artifact</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span>
+                <span class="n">_version</span><span class="o">=</span><span class="n">db_artifact</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">db_artifact</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                <span class="n">date_created</span><span class="o">=</span><span class="n">db_artifact</span><span class="o">.</span><span class="n">date_created</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">db_artifact</span> <span class="ow">in</span> <span class="n">db_artifacts</span>
+        <span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Can&#39;t really cache this since the values might change</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> created on </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">date_created</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">print</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">print</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: a dictionary of artifact information, which the user can then</span>
+<span class="sd">            manipulate with their favorite dataframe tools, such as pandas,</span>
+<span class="sd">            e.g., `cat_df = pd.DataFrame(catalog.export())`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;artifact_name&quot;</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;artifact_version&quot;</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                <span class="s2">&quot;date_created&quot;</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">date_created</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span>
+        <span class="p">]</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

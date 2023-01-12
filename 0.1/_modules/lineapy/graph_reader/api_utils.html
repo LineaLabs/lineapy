@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.graph_reader.api_utils &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.graph_reader.api_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.graph_reader.api_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.db.db</span> <span class="kn">import</span> <span class="n">RelationalLineaDB</span>
+
+
+<div class="viewcode-block" id="de_lineate_code"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.api_utils.de_lineate_code">[docs]</a><span class="k">def</span> <span class="nf">de_lineate_code</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span> <span class="n">RelationalLineaDB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    De-linealize the code by removing any lineapy api references</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lineapy_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s2">&quot;(lineapy.(save\(([\w]+),\s*[</span><span class="se">\&quot;</span><span class="s2">\&#39;]([\w\-\s]+)[</span><span class="se">\&quot;</span><span class="s2">\&#39;]\)|get\([</span><span class="se">\&quot;</span><span class="s2">\&#39;]([\w\-\s]+)[</span><span class="se">\&quot;</span><span class="s2">\&#39;]\).get_value\(\)))&quot;</span>
+    <span class="p">)</span>
+    <span class="c1"># init swapped version</span>
+
+    <span class="k">def</span> <span class="nf">replace_fun</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;save&quot;</span><span class="p">):</span>
+            <span class="c1"># FIXME - there is a potential issue here because we are looking up the artifact by name</span>
+            <span class="c1"># This does not ensure that the same version of current artifact is being looked up.</span>
+            <span class="c1"># We support passing a version number to the get_artifact_by_name but it needs to be parsed</span>
+            <span class="c1"># out in the regex somehow. This would be simpler when we support named versions when saving.</span>
+            <span class="n">dep_artifact</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_artifact_by_name</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+            <span class="n">path_to_use</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_node_value_path</span><span class="p">(</span>
+                <span class="n">dep_artifact</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span> <span class="n">dep_artifact</span><span class="o">.</span><span class="n">execution_id</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;pickle.dump(</span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">,open(&quot;</span><span class="si">{</span><span class="n">path_to_use</span><span class="si">}</span><span class="s1">&quot;,&quot;wb&quot;))&#39;</span>
+
+        <span class="k">elif</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">):</span>
+            <span class="c1"># this typically will be a different artifact.</span>
+            <span class="n">dep_artifact</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_artifact_by_name</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+            <span class="n">path_to_use</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_node_value_path</span><span class="p">(</span>
+                <span class="n">dep_artifact</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span> <span class="n">dep_artifact</span><span class="o">.</span><span class="n">execution_id</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;pickle.load(open(&quot;</span><span class="si">{</span><span class="n">path_to_use</span><span class="si">}</span><span class="s1">&quot;,&quot;rb&quot;))&#39;</span>
+
+    <span class="n">swapped</span><span class="p">,</span> <span class="n">replaces</span> <span class="o">=</span> <span class="n">lineapy_pattern</span><span class="o">.</span><span class="n">subn</span><span class="p">(</span><span class="n">replace_fun</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">replaces</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># If we replaced something, pickle was used so add import pickle on top</span>
+        <span class="c1"># Conversely, if lineapy reference was removed, potentially the import lineapy line is not needed anymore.</span>
+        <span class="n">remove_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;import lineapy\n&quot;</span><span class="p">)</span>
+        <span class="n">match_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;lineapy\.(.*)&quot;</span><span class="p">)</span>
+        <span class="n">swapped</span> <span class="o">=</span> <span class="s2">&quot;import pickle</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">swapped</span>
+        <span class="k">if</span> <span class="n">match_pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">swapped</span><span class="p">):</span>
+            <span class="c1"># we still are using lineapy.xxx functions</span>
+            <span class="c1"># so do nothing</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">swapped</span><span class="p">,</span> <span class="n">lineareplaces</span> <span class="o">=</span> <span class="n">remove_pattern</span><span class="o">.</span><span class="n">subn</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">swapped</span><span class="p">)</span>
+            <span class="c1"># logger.debug(f&quot;Removed lineapy {lineareplaces} times&quot;)</span>
+
+    <span class="c1"># logger.debug(&quot;replaces made: %s&quot;, replaces)</span>
+
+    <span class="k">return</span> <span class="n">swapped</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

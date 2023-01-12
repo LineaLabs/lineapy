@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.graph_reader.program_slice &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.graph_reader.program_slice</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.graph_reader.program_slice</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">DefaultDict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.graph</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">CallNode</span><span class="p">,</span> <span class="n">ImportNode</span><span class="p">,</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">SourceCode</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.db</span> <span class="kn">import</span> <span class="n">RelationalLineaDB</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">prettify</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_slice_graph"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.program_slice.get_slice_graph">[docs]</a><span class="k">def</span> <span class="nf">get_slice_graph</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">:</span> <span class="n">Graph</span><span class="p">,</span> <span class="n">sinks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">],</span> <span class="n">keep_lineapy_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Graph</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a full graph from the session</span>
+<span class="sd">    and produces the subset responsible for the &quot;sinks&quot;.</span>
+
+<span class="sd">    :param graph: A full graph objection from a session.</span>
+<span class="sd">    :param sinks: A list of node IDs desired for slicing.</span>
+<span class="sd">    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.</span>
+<span class="sd">            Defaults to ``False``.</span>
+<span class="sd">    :return: A subgraph extracted (i.e., sliced) for the desired node IDs.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">keep_lineapy_save</span><span class="p">:</span>
+        <span class="c1"># Children of an artifact sink include .save() statement.</span>
+        <span class="c1"># Identify .save() statement and make it the new sink.</span>
+        <span class="c1"># If not applicable, retain the original artifact sink.</span>
+        <span class="n">new_sinks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sink</span> <span class="ow">in</span> <span class="n">sinks</span><span class="p">:</span>
+            <span class="n">new_sink</span> <span class="o">=</span> <span class="n">sink</span>
+            <span class="n">child_ids</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c_id</span> <span class="ow">in</span> <span class="n">child_ids</span><span class="p">:</span>
+                <span class="n">c_node</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">c_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_node</span><span class="p">,</span> <span class="n">CallNode</span><span class="p">)</span> <span class="ow">and</span> <span class="n">c_node</span><span class="o">.</span><span class="n">source_location</span><span class="p">:</span>
+                    <span class="n">source_code</span> <span class="o">=</span> <span class="n">c_node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">code</span>
+                    <span class="n">line_number</span> <span class="o">=</span> <span class="n">c_node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">lineno</span>
+                    <span class="n">line_code</span> <span class="o">=</span> <span class="n">source_code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)[</span><span class="n">line_number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="n">first_arg</span> <span class="o">=</span> <span class="n">c_node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s2">&quot;lineapy.save&quot;</span> <span class="ow">in</span> <span class="n">line_code</span> <span class="ow">and</span> <span class="n">first_arg</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">sink</span><span class="p">:</span>
+                        <span class="n">new_sink</span> <span class="o">=</span> <span class="n">c_id</span>
+            <span class="n">new_sinks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_sink</span><span class="p">)</span>
+        <span class="n">sinks</span> <span class="o">=</span> <span class="n">new_sinks</span>
+
+    <span class="n">ancestors</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sinks</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">sink</span> <span class="ow">in</span> <span class="n">sinks</span><span class="p">:</span>
+        <span class="n">ancestors</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">get_ancestors</span><span class="p">(</span><span class="n">sink</span><span class="p">))</span>
+
+    <span class="n">new_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">graph</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ancestors</span><span class="p">]</span>
+    <span class="n">subgraph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_subgraph</span><span class="p">(</span><span class="n">new_nodes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subgraph</span></div>
+
+
+<div class="viewcode-block" id="CodeSlice"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.program_slice.CodeSlice">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CodeSlice</span><span class="p">:</span>
+    <span class="n">import_lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">body_lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="c1"># source_code: SourceCode</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">prettify</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">import_lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">body_lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_source_code_from_graph"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.program_slice.get_source_code_from_graph">[docs]</a><span class="k">def</span> <span class="nf">get_source_code_from_graph</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Graph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeSlice</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the code from some subgraph, by including all lines that</span>
+<span class="sd">    are included in the graphs source.</span>
+
+<span class="sd">    .. todo:: We need better analysis than just looking at the source code.</span>
+<span class="sd">        For example, what if we just need one expression from a line that defines</span>
+<span class="sd">        multiple expressions?</span>
+
+<span class="sd">        We should probably instead regenerate the source from our graph</span>
+<span class="sd">        representation.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># map of source code to set of included line numbers</span>
+    <span class="n">source_code_to_lines</span> <span class="o">=</span> <span class="n">DefaultDict</span><span class="p">[</span><span class="n">SourceCode</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]](</span><span class="nb">set</span><span class="p">)</span>
+    <span class="n">import_code_to_lines</span> <span class="o">=</span> <span class="n">DefaultDict</span><span class="p">[</span><span class="n">SourceCode</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]](</span><span class="nb">set</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">program</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="c1"># check if import node</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="n">ImportNode</span><span class="p">)):</span>
+            <span class="n">import_code_to_lines</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">source_code</span><span class="p">]</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span>
+                <span class="nb">range</span><span class="p">(</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">end_lineno</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source_code_to_lines</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">source_code</span><span class="p">]</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span>
+                <span class="nb">range</span><span class="p">(</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">source_location</span><span class="o">.</span><span class="n">end_lineno</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Source code to lines: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source_code_to_lines</span><span class="p">)</span>
+    <span class="c1"># Sort source codes (for jupyter cells), and select lines</span>
+    <span class="n">body_code</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">source_code</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">source_code_to_lines</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">source_code_lines</span> <span class="o">=</span> <span class="n">source_code</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="n">body_code</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source_code_lines</span><span class="p">[</span><span class="n">line</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">import_code</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">import_source_code</span><span class="p">,</span> <span class="n">lines</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">import_code_to_lines</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">import_code_lines</span> <span class="o">=</span> <span class="n">import_source_code</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="n">import_code</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">import_code_lines</span><span class="p">[</span><span class="n">line</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">CodeSlice</span><span class="p">(</span><span class="n">import_code</span><span class="p">,</span> <span class="n">body_code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_program_slice"><a class="viewcode-back" href="../../../autogen/lineapy.graph_reader.html#lineapy.graph_reader.program_slice.get_program_slice">[docs]</a><span class="k">def</span> <span class="nf">get_program_slice</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">:</span> <span class="n">Graph</span><span class="p">,</span> <span class="n">sinks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">],</span> <span class="n">keep_lineapy_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeSlice</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find the necessary and sufficient code for computing the sink nodes.</span>
+
+<span class="sd">    :param graph: The computation graph.</span>
+<span class="sd">    :param sinks: Artifacts to get the code slice for.</span>
+<span class="sd">    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.</span>
+<span class="sd">            Defaults to ``False``.</span>
+<span class="sd">    :return: String containing the necessary and sufficient code for</span>
+<span class="sd">            computing sinks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Slicing graph </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+    <span class="n">subgraph</span> <span class="o">=</span> <span class="n">get_slice_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">sinks</span><span class="p">,</span> <span class="n">keep_lineapy_save</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Subgraph for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sinks</span><span class="p">,</span> <span class="n">subgraph</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_source_code_from_graph</span><span class="p">(</span><span class="n">subgraph</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_program_slice_by_artifact_name</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">RelationalLineaDB</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keep_lineapy_save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeSlice</span><span class="p">:</span>
+    <span class="n">artifact</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_artifact_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_nodes_for_session</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">get_session_context</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">session_id</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">get_program_slice</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="p">[</span><span class="n">artifact</span><span class="o">.</span><span class="n">node_id</span><span class="p">],</span> <span class="n">keep_lineapy_save</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

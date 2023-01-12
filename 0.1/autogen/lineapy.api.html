@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.api package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.cli package" href="lineapy.cli.html" />
+    <link rel="prev" title="lineapy package" href="lineapy.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.api package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-api-package">
+<h1>lineapy.api package<a class="headerlink" href="#lineapy-api-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.api.api">
+<span id="lineapy-api-api-module"></span><h2>lineapy.api.api module<a class="headerlink" href="#module-lineapy.api.api" title="Permalink to this heading"></a></h2>
+<p>User facing APIs.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.api.api.catalog">
+<span class="sig-prename descclassname"><span class="pre">lineapy.api.api.</span></span><span class="sig-name descname"><span class="pre">catalog</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaCatalog" title="lineapy.graph_reader.apis.LineaCatalog"><span class="pre">LineaCatalog</span></a></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.api.api.catalog" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An object of the class <cite>LineaCatalog</cite> that allows for printing and exporting artifacts metadata.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaCatalog" title="lineapy.graph_reader.apis.LineaCatalog">LineaCatalog</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.api.api.get">
+<span class="sig-prename descclassname"><span class="pre">lineapy.api.api.</span></span><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifact_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact"><span class="pre">LineaArtifact</span></a></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.api.api.get" title="Permalink to this definition"></a></dt>
+<dd><p>Gets an artifact from the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>artifact_name</strong> (<em>str</em>) – name of the artifact. Note that if you do not remember the artifact,
+you can use the catalog to browse the options</p></li>
+<li><p><strong>version</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – version of the artifact. If None, the latest version will be returned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returned value offers methods to access
+information we have stored about the artifact</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact">LineaArtifact</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.api.api.save">
+<span class="sig-prename descclassname"><span class="pre">lineapy.api.api.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact"><span class="pre">LineaArtifact</span></a></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.api.api.save" title="Permalink to this definition"></a></dt>
+<dd><p>Publishes the object to the Linea DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<em>Union</em><em>[</em><em>object</em><em>, </em><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ExternalState" title="lineapy.instrumentation.annotation_spec.ExternalState"><em>ExternalState</em></a><em>]</em>) – The reference could be a variable name, in which case Linea will save
+the value of the variable, with out default serialization mechanism.
+Alternatively, it could be a “side effect” reference, which currently includes either <code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.file_system</span></code> or <a class="reference internal" href="lineapy.db.html#module-lineapy.db" title="lineapy.db"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.db</span></code></a>.
+Linea will save the associated process that creates the final side effects.
+We are in the process of adding more side effect references, including <cite>assert</cite> statements.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returned value offers methods to access
+information we have stored about the artifact (value, version), and other automation capabilities, such as <a class="reference internal" href="#lineapy.api.api.to_pipeline" title="lineapy.api.api.to_pipeline"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_pipeline()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="lineapy.graph_reader.html#lineapy.graph_reader.apis.LineaArtifact" title="lineapy.graph_reader.apis.LineaArtifact">LineaArtifact</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.api.api.to_pipeline">
+<span class="sig-prename descclassname"><span class="pre">lineapy.api.api.</span></span><span class="sig-name descname"><span class="pre">to_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifacts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framework</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'SCRIPT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependencies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_dag_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.plugins.html#lineapy.plugins.airflow.AirflowDagConfig" title="lineapy.plugins.airflow.AirflowDagConfig"><span class="pre">AirflowDagConfig</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="../_modules/lineapy/api/api.html#to_pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.api.api.to_pipeline" title="Permalink to this definition"></a></dt>
+<dd><p>Writes the pipeline job to a path on disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>artifacts</strong> – list of artifact names to be included in the DAG.</p></li>
+<li><p><strong>framework</strong> – ‘AIRFLOW’ or ‘SCRIPT’</p></li>
+<li><p><strong>pipeline_name</strong> – name of the pipeline</p></li>
+<li><p><strong>dependencies</strong> – tasks dependencies in graphlib format {‘B’:{‘A’,’C’}},
+this means task A and C are prerequisites for task B.</p></li>
+<li><p><strong>output_dir_path</strong> – Directory of the DAG and the python file it is
+saved in; only use for PipelineType.AIRFLOW</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string containing the path of the DAG file that was exported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.api">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.api" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.html" class="btn btn-neutral float-left" title="lineapy package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.cli.html" class="btn btn-neutral float-right" title="lineapy.cli package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

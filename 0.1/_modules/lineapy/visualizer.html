@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.visualizer &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> lineapy
+            <img src="../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.visualizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.visualizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">InitVar</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">graphviz</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
+        <span class="s2">&quot;graphviz is not installed, please install graphviz in your local environment to visualize artifacts&quot;</span>
+    <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">DisplayObject</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.graph</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.tracer</span> <span class="kn">import</span> <span class="n">Tracer</span>
+<span class="kn">from</span> <span class="nn">lineapy.visualizer.graphviz</span> <span class="kn">import</span> <span class="n">to_graphviz</span>
+<span class="kn">from</span> <span class="nn">lineapy.visualizer.optimize_svg</span> <span class="kn">import</span> <span class="n">optimize_svg</span>
+<span class="kn">from</span> <span class="nn">lineapy.visualizer.visual_graph</span> <span class="kn">import</span> <span class="n">VisualGraphOptions</span>
+
+
+<div class="viewcode-block" id="Visualizer"><a class="viewcode-back" href="../../autogen/lineapy.visualizer.html#lineapy.visualizer.Visualizer">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Visualizer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stores a rendered graphviz digraph. Has helper classmethods to use</span>
+<span class="sd">    for construction, as well as methods for output as different useful</span>
+<span class="sd">    formats.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span><span class="p">:</span> <span class="n">InitVar</span><span class="p">[</span><span class="n">VisualGraphOptions</span><span class="p">]</span>
+    <span class="n">digraph</span><span class="p">:</span> <span class="n">graphviz</span><span class="o">.</span><span class="n">Digraph</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">digraph</span> <span class="o">=</span> <span class="n">to_graphviz</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Visualizer.render_pdf_file"><a class="viewcode-back" href="../../autogen/lineapy.visualizer.html#lineapy.visualizer.Visualizer.render_pdf_file">[docs]</a>    <span class="k">def</span> <span class="nf">render_pdf_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;tracer&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders a PDF file for the graph and tries to open it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">digraph</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">render_svg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">optimize_svg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">digraph</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">ipython_display_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DisplayObject</span><span class="p">:</span>
+        <span class="n">svg_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_svg</span><span class="p">()</span>
+        <span class="c1"># We emit this HTML to get a zoomable SVG</span>
+        <span class="c1"># Copied from https://github.com/jupyterlab/jupyterlab/issues/7497#issuecomment-557334236</span>
+        <span class="c1"># Which references https://github.com/pygraphkit/graphtik/blob/56a513c665e26e7bf3e81b6fb07d9475c5bf1614/graphtik/plot.py#L144-L183</span>
+        <span class="c1"># Which uses this library: https://github.com/bumbu/svg-pan-zoom</span>
+        <span class="n">html_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            &lt;div class=&quot;svg_container&quot;&gt;</span>
+<span class="s2">                &lt;style&gt;</span>
+<span class="s2">                    .svg_container SVG </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                        width: 100%;</span>
+<span class="s2">                        height: 100%;</span>
+<span class="s2">                    </span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">                &lt;/style&gt;</span>
+<span class="s2">                &lt;script src=&quot;https://bumbu.me/svg-pan-zoom/dist/svg-pan-zoom.min.js&quot;&gt;&lt;/script&gt;</span>
+<span class="s2">                &lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s2">                    var scriptTag = document.scripts[document.scripts.length - 1];</span>
+<span class="s2">                    var parentTag = scriptTag.parentNode;</span>
+<span class="s2">                    var svg_el = parentTag.querySelector(&quot;.svg_container svg&quot;);</span>
+<span class="s2">                    svgPanZoom(svg_el, </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                        controlIconsEnabled: true,</span>
+<span class="s2">                        fit: true,</span>
+<span class="s2">                        zoomScaleSensitivity: 0.2,</span>
+<span class="s2">                        minZoom: 0.1,</span>
+<span class="s2">                        maxZoom: 10</span>
+<span class="s2">                    </span><span class="se">}}</span><span class="s2">);</span>
+<span class="s2">                &lt;/script&gt;</span>
+<span class="s2">                </span><span class="si">{</span><span class="n">svg_text</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">            &lt;/div&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">html_text</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Visualizer.for_test_snapshot"><a class="viewcode-back" href="../../autogen/lineapy.visualizer.html#lineapy.visualizer.Visualizer.for_test_snapshot">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">for_test_snapshot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tracer</span><span class="p">:</span> <span class="n">Tracer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Visualizer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a graph for saving as a snapshot, to help with visual diffs in PRs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">VisualGraphOptions</span><span class="p">(</span>
+            <span class="n">tracer</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span>
+            <span class="n">tracer</span><span class="p">,</span>
+            <span class="n">highlight_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="c1"># This is generally repetitive, and we can avoid it.</span>
+            <span class="n">show_implied_mutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># Views are too verbose to show in the test output</span>
+            <span class="n">show_views</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_variables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">options</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Visualizer.for_test_cli"><a class="viewcode-back" href="../../autogen/lineapy.visualizer.html#lineapy.visualizer.Visualizer.for_test_cli">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">for_test_cli</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tracer</span><span class="p">:</span> <span class="n">Tracer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Visualizer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a graph to use when visualizing after passing in `--visualize`</span>
+<span class="sd">        during testing.</span>
+
+<span class="sd">        Show as much as we can for debugging.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">VisualGraphOptions</span><span class="p">(</span>
+            <span class="n">tracer</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span>
+            <span class="n">tracer</span><span class="p">,</span>
+            <span class="n">highlight_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">show_implied_mutations</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_views</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_variables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">options</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Visualizer.for_public"><a class="viewcode-back" href="../../autogen/lineapy.visualizer.html#lineapy.visualizer.Visualizer.for_public">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">for_public</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tracer</span><span class="p">:</span> <span class="n">Tracer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Visualizer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a graph for our public API, when showing the whole graph.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">VisualGraphOptions</span><span class="p">(</span>
+            <span class="n">tracer</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span>
+            <span class="n">tracer</span><span class="p">,</span>
+            <span class="n">highlight_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">show_implied_mutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_views</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_variables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">options</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Visualizer.for_public_node"><a class="viewcode-back" href="../../autogen/lineapy.visualizer.html#lineapy.visualizer.Visualizer.for_public_node">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">for_public_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">Graph</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Visualizer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a graph for our public API, when showing a single node.</span>
+
+<span class="sd">        Note: The tracer won&#39;t be passed in this case, since it is happening</span>
+<span class="sd">        inside the executor and we don&#39;t have access to the tracer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">VisualGraphOptions</span><span class="p">(</span>
+            <span class="n">graph</span><span class="p">,</span>
+            <span class="n">tracer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">highlight_node</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">show_implied_mutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_views</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_artifacts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">show_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">options</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

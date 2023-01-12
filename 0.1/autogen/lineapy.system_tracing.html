@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.system_tracing package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.transformer package" href="lineapy.transformer.html" />
+    <link rel="prev" title="lineapy.plugins package" href="lineapy.plugins.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.system_tracing package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.system_tracing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-system-tracing-package">
+<h1>lineapy.system_tracing package<a class="headerlink" href="#lineapy-system-tracing-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.system_tracing.exec_and_record_function_calls">
+<span id="lineapy-system-tracing-exec-and-record-function-calls-module"></span><h2>lineapy.system_tracing.exec_and_record_function_calls module<a class="headerlink" href="#module-lineapy.system_tracing.exec_and_record_function_calls" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.system_tracing.exec_and_record_function_calls.exec_and_record_function_calls">
+<span class="sig-prename descclassname"><span class="pre">lineapy.system_tracing.exec_and_record_function_calls.</span></span><span class="sig-name descname"><span class="pre">exec_and_record_function_calls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globals_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TraceFunc</span></span></span><a class="reference internal" href="../_modules/lineapy/system_tracing/exec_and_record_function_calls.html#exec_and_record_function_calls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.system_tracing.exec_and_record_function_calls.exec_and_record_function_calls" title="Permalink to this definition"></a></dt>
+<dd><p>Execute the code while recording all the function calls which originate from the code object.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.system_tracing.function_call">
+<span id="lineapy-system-tracing-function-call-module"></span><h2>lineapy.system_tracing.function_call module<a class="headerlink" href="#module-lineapy.system_tracing.function_call" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.system_tracing.function_call.FunctionCall">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.system_tracing.function_call.</span></span><span class="sig-name descname"><span class="pre">FunctionCall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn:</span> <span class="pre">~typing.Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args:</span> <span class="pre">~typing.List[~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs:</span> <span class="pre">~typing.Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res:</span> <span class="pre">~typing.Optional[~typing.Any]</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/system_tracing/function_call.html#FunctionCall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.system_tracing.function_call.FunctionCall" title="Permalink to this definition"></a></dt>
+<dd><p>A record of a function call that happened in the tracer.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.system_tracing.function_calls_to_side_effects">
+<span id="lineapy-system-tracing-function-calls-to-side-effects-module"></span><h2>lineapy.system_tracing.function_calls_to_side_effects module<a class="headerlink" href="#module-lineapy.system_tracing.function_calls_to_side_effects" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.system_tracing.function_calls_to_side_effects.function_calls_to_side_effects">
+<span class="sig-prename descclassname"><span class="pre">lineapy.system_tracing.function_calls_to_side_effects.</span></span><span class="sig-name descname"><span class="pre">function_calls_to_side_effects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_inspector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.execution.html#lineapy.execution.inspect_function.FunctionInspector" title="lineapy.execution.inspect_function.FunctionInspector"><span class="pre">FunctionInspector</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.system_tracing.function_call.FunctionCall" title="lineapy.system_tracing.function_call.FunctionCall"><span class="pre">FunctionCall</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_globals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.execution.html#lineapy.execution.side_effects.MutatedNode" title="lineapy.execution.side_effects.MutatedNode"><span class="pre">MutatedNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.execution.html#lineapy.execution.side_effects.ViewOfNodes" title="lineapy.execution.side_effects.ViewOfNodes"><span class="pre">ViewOfNodes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.execution.html#lineapy.execution.side_effects.AccessedGlobals" title="lineapy.execution.side_effects.AccessedGlobals"><span class="pre">AccessedGlobals</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.execution.html#lineapy.execution.side_effects.ImplicitDependencyNode" title="lineapy.execution.side_effects.ImplicitDependencyNode"><span class="pre">ImplicitDependencyNode</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/system_tracing/function_calls_to_side_effects.html#function_calls_to_side_effects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.system_tracing.function_calls_to_side_effects.function_calls_to_side_effects" title="Permalink to this definition"></a></dt>
+<dd><p>Translates a list of function calls to a list of side effects, by mapping objects to nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>function_inspector</strong> – The function inspector to use to lookup what side effects each function call has.</p></li>
+<li><p><strong>function_calls</strong> – The function calls that were recorded.</p></li>
+<li><p><strong>input_nodes</strong> – Mapping of node ID to value for all the nodes that were passed in to this execution.</p></li>
+<li><p><strong>output_globals</strong> – Mapping of global identifier to the value of all globals that were set during this execution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.system_tracing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.system_tracing" title="Permalink to this heading"></a></h2>
+<p>This module adds support for using sys.settrace to understand what happens
+during a subset of code execution that’s passed in. In the context of how
+it’s currently used, it’s limited to the “blackbox” execs—<cite>l_exec_statement</cite>
+It can be used used and tested independently.</p>
+<p>At a high level, users could:</p>
+<ol class="arabic simple">
+<li><p>Use the <cite>exec_and_record_function_calls.py</cite> as an entry point and uses
+<cite>sys.settrace</cite> to trace every bytecode execution and <cite>_op_stack.py</cite> to look at
+the bytecode stack during tracing. It translates different bytecode
+instructions into the corresponding Python function calls.</p></li>
+<li><p>Use <cite>function_calls_to_side_effects.py</cite> to translate the sequence of calls
+that were recorded into the side effects produced on nodes (mapping Python
+changes to graph changes).</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.plugins.html" class="btn btn-neutral float-left" title="lineapy.plugins package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.transformer.html" class="btn btn-neutral float-right" title="lineapy.transformer package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

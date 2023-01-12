@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LineaPy Internals &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="api_reference.html" />
+    <link rel="prev" title="Contributor Guide" href="development.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="development.html">Contributor Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LineaPy Internals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-a-lineapy-graph">What is a LineaPy Graph?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-graphs">Creating Graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#entrypoint">1. Entrypoint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cli">CLI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jupyter-ipython">Jupyter / IPython</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parsing-the-ast">2. Parsing the AST</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-nodes">3. Creating nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#executing-nodes">4. Executing nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#determine-function-side-effects">5. Determine function side effects</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#reading-graphs">Reading graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#re-execution-steps-4-5">Re-execution (steps 4-5)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#slicing">Slicing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#visualizing">Visualizing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#outputting-to-airflow">Outputting to airflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#put-it-all-together">Put it all together</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cross-cutting-concerns">Cross cutting concerns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code-analysis-steps-3-5">Code Analysis (steps 3-5)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#python-globals">Python Globals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mutations-and-views">Mutations and views</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#execs-and-black-boxes">Execs and “black boxes”</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#external-side-effects">External side effects</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bound-self">Bound self</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#lineapy-api-step-4">LineaPy API (step 4)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exception-handling-steps-1-and-4">Exception handling (steps 1 and 4)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>LineaPy Internals</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/references/internals.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-internals">
+<span id="internals"></span><h1>LineaPy Internals<a class="headerlink" href="#lineapy-internals" title="Permalink to this heading"></a></h1>
+<p>This document describes some of the high level code layout and implementation decisions.</p>
+<section id="what-is-a-lineapy-graph">
+<h2>What is a LineaPy Graph?<a class="headerlink" href="#what-is-a-lineapy-graph" title="Permalink to this heading"></a></h2>
+<p>In LineaPy, we create a graph as we execute Python code, of every function that
+was called and its dependencies. We use this graph to do “program slicing,”
+meaning that we can understand all the code that is required to reproduce some
+value in your program.</p>
+<p>As well as the program graph, we also store some information about how things
+were executed and the source code the graph was derived from.</p>
+<p>We persist our graph structure to SQL (currently SQLite) using SQAlchemy,
+an ORM. The <a class="reference internal" href="../autogen/lineapy.data.html#module-lineapy.data.types" title="lineapy.data.types"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.data.types</span></code></a> file stores the graph nodes
+and the <a class="reference internal" href="../autogen/lineapy.db.html#module-lineapy.db.relational" title="lineapy.db.relational"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.db.relational</span></code></a> file stores the SQLAlchemy wrappers.</p>
+<p>TODO: Visual of SQL table relationships</p>
+<p>We have 6 different types of nodes in our graph currently. They all have an ID,
+and then have different attributes to describe their behavior. Each node conceptually
+has some “value” at runtime, so that when a node refers to another node, it can
+refer to its value.</p>
+<p>Example:</p>
+<p>This is an example file that when traced will make all six nodes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lineapy</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">inf</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">inf</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+   <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+<span class="n">res</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>These are the nodes that would be created from tracing this code
+(note that some attributes, like the session ID and source code references
+have been elided in the interest of transparency. The IDs are also UUIDs normally,
+but I have given them names for readability):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The import node represents importing some module, in this case `math`.</span>
+<span class="n">ImportNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;math&#39;</span><span class="p">,</span>
+   <span class="n">name</span><span class="o">=</span><span class="s1">&#39;math&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># A lookup node is similar to an import, but it looks up some name of a function</span>
+<span class="c1"># from the builtins, in this case `getattr`</span>
+<span class="n">LookupNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;getattr&#39;</span><span class="p">,</span>
+   <span class="n">name</span><span class="o">=</span><span class="s1">&#39;getattr&#39;</span>
+<span class="p">)</span>
+<span class="c1"># The literal node represents a literal primitive python value, like strings, ints,</span>
+<span class="c1"># floats, etc. In this case it is the string &quot;inf&quot;</span>
+<span class="n">LiteralNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;inf_str&#39;</span><span class="p">,</span>
+   <span class="n">value</span><span class="o">=</span><span class="s1">&#39;inf&#39;</span>
+<span class="p">)</span>
+<span class="c1"># When we import something from a module, this is translated as an import</span>
+<span class="c1"># followed by a getattr call. This is represented by a CallNode, which</span>
+<span class="c1"># represents calling some function with some arguments.</span>
+<span class="c1"># In this case it gets the `inf` attribute from the `math` module.</span>
+<span class="n">CallNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;inf&#39;</span><span class="p">,</span>
+   <span class="n">function_id</span><span class="o">=</span><span class="s1">&#39;getattr&#39;</span><span class="p">,</span>
+   <span class="n">positional_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;math&#39;</span><span class="p">,</span> <span class="s1">&#39;inf_str&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="c1"># We have our own internal functions, all prefixed with `l_` that we use</span>
+<span class="c1"># to implement certain python behavior. l_list takes a number of arguments</span>
+<span class="c1"># and makes a list out of them. You might ask, why don&#39;t we just use the builtin</span>
+<span class="c1"># `list`? Well that takes in some iterable as it&#39;s first argument.</span>
+<span class="c1"># Another way to look at `l_list` is a function equivalent of the built in</span>
+<span class="c1"># `[]` syntax.</span>
+<span class="n">LookupNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;l_list&#39;</span><span class="p">,</span>
+   <span class="n">name</span><span class="o">=</span><span class="s1">&#39;l_list&#39;</span>
+<span class="p">)</span>
+<span class="c1"># We then finally are able to create `x` by calling l_list with infinity</span>
+<span class="n">CallNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+   <span class="n">function_id</span><span class="o">=</span><span class="s1">&#39;l_list&#39;</span><span class="p">,</span>
+   <span class="n">positional_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;inf&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Now we have a for loop. We currently &quot;black box&quot; this, treating it as a string</span>
+<span class="c1"># which we end up `exec` through `l_exec_statement`</span>
+<span class="n">LiteralNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;loop_str&#39;</span><span class="p">,</span>
+   <span class="n">value</span><span class="o">=</span><span class="s1">&#39;for i in range(10):</span><span class="se">\n</span><span class="s1">    x.append(i)&#39;</span>
+<span class="p">)</span>
+<span class="c1"># We use our builtin `l_exec_statement` to compile and execute this code</span>
+<span class="n">LookupNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;l_exec_statement&#39;</span><span class="p">,</span>
+   <span class="n">value</span><span class="o">=</span><span class="s1">&#39;l_exec_statement&#39;</span>
+<span class="p">)</span>
+<span class="c1"># Now we can actually call this string. Also notice that we pass in `x`</span>
+<span class="c1"># as a dependency of this node, as a &quot;global read&quot; meaning that this node</span>
+<span class="c1"># reads the global `x` we defined, for the node with id `x`.</span>
+<span class="n">CallNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;loop&#39;</span><span class="p">,</span>
+   <span class="n">function_id</span><span class="o">=</span><span class="s1">&#39;l_exec_statement&#39;</span><span class="p">,</span>
+   <span class="n">positional_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;loop_str&#39;</span><span class="p">],</span>
+   <span class="n">global_reads</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="c1"># Executing this loop creates a &quot;mutate node&quot; for value of x,</span>
+<span class="c1"># meaning that any later references to x should refer to this mutate node,</span>
+<span class="c1"># so that the code that mutated it, the loop, is also included implicitly</span>
+<span class="c1"># as a dependency</span>
+<span class="n">MutateNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;x_mutated&#39;</span><span class="p">,</span>
+   <span class="n">source_id</span><span class="o">=</span><span class="s1">&#39;x&#39;</span>
+   <span class="n">call_id</span><span class="o">=</span><span class="s1">&#39;loop&#39;</span>
+<span class="p">)</span>
+<span class="c1"># Executing this loop actually also sets the global `i`. We represent this</span>
+<span class="c1"># with a GlobalNode, representing the global variable set by some call (we&#39;ll</span>
+<span class="c1"># talk about how we detect the setting later):</span>
+<span class="n">GlobalNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;i_global&#39;</span><span class="p">,</span>
+   <span class="n">name</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">,</span>
+   <span class="n">call_id</span><span class="o">=</span><span class="s1">&#39;loop&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Now when computing the result, we can point to this global node `i_global`</span>
+<span class="c1"># as our input, as well as the mutate node</span>
+<span class="n">LookupNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;len&#39;</span><span class="p">,</span>
+   <span class="n">value</span><span class="o">=</span><span class="s1">&#39;len&#39;</span>
+<span class="p">)</span>
+<span class="n">CallNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;len_x&#39;</span><span class="p">,</span>
+   <span class="n">function_id</span><span class="o">=</span><span class="s1">&#39;len&#39;</span><span class="p">,</span>
+   <span class="n">positional_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x_mutated&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">LookupNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">,</span>
+   <span class="n">value</span><span class="o">=</span><span class="s1">&#39;add&#39;</span>
+<span class="p">)</span>
+<span class="n">CallNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;added&#39;</span><span class="p">,</span>
+   <span class="n">function_id</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">,</span>
+   <span class="n">positional_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;i_global&#39;</span><span class="p">,</span> <span class="s1">&#39;len_x&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">LookupNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">,</span>
+   <span class="n">value</span><span class="o">=</span><span class="s1">&#39;str&#39;</span>
+<span class="p">)</span>
+<span class="n">CallNode</span><span class="p">(</span>
+   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;res&#39;</span><span class="p">,</span>
+   <span class="n">function_id</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">,</span>
+   <span class="n">positional_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;added&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>TODO: add visual of this in markdown with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lineapy</span>
+
+<span class="n">artifact</span> <span class="o">=</span> <span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;res&quot;</span><span class="p">)</span>
+<span class="n">artifact</span><span class="o">.</span><span class="n">visualize</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="creating-graphs">
+<h2>Creating Graphs<a class="headerlink" href="#creating-graphs" title="Permalink to this heading"></a></h2>
+<p>One main part of the codebase involves creating a graph from Python code.</p>
+<p>We create this graph at runtime as we execute the Python code. We start
+with the AST of the Python and visit that as we turn it into a graph.</p>
+<p>That goes through a number of steps, which we outline below, from outside in:</p>
+<section id="entrypoint">
+<h3>1. Entrypoint<a class="headerlink" href="#entrypoint" title="Permalink to this heading"></a></h3>
+<p>We currently support two ways to start tracing from LineaPy. The CLI,
+which is used to trace Python scripts, and our Jupyter integration which is
+used in Jupyter Notebooks and IPython. Both of them go from source, to AST,
+to a graph.</p>
+<section id="cli">
+<h4>CLI<a class="headerlink" href="#cli" title="Permalink to this heading"></a></h4>
+<p>In <a class="reference internal" href="../autogen/lineapy.cli.html#module-lineapy.cli.cli" title="lineapy.cli.cli"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.cli.cli</span></code></a> we support running a Python file from the
+CLI. That can produce some output, such as (1) printing out sliced code/graph,
+and (2) optionally to airflow file.</p>
+<section id="exceptions">
+<h5>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this heading"></a></h5>
+<p>We also call <cite>set_custom_excepthook</cite> which is used to override Python’s
+<cite>sys.excepthook</cite> so that if an exception is raised from executing user’s code
+then we ignore all the frames added by <cite>lineapy</cite> (see “Exception handling” later
+in the doc).</p>
+</section>
+</section>
+<section id="jupyter-ipython">
+<h4>Jupyter / IPython<a class="headerlink" href="#jupyter-ipython" title="Permalink to this heading"></a></h4>
+<p>We also supporting tracing using IPython (and so by proxy, Jupyter).</p>
+<p>This is implemented in the <a class="reference internal" href="../autogen/lineapy.editors.html#module-lineapy.editors.ipython" title="lineapy.editors.ipython"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.editors.ipython</span></code></a> file. That class
+provides three main entry points:</p>
+<ol class="arabic simple">
+<li><p><cite>start()</cite>: Starts tracing by adding a function to <a class="reference external" href="https://ipython.readthedocs.io/en/stable/config/inputtransforms.html#string-based-transformations">input_transformers_post</a> which takes in a list of strings of the cell contents, and returns a list of strings which are executed by IPython.</p></li>
+<li><p><cite>stop()</cite>: Stops the tracing, removing this function from the <cite>input_transformers_post</cite>.</p></li>
+<li><p><cite>visualize()</cite>: output a visual of the current state of the graph.</p></li>
+</ol>
+<p>In our input transformer, we save the code from the cell in a global
+and return the same lines from every cell, which call out to a function
+in the <cite>ipython</cite> module, <cite>_end_cell</cite>, which looks at the lines of code,
+transforms them through LineaPy, and optionally returns a value if one should
+be “returned” from the cell (i.e. if the last line is an expression that does not
+end with a ‘;’).</p>
+<section id="id1">
+<h5>Exceptions<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h5>
+<p>IPython does not use <cite>sys.excepthook</cite> so we have to take a different approach
+for handling exceptions in Jupyter. Instead, we set override the
+<cite>_get_exc_info</cite> method on the IPython shell, to have the same effect.</p>
+</section>
+</section>
+</section>
+<section id="parsing-the-ast">
+<h3>2. Parsing the AST<a class="headerlink" href="#parsing-the-ast" title="Permalink to this heading"></a></h3>
+<p>Once we have initialized lineapy with the user’s code, we traverse that through the
+python AST using a visitor defined in <a class="reference internal" href="../autogen/lineapy.transformer.html#module-lineapy.transformer.node_transformer" title="lineapy.transformer.node_transformer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.transformer.node_transformer</span></code></a>.</p>
+<p>As we traverse the AST, we create nodes for each piece of it.</p>
+</section>
+<section id="creating-nodes">
+<h3>3. Creating nodes<a class="headerlink" href="#creating-nodes" title="Permalink to this heading"></a></h3>
+<p>This <cite>NodeTransformer</cite> relies on an <a class="reference internal" href="../autogen/lineapy.instrumentation.html#lineapy.instrumentation.tracer.Tracer" title="lineapy.instrumentation.tracer.Tracer"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.instrumentation.tracer.Tracer</span></code></a>
+to actually create the nodes.</p>
+<p>The general process to create a node is:</p>
+<ol class="arabic simple">
+<li><p>Create new instance of some <cite>Node</cite> subclass defined in <cite>types.py</cite>, giving it a new UUID.</p></li>
+<li><p>Then in <cite>process_node</cite> pass the newly created node to the <cite>Executor</cite> to execute it, and return any “side effects” that happen</p></li>
+<li><p>We react to those side effects, by potentially adding more nodes to the graph (which goes through step 1 one more time).</p></li>
+<li><p>Write this node to the database.</p></li>
+</ol>
+<p>We go into these side effects lower down, since they pertain to multiple layers.</p>
+</section>
+<section id="executing-nodes">
+<h3>4. Executing nodes<a class="headerlink" href="#executing-nodes" title="Permalink to this heading"></a></h3>
+<p>As mentioned above, the <cite>Tracer</cite> passes on the responsibility of executing the
+node to the <a class="reference internal" href="../autogen/lineapy.execution.html#lineapy.execution.executor.Executor" title="lineapy.execution.executor.Executor"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.execution.executor.Executor</span></code></a>. This is responsible
+for keeping a mapping of each node and its value after being executed.</p>
+<p>It returns a number of “side effects” which say things like “Node xxx was modified”
+that the tracer can then handle. These are created based on the <cite>inspect_function</cite>’s
+side effects that are described below.</p>
+</section>
+<section id="determine-function-side-effects">
+<h3>5. Determine function side effects<a class="headerlink" href="#determine-function-side-effects" title="Permalink to this heading"></a></h3>
+<p>When we try to execute a <cite>CallNode</cite>, we need to know things like “does this
+modify any of its arguments?” to understand how it affects the graph.</p>
+<p>This reasoning is implemented in <a class="reference internal" href="../autogen/lineapy.execution.html#module-lineapy.execution.inspect_function" title="lineapy.execution.inspect_function"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.execution.inspect_function</span></code></a>
+which is basically one big switch statement, that understands certain
+Python functions. If some function is not being sliced properly,
+it is likely due to it being missing from this file.</p>
+<p>This also returns a list of “side effects,” which bubble up to the Executor.
+However, unlike the side effects returned from the executor, which refer to things
+by their node ID, in the <cite>inspect_function</cite>, the side effects instead refer to
+which arg/kwargs/value was modified. So it would say instead “The first arg was modified”.</p>
+<p>This is to keep the inspect_function from having to know anything about nodes,
+and instead just about describing the side effects given some Python function call
+and values.</p>
+</section>
+</section>
+<section id="reading-graphs">
+<h2>Reading graphs<a class="headerlink" href="#reading-graphs" title="Permalink to this heading"></a></h2>
+<p>After we have created a graph, we can perform a number of operations on it.</p>
+<p>Many of these use the <a class="reference internal" href="../autogen/lineapy.data.html#module-lineapy.data.graph" title="lineapy.data.graph"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.data.graph</span></code></a> object which represents
+a collection of nodes. It can sort them topologically and by line number, meaning
+that any node will come after its parents, and all nodes with line numbers will
+be sorted by those as well.</p>
+<p>Note: It currently also include the session context, but we don’t really use this from the
+graph. We could remove this</p>
+<section id="re-execution-steps-4-5">
+<h3>Re-execution (steps 4-5)<a class="headerlink" href="#re-execution-steps-4-5" title="Permalink to this heading"></a></h3>
+<p>We can re-execute a graph to re-run the Python function calls that were saved in it.</p>
+<p>We keep the executor separate from the tracer, in order to facilitate this, so that
+we only need the <cite>Executor</cite> for re-execution, using the <cite>execute_graph</cite> method,
+which simply iterates through a number of nodes and executes each of them.</p>
+<p>This is currently tested in our end to end tests, by re-executing every graph,
+but it is not currently exposed to the user.</p>
+</section>
+<section id="slicing">
+<h3>Slicing<a class="headerlink" href="#slicing" title="Permalink to this heading"></a></h3>
+<p>One common use of a graph is to “slice it”, meaning removing the nodes
+that are not ancestors of some input nodes.</p>
+<p>We can use this then to output a “clean up” source code, where any
+lines that are not required to reproduce some result are removed.
+What this means is that the graph structure needs to represent program
+dependence, which is why some of our more complicated analysis are required.</p>
+<p>This is implemented in <a class="reference internal" href="../autogen/lineapy.graph_reader.html#module-lineapy.graph_reader.program_slice" title="lineapy.graph_reader.program_slice"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.graph_reader.program_slice</span></code></a>.</p>
+</section>
+<section id="visualizing">
+<h3>Visualizing<a class="headerlink" href="#visualizing" title="Permalink to this heading"></a></h3>
+<p>We currently supporting visualizing a graph using Graphviz for debugging
+and teaching purposes. This is implemented in the
+<a class="reference internal" href="../autogen/lineapy.visualizer.html#module-lineapy.visualizer" title="lineapy.visualizer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.visualizer</span></code></a> directory with three main files:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="../autogen/lineapy.visualizer.html#module-lineapy.visualizer" title="lineapy.visualizer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.visualizer</span></code></a>: Provides a <cite>Visualizer</cite> object which is the publicly exposed
+interface for visualizing a graph. In supports creating it for a number of
+different scenarios, each with their own configurations set. For example,
+we want to show more detail in our testing than in our public API.
+The visualizer also optionally supports taking a <cite>Tracer</cite> object, along
+with the required <cite>Graph</cite> object, to show more details that are present
+in that object, like the variable assignments. However, this is not always
+available, like when visualizing only a certain artifact, which can happen
+during re-execution, so the tracer is unavailable.
+It also supports a number of ways to viewing the visualization, like
+as SVG, PDF, or as Jupyter Output.</p></li>
+<li><p><a class="reference internal" href="../autogen/lineapy.visualizer.html#module-lineapy.visualizer.graphviz" title="lineapy.visualizer.graphviz"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.visualizer.graphviz</span></code></a>: This files manages actually creating the graphviz source
+using the <a class="reference external" href="https://graphviz.readthedocs.io/en/stable/index.html">Graphviz</a>
+library. It renders each edge and node, and also renders a legend.</p></li>
+<li><p><a class="reference internal" href="../autogen/lineapy.visualizer.html#lineapy.visualizer.visual_graph.to_visual_graph" title="lineapy.visualizer.visual_graph.to_visual_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lineapy.visualizer.visual_graph.to_visual_graph()</span></code></a>: This takes in the Graph and (optional) Tracer and returns
+a list of nodes and edges in a form that is closer to how Graphviz works.
+The goal of having this extra abstraction layer, as opposed to just emitting
+graphviz directly, is ensure a logically consistent rendering. It is similar
+to the MVC paradigm, or like React’s components. This would be equivalent
+to the props, where as the graphviz file is equivalent to taking those
+props and then rendering them.</p></li>
+</ol>
+<p>Whenever a new node type is added, or any is modified, the graphviz and visual_graph
+files should be updated to handle it.</p>
+</section>
+<section id="outputting-to-airflow">
+<h3>Outputting to airflow<a class="headerlink" href="#outputting-to-airflow" title="Permalink to this heading"></a></h3>
+<p>On top of just slicing the code, we also support creating an Airflow DAG out
+of the resulting code. This is currently implemented through string templating
+in <a class="reference internal" href="../autogen/lineapy.plugins.html#module-lineapy.plugins.airflow" title="lineapy.plugins.airflow"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.plugins.airflow</span></code></a> to create a file that airflow can understand.</p>
+<p>All of the code is currently saved in one <cite>PythonOperator</cite>.</p>
+<p>This is exposed to users in two ways:</p>
+<ol class="arabic simple">
+<li><p>In the cli through the <cite>–export-slice-to-airflow-dag</cite> flag, which will
+save the resulting DAG to the current directory.</p></li>
+<li><p>In our API (usable in a script or in Jupyter) through the <cite>to_airflow</cite> method
+on a saved artifact. This is implemented in <a class="reference internal" href="../autogen/lineapy.graph_reader.html#module-lineapy.graph_reader.apis" title="lineapy.graph_reader.apis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.graph_reader.apis</span></code></a>.
+Instead of saving to the current directory, this tries to find Airflow’s
+DAGs folder, by looking at the <cite>AIRFLOW_HOME</cite> environment variable and saving it
+in there, so it is picked up by Airflow automatically.</p></li>
+</ol>
+</section>
+<section id="put-it-all-together">
+<h3>Put it all together<a class="headerlink" href="#put-it-all-together" title="Permalink to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelEncoder</span>
+
+<span class="n">train</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data/sample_train_data.csv&quot;</span><span class="p">)</span>
+
+<span class="n">train</span><span class="p">[</span><span class="s1">&#39;DeviceInfo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LabelEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s1">&#39;DeviceInfo&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">train</span><span class="p">[</span><span class="s1">&#39;isFraud&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="n">train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;isFraud&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">regression_model</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sample_graph.png"><img alt="Sample visualization of Graph" src="../_images/sample_graph.png" style="width: 800px;" /></a>
+</section>
+</section>
+<section id="cross-cutting-concerns">
+<h2>Cross cutting concerns<a class="headerlink" href="#cross-cutting-concerns" title="Permalink to this heading"></a></h2>
+<section id="code-analysis-steps-3-5">
+<h3>Code Analysis (steps 3-5)<a class="headerlink" href="#code-analysis-steps-3-5" title="Permalink to this heading"></a></h3>
+<p>There are also a number of code analysis pieces that span the tracer-executor-inspect function,
+which we describe here.</p>
+<section id="python-globals">
+<h4>Python Globals<a class="headerlink" href="#python-globals" title="Permalink to this heading"></a></h4>
+<p>The first is the ability to track what Python globals are set at any time.</p>
+<p>For example in the code <cite>a = 1nb = a + 1</cite> we have to know what the values <cite>a</cite>
+and <cite>b</cite> are at any given time. We can’t simply keep a values mapping as Python
+does because we also need to know the Node of each variable, not just it’s
+value, so we can stitch them together into the graph.</p>
+<p>We currently keep this mapping in the <cite>Tracer</cite>. By the time it has been saved
+to the DB, the variable analysis has been erased. So the executor also has
+no knowledge of the variables.</p>
+<p>The only exception to this is when dealing with execs and black boxes, which we
+touch on below.</p>
+<p>Note: This is currently a problem for expressions like <cite>a = b</cite> which are entirely
+erased. This is fine for re-execution, but for slicing, this line is then omitted
+in the slice. We might want to re-consider this choice and instead have some
+way to persist the variables in the graph, possibly with some form of Assign
+and Load nodes.</p>
+</section>
+<section id="mutations-and-views">
+<h4>Mutations and views<a class="headerlink" href="#mutations-and-views" title="Permalink to this heading"></a></h4>
+<p>Since Python is not a pure functional language, many operations will mutate their
+arguments. Not only that, since objects often store references to one another
+internally, mutating one object can therefore mutate other objects as well.</p>
+<p>For example, in this code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+<span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>if we try to slice on either <cite>x</cite> or <cite>y</cite>, we will need to include all three lines
+to get back the proper result for either variable. We represent this internally
+with two concepts:</p>
+<ol class="arabic simple">
+<li><p>We say a node is “mutated” if the semantics of the Python value it refers to has changed.
+A mutation is often the result of calling some function. Another way to think about this
+is that if calling some function would change how downstream usage or evaluation
+of a node behaves, then we can say that function call mutated that node.</p></li>
+<li><p>We saw two nodes are “views” of one another if mutating one node could mutate
+the other node. Since it’s better to be conservative in slicing, we assume it does.
+We currently treat views as a bidirectional relationship, meaning we assume if
+mutating a could affect b, then the opposite is also true.</p></li>
+</ol>
+<p>Once we start with these two concepts a few things fall out:</p>
+<ol class="arabic simple">
+<li><p>We need to know during each function call what nodes are directly mutated.</p></li>
+<li><p>We need a way in the graph to have any later references to a node that was
+mutated implicitly also depend on the call node that mutated it, so that this
+will be included in the slice.</p></li>
+<li><p>We need to know during each call what views were added.</p></li>
+<li><p>We need to know when a node is mutated, what other nodes are views of it.</p></li>
+</ol>
+<p>For #1, this starts in <cite>inspect_function.py</cite>. If we know calling a function
+will mutate a value, we return a <cite>MutatedValue</cite> with a pointer to that value
+as one of the side effects. Then in <cite>executor.py</cite> we “resolve” that to a
+<cite>MutatedNode</cite> value, since we now know the node ID of the mutated value, not
+just if it was say the first argument.</p>
+<p>For #2, we add a new node type, a <cite>MutateNode</cite>, which points both
+to its original value and the call node which created it. Then in the <cite>Executor</cite>
+when we see we have a <cite>MutatedNode</cite> side effect we know to make a new
+<cite>MutateNode</cite> (note the difference, one is a side effect saying a node was
+mutated, the other is a new node type that represents the result of this mutation).
+It also updates a mapping that points from each source node to its mutate node,
+so that when we then go to lookup a node, we point to the mutate node, instead
+of the source. This mapping and the logic to update it is kept in <a class="reference internal" href="../autogen/lineapy.instrumentation.html#module-lineapy.instrumentation.mutation_tracker" title="lineapy.instrumentation.mutation_tracker"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.instrumentation.mutation_tracker</span></code></a>.</p>
+<p>For #3, similar to #1, <cite>inspect_function</cite> returns a <cite>ViewOfValues</cite>, which is transformed
+into a <cite>ViewOfNodes</cite> in the <cite>Executor</cite>.</p>
+<p>And for #4, when we see this side effect in the <cite>Tracer</cite>, we update our internal
+data structure keeping track of all views in <cite>mutation_tracker.py</cite>. And when we
+see that a node is mutated, we look into this data structure to also see what
+other nodes should be mutated.</p>
+</section>
+<section id="execs-and-black-boxes">
+<h4>Execs and “black boxes”<a class="headerlink" href="#execs-and-black-boxes" title="Permalink to this heading"></a></h4>
+<p>Currently, we don’t try to understand any builtin Python control flow or
+anything besides expressions. So for constructs like function definitions,
+loops, if statements, while statements we treat them as “black boxes”.</p>
+<p>This mostly works fine, but we still need to know what global variables a black box
+wrote to and which it read from, in order to add it properly to the graph.</p>
+<p>The life of a black box node goes through a number of stages:</p>
+<ol class="arabic simple">
+<li><p>In the <cite>node_transformer</cite> when we see the AST statements that correspond
+to things like for loops, we tell the <cite>Tracer</cite> to add a a literal
+node for the string, and then a <cite>CallNode</cite> which execs the string.
+We differentiate between exec-ing a “statement” versus an “expression”,
+since an expression will return some value, while a statement does not.</p></li>
+<li><p>The functions we use to do the <cite>exec</cite> are defined in <a class="reference internal" href="../autogen/lineapy.utils.html#module-lineapy.utils.lineabuiltins" title="lineapy.utils.lineabuiltins"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.utils.lineabuiltins</span></code></a>, <a class="reference internal" href="../autogen/lineapy.utils.html#lineapy.utils.lineabuiltins.l_exec_statement" title="lineapy.utils.lineabuiltins.l_exec_statement"><code class="xref py py-func docutils literal notranslate"><span class="pre">lineapy.utils.lineabuiltins.l_exec_statement()</span></code></a> and <a class="reference internal" href="../autogen/lineapy.utils.html#lineapy.utils.lineabuiltins.l_exec_expr" title="lineapy.utils.lineabuiltins.l_exec_expr"><code class="xref py py-func docutils literal notranslate"><span class="pre">lineapy.utils.lineabuiltins.l_exec_expr()</span></code></a>. Along with
+actually calling <cite>exec</cite>, they set up the source code context, so that
+exceptions raised in code that is <a href="#id2"><span class="problematic" id="id3">`</span></a>exec`ed has the proper traceback
+and also make sure to use it uses the correct globals.</p></li>
+<li><p>Before this call node is executed, we set the <a class="reference internal" href="../autogen/lineapy.execution.html#lineapy.execution.context.ExecutionContext" title="lineapy.execution.context.ExecutionContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.execution.context.ExecutionContext</span></code></a>, which is a global storing the current node and executor being called.
+This allows us to use the current binding of the global variables in the <cite>l_exec_expr</cite>
+and <cite>l_exec_statement</cite> functions.</p></li>
+<li><p>When we are tracing code, we initialize the globals with all globals we have traced
+so far. However, when re-executing, we look at the <cite>global_reads</cite> dictionary
+on the CallNode to see what variables are read and what nodes they correspond to.
+On to how that is set below…</p></li>
+<li><p>After calling the function, the globals in the context now contains all the
+new globals that were set or re-assigned in the exec. We look at this dict,
+and check which nodes have changed to see what globals have been written to.
+To see what globals were read, we use a dict subclass called <a class="reference internal" href="../autogen/lineapy.execution.html#lineapy.execution.globals_dict.GlobalsDict" title="lineapy.execution.globals_dict.GlobalsDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.execution.globals_dict.GlobalsDict</span></code></a> which keeps track of all <cite>__getitem__</cite> calls.</p></li>
+<li><p>We store all values that were accessed under the <cite>global_reads</cite> dictionary
+on the <cite>CallNode</cite>, so when we slice on this node, it will include those dependencies,
+and when we re-execute it, it will know which globals to set.</p></li>
+<li><p>For each new global that was set, or updated, we create a <cite>GlobalNode</cite>, which
+points to the call node that created the global, as well as the variable name.
+Also in the Executor we add an item to the internal mapping <cite>_node_to_globals</cite>
+which keeps track of all the globals returned by each node. Then, later on,
+if a node refers to this <cite>GlobalNode</cite>, it can look up in this mapping to find
+the value that was set in the globals when executing that node.</p></li>
+</ol>
+<p>One subtle case to consider is that globals are not only read and wrote during
+the execution of our exec nodes, but also potentially during execution of functions
+that were defined in them, or any other function that modifies or sets a global.</p>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="k">def</span> <span class="nf">inc_i</span><span class="p">():</span>
+   <span class="k">global</span> <span class="n">a</span>
+   <span class="n">a</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;first&quot;</span><span class="p">)</span>
+<span class="n">inc_i</span><span class="p">()</span>
+<span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;second&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, we will call <cite>l_exec_statement</cite> with the body of text of <cite>inc_i</cite> and this
+will create a <cite>GlobalNode</cite> for <cite>inc_i</cite> that points to that CallNode.</p>
+<p>Then, calling it will create a <cite>CallNode</cite> that will use that global node of <cite>inc_i</cite>
+as the function, set <cite>global_reads</cite> to map <cite>“a”</cite> to the original <cite>a</cite> literal node,
+and create a new <cite>GlobalNode</cite> for the new value of <cite>a</cite>.</p>
+<p>Another way of thinking about the <cite>GlobalNode</cite> is a way to represent things that
+were “returned” by a function call implicitly. Instead of making a new node,
+we could change how we think about nodes, that instead of having one returned value,
+they have also have additional variables they set, and/or possibly multiple return values.
+This would make it more symmetrical to how we think about function inputs.</p>
+<p>In a similar manner, we could remove <a href="#id4"><span class="problematic" id="id5">`</span></a>MutateNode`s and represent them instead
+in our function inputs.</p>
+<p>However, this would require changing all our references to not only say “we depend on node XXX”
+but also what part of it we depend on like “we depend on the return value of node XXX” or
+“we depend on the global x set by node XXX” or “we depend on the mutated value of node YYY set by
+calling XXX.”</p>
+<p>For now though, we do have this asymmetry, where the global inputs show up
+as the <cite>global_reads</cite> property on the <cite>CallNode</cite> and the global outputs show up
+as separate <a href="#id6"><span class="problematic" id="id7">`</span></a>GlobalNode`s.</p>
+</section>
+<section id="external-side-effects">
+<h4>External side effects<a class="headerlink" href="#external-side-effects" title="Permalink to this heading"></a></h4>
+<p>Another example of implicit state, besides global variables, are external
+side effects, like writing to a file or reading from SQL. This shows up in
+two types of use cases. The first, is when you have some node that depends
+on another implicitly based on a side effect, like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">write_file</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If we slice on <cite>x</cite> we probably also want to include the write file, since
+this needs to be executed before we read it.</p>
+<p>A similar use case comes up if the result of our script is writing to a file,
+and we want to preserve this effect, to say create an airflow job that
+writes to a file. We can write this like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">write_file</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">)</span>
+<span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">lineapy</span><span class="o">.</span><span class="n">file_system</span><span class="p">,</span> <span class="s2">&quot;wrote file&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can think about these use cases under this framework:</p>
+<ol class="arabic simple">
+<li><p>We have an implicitly defined node for each type of side effect,
+like touching the file system or writing to S3.</p></li>
+<li><p>Whenever we have a node which writes a side effect, we create a mutate
+node for that implicitly defined node.</p></li>
+<li><p>Whenever we have a node that depends on the state of that side effect,
+we add that node as an implicit dependency.</p></li>
+<li><p>Whenever we manually refer to that implicit node, as in <code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.utils.lineabuiltins.file_system</span></code>
+we have this also have an implicit dependency on the most recent version of that node.</p></li>
+</ol>
+<p>Currently we only support the broad categories of side effects, but we can
+expand this to have more fine grained support in the future, like writing to a
+particular file.</p>
+<p>We implement the following framework by:</p>
+<ol class="arabic simple">
+<li><p>We create a global for <cite>file_system</cite> and <cite>db</cite> in <a class="reference internal" href="../autogen/lineapy.utils.html#module-lineapy.utils.lineabuiltins" title="lineapy.utils.lineabuiltins"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.utils.lineabuiltins</span></code></a>. Both of these
+are instances of <cite>ExternalState</cite>, a class defined in that file.
+This lets them be accessed through a <cite>LookupNode</cite>.</p></li>
+<li><p>We can bubble this up from the <cite>inspect_function.py</cite> by passing an instance of <cite>ExternalState</cite> in as
+an arg for <cite>MutatedValue</cite> or <cite>ViewOfValues</cite> to represent that a function is mutates that state
+or is a view of it (subsequent mutates will mutate that state).</p></li>
+<li><p>That is bubbled up through the <cite>Executor</cite>, so that it’s <cite>MutateNode</cite> can also point to a <cite>ExternalState</cite> instead of just a node ID.</p></li>
+<li><p>At the <cite>Tracer</cite> level, when we are looking at side effect, if it refers to an <cite>ExternalState</cite>, we make
+a lookup node for it.</p></li>
+<li><p>In the <cite>Executor</cite> as we are processing this <cite>LookupNode</cite>, in <cite>execute_node</cite>, we see that it returns
+an <cite>ExternalState</cite> (this happens in <cite>execute_node</cite>) and we check to see if
+we have already created a node. If so we add a <cite>ImplicitDependencyNode</cite> side effect
+which points to the existing node.</p></li>
+<li><p>Then when this <cite>LookupNode</cite>’s side effects are processed in the <cite>Tracer</cite>,
+if we find an <cite>ImplicitDependencyNode</cite> we add this to the list of <cite>implicit_dependencies</cite> of that node.</p></li>
+</ol>
+<p>Also, for the second use case, where we do the getattr on <cite>lineapy</cite> to return <cite>file_system</cite>, this
+executes steps 5-6, to also add an implicit dependency on the previously defined value.</p>
+</section>
+<section id="bound-self">
+<h4>Bound self<a class="headerlink" href="#bound-self" title="Permalink to this heading"></a></h4>
+<p>One other cross cutting concern is that many methods modify the “self” they are bound to.
+However, this is not really an argument, as far as we are concerned, but a property of the function itself.</p>
+<p>For example this code:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">l</span> <span class="pre">=</span> <span class="pre">[]</span>
+<span class="pre">l.append(1)</span>
+<span class="pre">`</span></code></p>
+<p>Is executed like this in LineaPy:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">l</span> <span class="pre">=</span> <span class="pre">l_build_list()</span>
+<span class="pre">l_append</span> <span class="pre">=</span> <span class="pre">getattr(l,</span> <span class="pre">&quot;append&quot;)</span>
+<span class="pre">l_append(1)</span>
+<span class="pre">`</span></code></p>
+<p>So when <cite>l_append</cite> is called, the function is the bound method and only has one
+arg. So how can we track that calling it modifies the object it was bound to?</p>
+<p>We do this by:</p>
+<ol class="arabic simple">
+<li><p>Having a special value <cite>BoundSelfOfFunction</cite> in <cite>inspect_function</cite> that refers
+to the object the function is a method from.</p></li>
+<li><p>In the executor we keep a mapping of <cite>_node_to_bound_self</cite> which we update
+every time we see a <cite>getattr</cite>. In our case, this would be mapping the ID of <cite>l_append</cite> to the ID of <cite>l</cite>.</p></li>
+<li><p>When we see the <cite>BoundSelfOfFunction</cite> in the <cite>Executor</cite>, we look up the ID of
+the node in this mapping, and use that as the ID to pass on to the <cite>Tracer</cite>.</p></li>
+</ol>
+<p>We can see this being used in the code to deal with <cite>append</cite> in <cite>inspect_function</cite>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span>
+   <span class="nb">isinstance</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">BuiltinMethodType</span><span class="p">)</span>
+   <span class="ow">and</span> <span class="n">function</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;append&quot;</span>
+   <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">function</span><span class="o">.</span><span class="vm">__self__</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+<span class="p">):</span>
+   <span class="c1"># list.append(value)</span>
+   <span class="k">yield</span> <span class="n">MutatedValue</span><span class="p">(</span><span class="n">BoundSelfOfFunction</span><span class="p">())</span>
+   <span class="k">if</span> <span class="n">is_mutable</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+      <span class="k">yield</span> <span class="n">ViewOfValues</span><span class="p">(</span><span class="n">BoundSelfOfFunction</span><span class="p">(),</span> <span class="n">PositionalArg</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+   <span class="k">return</span>
+</pre></div>
+</div>
+<p>This says that if the function is a method, it’s name is <cite>append</cite>, and its a method
+from <cite>list</cite>, then we mutated the self value, and if the input is a mutable value,
+we treat that as a view of the list. This is so that if we append something mutable,
+and we later mutate that, the list is mutated, and vice versa.</p>
+</section>
+</section>
+<section id="lineapy-api-step-4">
+<h3>LineaPy API (step 4)<a class="headerlink" href="#lineapy-api-step-4" title="Permalink to this heading"></a></h3>
+<p>Although LineaPy does not require any annotations to trace your code, we do provide
+some functions that you can use to annotate it to tell us what is important
+and also to interact with LineaPy. These are defined in <a class="reference internal" href="../autogen/lineapy.api.html#module-lineapy.api" title="lineapy.api"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.api</span></code></a> and returns
+objects defined in <a class="reference internal" href="../autogen/lineapy.graph_reader.html#module-lineapy.graph_reader.apis" title="lineapy.graph_reader.apis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.graph_reader.apis</span></code></a>.</p>
+<p>Implementing these functions require us to break a key abstraction we have which is that
+executing code while tracing LineaPy should perform the same as while not tracing with LineaPy.</p>
+<p>We need to break this, since these functions implicitly require us to know what database
+we are tracing with and also what nodes certain values point to, in the case of <cite>save</cite>.</p>
+<p>You might notice this abstraction is also broken in the <cite>l_exec_statement</cite> function,
+we mentioned above, since it needs to know the source code of the string as well
+as the global variables defined.</p>
+<p>_Writing this, I realize that we might not need the context for the <cite>l_exec</cite> functions, since we could pass the source code path and line number as explicit args, and get access to the globals with <cite>globals()</cite>. Some future work could be to refactor that to make it explicit and remove the need to use <cite>get_context()</cite>._</p>
+<p>We break this abstraction by having the executor set up a global context, using <cite>set_context</cite>
+before it calls any nodes, and providing the <cite>get_context</cite> function to retrieve it. These
+are both defined in <a class="reference internal" href="../autogen/lineapy.execution.html#module-lineapy.execution.context" title="lineapy.execution.context"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.execution.context</span></code></a>.</p>
+<p>This lets our API functions access the current node being executed, as well as the current DB.</p>
+</section>
+<section id="exception-handling-steps-1-and-4">
+<h3>Exception handling (steps 1 and 4)<a class="headerlink" href="#exception-handling-steps-1-and-4" title="Permalink to this heading"></a></h3>
+<p>We do two special things to change how exceptions are handled:</p>
+<ol class="arabic simple">
+<li><p>In step 1: Remove the frames we add in LineaPy off of the stack to show a user their
+original exception. We do this by raising a <a class="reference internal" href="../autogen/lineapy.exceptions.html#lineapy.exceptions.user_exception.UserException" title="lineapy.exceptions.user_exception.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">lineapy.exceptions.user_exception.UserException</span></code></a>
+which contains the original exception that was raised. Then in Step 1 above
+(either in the CLI or Jupyter), we see if the exception raised was a <cite>UserException</cite>
+and if so we just use the inner exception.</p></li>
+<li><p>In step 4: Change the top frame to reflect the source code position of the original code.
+For example, if we see <cite>1 + 2</cite>, this is transformed to us calling <cite>operator.add(1, 2)</cite>.
+We don’t want to point them to where we do this call, but instead point to the
+source code which originated it.
+We do this by removing the top frame, and adding back a fake frame with the proper
+source code position. Then when python prints the exception, it will look the same.
+This is done in <a class="reference internal" href="../autogen/lineapy.exceptions.html#module-lineapy.exceptions.user_exception" title="lineapy.exceptions.user_exception"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.exceptions.user_exception</span></code></a> and
+the fake frame creation in <a class="reference internal" href="../autogen/lineapy.exceptions.html#module-lineapy.exceptions.create_frame" title="lineapy.exceptions.create_frame"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lineapy.exceptions.create_frame</span></code></a>.</p></li>
+</ol>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="development.html" class="btn btn-neutral float-left" title="Contributor Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_reference.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.data.graph &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.data.graph</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.data.graph</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">PriorityQueue</span><span class="p">,</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">SessionContext</span>
+<span class="kn">from</span> <span class="nn">lineapy.graph_reader.graph_printer</span> <span class="kn">import</span> <span class="n">GraphPrinter</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">listify</span><span class="p">,</span> <span class="n">prettify</span>
+
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Node</span><span class="p">],</span> <span class="n">session_context</span><span class="p">:</span> <span class="n">SessionContext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Graph represents a</span>
+<span class="sd">        It is constructed based on the following variables:</span>
+<span class="sd">        :param nodes: a list of nodes and the session context in wh</span>
+<span class="sd">        :param session_context: the session context associated with the graph</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">        # TODO: Possibly remove session context since we aren&#39;t using it anywhere</span>
+<span class="sd">        # we refer to the graph</span>
+<span class="sd">        - It makes sense to include session_context in the constructor of</span>
+<span class="sd">          the graph because the information in session_context is semantically</span>
+<span class="sd">          important to the notion of a Graph. Concretely, we are starting</span>
+<span class="sd">          to also use the code entry from the session_context.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">LineaID</span><span class="p">,</span> <span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">([</span><span class="n">node</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">parent_id</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span>
+                <span class="k">for</span> <span class="n">parent_id</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">parents</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_context</span> <span class="o">=</span> <span class="n">session_context</span>
+
+        <span class="c1"># validation</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_directed_acyclic_graph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Graph should not be cyclic&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">nx_graph</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">GraphPrinter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
+
+    <span class="nd">@listify</span>
+    <span class="k">def</span> <span class="nf">visit_order</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Just using the line number as tie breaker for now since we don&#39;t have</span>
+<span class="sd">          a good way to track dependencies</span>
+<span class="sd">          Note that we cannot just use the line number to sort because</span>
+<span class="sd">            there are nodes created by us that do not have line numbers...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: See if we could replace this with python&#39;s built in topological sort</span>
+        <span class="c1"># https://docs.python.org/3/library/graphlib.html</span>
+        <span class="c1"># It seems to suggest that resulting order is determined by insertion order</span>
+        <span class="c1"># so this could possibly also implicitly sort by line number, if we insert</span>
+        <span class="c1"># in that order.</span>
+
+        <span class="c1"># Generally, we want to traverse the graph in a way to maintain two</span>
+        <span class="c1"># constraints:</span>
+
+        <span class="c1"># 1. All parents must be traversed before their children</span>
+        <span class="c1"># 2. If we have any freedom, those with earlier line number should come first</span>
+
+        <span class="c1"># To do this, we do a breadth first traversal, keeping our queue ordered</span>
+        <span class="c1"># by their line number. The sorting is done via the __lt__ method</span>
+        <span class="c1"># of the Node</span>
+        <span class="n">queue</span><span class="p">:</span> <span class="n">PriorityQueue</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="n">PriorityQueue</span><span class="p">()</span>
+
+        <span class="c1"># We also keep track of all nodes we have already added to the queue</span>
+        <span class="c1"># so that we don&#39;t add them again</span>
+        <span class="n">seen</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># We also keep a mapping of each node to the number of parents left</span>
+        <span class="c1"># which have not been visited yet.</span>
+        <span class="c1"># Note that we want to skip counting parents which are not part of our nodes</span>
+        <span class="c1"># This can happen we evaluate part of a graph, then another part.</span>
+        <span class="c1"># When evaluating the next part, we just have those nodes, so some</span>
+        <span class="c1"># of the parents will be missing, we assume they are already executed</span>
+        <span class="n">remaining_parents</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">n_remaining_parents</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">parent_id</span>
+                    <span class="k">for</span> <span class="n">parent_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">pred</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">parent_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="c1"># First we add all of the nodes to the queue which have no parents</span>
+
+            <span class="k">if</span> <span class="n">n_remaining_parents</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="n">remaining_parents</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_remaining_parents</span>
+
+        <span class="k">while</span> <span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">():</span>
+            <span class="c1"># Find the first node in the queue which has all its parents removed</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">queue_get_when</span><span class="p">(</span>
+                <span class="n">queue</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">remaining_parents</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Then, we add all of its children to the queue, making sure to mark</span>
+            <span class="c1"># for each that we have seen one of its parents</span>
+            <span class="k">yield</span> <span class="n">node</span>
+            <span class="k">for</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                <span class="n">remaining_parents</span><span class="p">[</span><span class="n">child_id</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">child_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">child_id</span><span class="p">]</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">child_node</span><span class="p">)</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">child_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_parents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">predecessors</span><span class="p">(</span><span class="n">node_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_ancestors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">ancestors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="p">,</span> <span class="n">node_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">successors</span><span class="p">(</span><span class="n">node_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_descendants</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="p">,</span> <span class="n">node_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_leaf_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LineaID</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">node</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">nodes</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx_graph</span><span class="o">.</span><span class="n">out_degree</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">LineaID</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">get_subgraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Node</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Graph&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        FIXME</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_context</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">prettify</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+                <span class="n">include_source_location</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">include_id_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">include_session</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">prettify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">print</span><span class="p">())</span>
+
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="queue_get_when"><a class="viewcode-back" href="../../../autogen/lineapy.data.html#lineapy.data.graph.queue_get_when">[docs]</a><span class="k">def</span> <span class="nf">queue_get_when</span><span class="p">(</span><span class="n">queue</span><span class="p">:</span> <span class="s2">&quot;Queue[T]&quot;</span><span class="p">,</span> <span class="n">filter_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="nb">bool</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets the first element in the queue that satisfies the filter function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># We have to pop off a number of elements, stopping when we find one that</span>
+    <span class="c1"># satisfies our conditional, since we can&#39;t iterate through a queue.</span>
+
+    <span class="c1"># Use a timeout of 0 for the gets, otherwise if we have some bug</span>
+    <span class="c1"># where we are trying to get off the queue and its empty it will just</span>
+    <span class="c1"># block forever. with a timeout of 0, it will raise an exception instead.</span>
+    <span class="n">popped_off</span> <span class="o">=</span> <span class="p">[</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">filter_fn</span><span class="p">(</span><span class="n">popped_off</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">popped_off</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="o">*</span><span class="n">add_back_to_queue</span><span class="p">,</span> <span class="n">found</span> <span class="o">=</span> <span class="n">popped_off</span>
+    <span class="k">for</span> <span class="n">tmp_node</span> <span class="ow">in</span> <span class="n">add_back_to_queue</span><span class="p">:</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">tmp_node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

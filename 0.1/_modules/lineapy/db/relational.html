@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.db.relational &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.db.relational</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.db.relational</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file contains the ORM versions of the graph node in types.py.</span>
+<span class="sd">  Pydantic allows us to extract out a Dataclass like object from the ORM,</span>
+<span class="sd">  but not let us directly write to the ORM.</span>
+
+
+<span class="sd">Relationships</span>
+<span class="sd">-------------</span>
+
+<span class="sd">Warning</span>
+<span class="sd">-------</span>
+
+<span class="sd">non exhaustive list</span>
+
+
+<span class="sd">SessionContext</span>
+<span class="sd">- ImportNode (One to Many)</span>
+<span class="sd">- HardwareSpec (Many to One)</span>
+
+<span class="sd">Node</span>
+<span class="sd">- SessionContext (Many to One)</span>
+
+<span class="sd">CallNode</span>
+<span class="sd">- Node (Many to Many)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Boolean</span><span class="p">,</span>
+    <span class="n">CheckConstraint</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">,</span>
+    <span class="n">DateTime</span><span class="p">,</span>
+    <span class="n">Enum</span><span class="p">,</span>
+    <span class="n">ForeignKey</span><span class="p">,</span>
+    <span class="n">Integer</span><span class="p">,</span>
+    <span class="n">String</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LineaID</span><span class="p">,</span>
+    <span class="n">LiteralType</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="p">,</span>
+    <span class="n">SessionType</span><span class="p">,</span>
+    <span class="n">ValueType</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.constants</span> <span class="kn">import</span> <span class="n">ARTIFACT_NAME_PLACEHOLDER</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="SessionContextORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.SessionContextORM">[docs]</a><span class="k">class</span> <span class="nc">SessionContextORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;session_context&quot;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">environment_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Enum</span><span class="p">(</span><span class="n">SessionType</span><span class="p">))</span>
+    <span class="n">creation_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
+    <span class="n">working_directory</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">session_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">user_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">hardware_spec</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">execution_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;execution.id&quot;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ArtifactORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.ArtifactORM">[docs]</a><span class="k">class</span> <span class="nc">ArtifactORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An artifact is a named pointer to a node.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;artifact&quot;</span>
+    <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;execution.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">ARTIFACT_NAME_PLACEHOLDER</span><span class="p">,</span>
+        <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">date_created</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">node</span><span class="p">:</span> <span class="n">BaseNodeORM</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="s2">&quot;BaseNodeORM&quot;</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">execution</span><span class="p">:</span> <span class="n">ExecutionORM</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="s2">&quot;ExecutionORM&quot;</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ExecutionORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.ExecutionORM">[docs]</a><span class="k">class</span> <span class="nc">ExecutionORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An execution represents one Python interpreter invocation of some number of nodes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;execution&quot;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NodeValueORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.NodeValueORM">[docs]</a><span class="k">class</span> <span class="nc">NodeValueORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A node value represents the value of a node during some execution.</span>
+
+<span class="sd">    It is uniquely identified by the `node_id` and `execution_id`.</span>
+
+<span class="sd">    The following invariant holds:</span>
+<span class="sd">    `value.node.session == value.execution.session`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;node_value&quot;</span>
+    <span class="n">node_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">execution_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;execution.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">value_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Enum</span><span class="p">(</span><span class="n">ValueType</span><span class="p">))</span>
+
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.BaseNodeORM">[docs]</a><span class="k">class</span> <span class="nc">BaseNodeORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    node.source_code has a path value if node.session.environment_type == &quot;script&quot;</span>
+<span class="sd">    otherwise the environment type is &quot;jupyter&quot; and it has a jupyter execution</span>
+<span class="sd">    count and session id, which is equal to the node.session</span>
+
+<span class="sd">    NOTE</span>
+<span class="sd">    ----</span>
+
+<span class="sd">    - Because other nodes are inheriting from BaseNodeORM, finding a node</span>
+<span class="sd">      based on its id is easy (something like the following)::</span>
+
+<span class="sd">       session.query(BaseNodeORM).filter(BaseNodeORM.id == linea_id)</span>
+
+<span class="sd">    - Each node inheriting from BaseNodeORM must have non null values for</span>
+<span class="sd">      all of lineno, col_offset, end_lineno, end_col_offset and source_code_id</span>
+<span class="sd">      or nulls for all of them.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;node&quot;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">node_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Enum</span><span class="p">(</span><span class="n">NodeType</span><span class="p">))</span>
+    <span class="n">lineno</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># line numbers are 1-indexed</span>
+    <span class="n">col_offset</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># col numbers are 0-indexed</span>
+    <span class="n">end_lineno</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">end_col_offset</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">source_code_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;source_code.id&quot;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">source_code</span><span class="p">:</span> <span class="n">SourceCodeORM</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;SourceCodeORM&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span><span class="p">)</span>
+
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="c1"># Either all source keys or none should be specified</span>
+        <span class="n">CheckConstraint</span><span class="p">(</span>
+            <span class="s2">&quot;(lineno IS NULL) = (col_offset is NULL) and &quot;</span>
+            <span class="s2">&quot;(col_offset is NULL) = (end_lineno is NULL) and &quot;</span>
+            <span class="s2">&quot;(end_lineno is NULL) = (end_col_offset is NULL) and &quot;</span>
+            <span class="s2">&quot;(end_col_offset is NULL) = (source_code_id is NULL)&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="c1"># https://docs.sqlalchemy.org/en/14/orm/inheritance.html#joined-table-inheritance</span>
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;polymorphic_on&quot;</span><span class="p">:</span> <span class="n">node_type</span><span class="p">,</span>
+        <span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="SourceCodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.SourceCodeORM">[docs]</a><span class="k">class</span> <span class="nc">SourceCodeORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;source_code&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">jupyter_execution_count</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">jupyter_session_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="c1"># Either path is set or jupyter_execution_count and jupyter_session_id are set</span>
+        <span class="n">CheckConstraint</span><span class="p">(</span>
+            <span class="s2">&quot;(path IS NOT NULL) != ((jupyter_execution_count IS NOT NULL) AND &quot;</span>
+            <span class="s2">&quot;(jupyter_execution_count IS NOT NULL))&quot;</span>
+        <span class="p">),</span>
+        <span class="c1"># If one jupyter arg is provided, both must be</span>
+        <span class="n">CheckConstraint</span><span class="p">(</span>
+            <span class="s2">&quot;(jupyter_execution_count IS NULL) = (jupyter_session_id is NULL)&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LookupNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.LookupNodeORM">[docs]</a><span class="k">class</span> <span class="nc">LookupNodeORM</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;lookup&quot;</span>
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">LookupNode</span><span class="p">}</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ImportNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.ImportNodeORM">[docs]</a><span class="k">class</span> <span class="nc">ImportNodeORM</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;import_node&quot;</span>
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">ImportNode</span><span class="p">}</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">package_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<span class="c1"># Use associations for many to many relationship between calls and args</span>
+<span class="c1"># https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object</span>
+
+
+<div class="viewcode-block" id="PositionalArgORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.PositionalArgORM">[docs]</a><span class="k">class</span> <span class="nc">PositionalArgORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;positional_arg&quot;</span>
+    <span class="n">call_node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;call_node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">arg_node_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">starred</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">argument</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="KeywordArgORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.KeywordArgORM">[docs]</a><span class="k">class</span> <span class="nc">KeywordArgORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;keyword_arg&quot;</span>
+    <span class="n">call_node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;call_node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">arg_node_id</span><span class="p">:</span> <span class="n">LineaID</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">starred</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">argument</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GlobalReferenceORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.GlobalReferenceORM">[docs]</a><span class="k">class</span> <span class="nc">GlobalReferenceORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;global_reference&quot;</span>
+    <span class="n">call_node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;call_node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">variable_node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">variable_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">variable_node</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ImplicitDependencyORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.ImplicitDependencyORM">[docs]</a><span class="k">class</span> <span class="nc">ImplicitDependencyORM</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;implicit_dependency&quot;</span>
+    <span class="n">call_node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;call_node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">arg_node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">argument</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CallNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.CallNodeORM">[docs]</a><span class="k">class</span> <span class="nc">CallNodeORM</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;call_node&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">function_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">))</span>
+
+    <span class="n">positional_args</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="n">PositionalArgORM</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="nb">set</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span>
+    <span class="p">)</span>
+    <span class="n">keyword_args</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="n">KeywordArgORM</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="nb">set</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span>
+    <span class="p">)</span>
+    <span class="n">global_reads</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="n">GlobalReferenceORM</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="nb">set</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">implicit_dependencies</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="n">ImplicitDependencyORM</span><span class="p">,</span>
+        <span class="n">collection_class</span><span class="o">=</span><span class="nb">set</span><span class="p">,</span>
+        <span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;joined&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">CallNode</span><span class="p">,</span>
+        <span class="c1"># Need this so that sqlalchemy doesn&#39;t get confused about additional</span>
+        <span class="c1"># foreign key from function_id</span>
+        <span class="c1"># https://stackoverflow.com/a/39518177/907060</span>
+        <span class="s2">&quot;inherit_condition&quot;</span><span class="p">:</span> <span class="nb">id</span> <span class="o">==</span> <span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="LiteralNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.LiteralNodeORM">[docs]</a><span class="k">class</span> <span class="nc">LiteralNodeORM</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;literal_assign_node&quot;</span>
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">LiteralNode</span><span class="p">}</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">value_type</span><span class="p">:</span> <span class="n">LiteralType</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Enum</span><span class="p">(</span><span class="n">LiteralType</span><span class="p">))</span>
+    <span class="c1"># The value of the literal serialized as a string</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MutateNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.MutateNodeORM">[docs]</a><span class="k">class</span> <span class="nc">MutateNodeORM</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;mutate_node&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">source_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">))</span>
+    <span class="n">call_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">))</span>
+
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">MutateNode</span><span class="p">,</span>
+        <span class="s2">&quot;inherit_condition&quot;</span><span class="p">:</span> <span class="nb">id</span> <span class="o">==</span> <span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="GlobalNodeORM"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.relational.GlobalNodeORM">[docs]</a><span class="k">class</span> <span class="nc">GlobalNodeORM</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;global_node&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">call_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;node.id&quot;</span><span class="p">))</span>
+
+    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;polymorphic_identity&quot;</span><span class="p">:</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">GlobalNode</span><span class="p">,</span>
+        <span class="s2">&quot;inherit_condition&quot;</span><span class="p">:</span> <span class="nb">id</span> <span class="o">==</span> <span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<span class="c1"># Explicitly define all subclasses of NodeORM, so that if we use this as a type</span>
+<span class="c1"># we can accurately know if we cover all cases</span>
+<span class="n">NodeORM</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="n">LookupNodeORM</span><span class="p">,</span>
+    <span class="n">ImportNodeORM</span><span class="p">,</span>
+    <span class="n">CallNodeORM</span><span class="p">,</span>
+    <span class="n">LiteralNodeORM</span><span class="p">,</span>
+    <span class="n">MutateNodeORM</span><span class="p">,</span>
+    <span class="n">GlobalNodeORM</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

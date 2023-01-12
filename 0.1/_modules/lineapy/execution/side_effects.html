@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.execution.side_effects &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.execution.side_effects</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.execution.side_effects</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">LineaID</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.annotation_spec</span> <span class="kn">import</span> <span class="n">ExternalState</span>
+
+
+<div class="viewcode-block" id="MutatedNode"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.side_effects.MutatedNode">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MutatedNode</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents that a node has been mutated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># The node that was mutated, the source node</span>
+    <span class="n">pointer</span><span class="p">:</span> <span class="n">ExecutorPointer</span></div>
+
+
+<div class="viewcode-block" id="ViewOfNodes"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.side_effects.ViewOfNodes">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ViewOfNodes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents that a set of nodes are now &quot;views&quot; of each other, meaning that</span>
+<span class="sd">    if any are mutated they all could be mutated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># An ordered set</span>
+    <span class="n">pointers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ExecutorPointer</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ImplicitDependencyNode"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.side_effects.ImplicitDependencyNode">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ImplicitDependencyNode</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents that the call node has an implicit dependency on another node.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pointer</span><span class="p">:</span> <span class="n">ExecutorPointer</span></div>
+
+
+<div class="viewcode-block" id="AccessedGlobals"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.side_effects.AccessedGlobals">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">AccessedGlobals</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents some global variables that were retrieved or changed during this call.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">retrieved</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">added_or_updated</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></div>
+
+
+<span class="n">SideEffect</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="n">MutatedNode</span><span class="p">,</span> <span class="n">ViewOfNodes</span><span class="p">,</span> <span class="n">AccessedGlobals</span><span class="p">,</span> <span class="n">ImplicitDependencyNode</span>
+<span class="p">]</span>
+<span class="n">SideEffects</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">SideEffect</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ID"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.side_effects.ID">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ID</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">LineaID</span></div>
+
+
+<div class="viewcode-block" id="Variable"><a class="viewcode-back" href="../../../autogen/lineapy.execution.html#lineapy.execution.side_effects.Variable">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Variable</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Inside the execution, sometimes we need to point to values that have yet to</span>
+<span class="sd">be created in the graph, hence the ID (LineaID) is insufficient.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">ExecutorPointer</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">ID</span><span class="p">,</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">ExternalState</span><span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

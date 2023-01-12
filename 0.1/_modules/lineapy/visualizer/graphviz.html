@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.visualizer.graphviz &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../visualizer.html">lineapy.visualizer</a> &raquo;</li>
+      <li>lineapy.visualizer.graphviz</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.visualizer.graphviz</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functionality to display the tracer as a visual graph.</span>
+
+<span class="sd">It first convert it to a graph, using `visual_graph.py`, and then renders</span>
+<span class="sd">that with graphviz.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">graphviz</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
+        <span class="s2">&quot;graphviz is not installed, please install graphviz in your local environment to visualize artifacts&quot;</span>
+    <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">NodeType</span>
+<span class="kn">from</span> <span class="nn">lineapy.visualizer.visual_graph</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ExtraLabel</span><span class="p">,</span>
+    <span class="n">ExtraLabels</span><span class="p">,</span>
+    <span class="n">ExtraLabelType</span><span class="p">,</span>
+    <span class="n">SourceLineType</span><span class="p">,</span>
+    <span class="n">VisualEdge</span><span class="p">,</span>
+    <span class="n">VisualEdgeID</span><span class="p">,</span>
+    <span class="n">VisualEdgeType</span><span class="p">,</span>
+    <span class="n">VisualGraphOptions</span><span class="p">,</span>
+    <span class="n">VisualNode</span><span class="p">,</span>
+    <span class="n">VisualNodeType</span><span class="p">,</span>
+    <span class="n">to_visual_graph</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">SERIF_FONT</span> <span class="o">=</span> <span class="s2">&quot;Helvetica&quot;</span>
+<span class="n">MONOSPACE_FONT</span> <span class="o">=</span> <span class="s2">&quot;Courier&quot;</span>
+
+<span class="n">GRAPH_STYLE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;newrank&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;splines&quot;</span><span class="p">:</span> <span class="s2">&quot;polyline&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fontname&quot;</span><span class="p">:</span> <span class="n">SERIF_FONT</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">NODE_STYLE</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+    <span class="c1"># in inches</span>
+    <span class="s2">&quot;margin&quot;</span><span class="p">:</span> <span class="s2">&quot;0.04&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;penwidth&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fontsize&quot;</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fontname&quot;</span><span class="p">:</span> <span class="n">MONOSPACE_FONT</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">EDGE_STYLE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;arrowhead&quot;</span><span class="p">:</span> <span class="s2">&quot;vee&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;arrowsize&quot;</span><span class="p">:</span> <span class="s2">&quot;0.5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fontsize&quot;</span><span class="p">:</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fontname&quot;</span><span class="p">:</span> <span class="n">SERIF_FONT</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Copied from pastel19 on</span>
+<span class="c1"># https://graphviz.org/doc/info/colors.html so we can add transparency</span>
+<span class="n">BREWER_PASTEL</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="s2">&quot;#fbb4ae&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="s2">&quot;#b3cde3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="s2">&quot;#ccebc5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;purple&quot;</span><span class="p">:</span> <span class="s2">&quot;#decbe4&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orange&quot;</span><span class="p">:</span> <span class="s2">&quot;#fed9a6&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;yellow&quot;</span><span class="p">:</span> <span class="s2">&quot;#ffffcc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;brown&quot;</span><span class="p">:</span> <span class="s2">&quot;#e5d8bd&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pink&quot;</span><span class="p">:</span> <span class="s2">&quot;#fddaec&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;grey&quot;</span><span class="p">:</span> <span class="s2">&quot;#f2f2f2&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">ALPHA</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="c1"># Alpha fraction from 0 to 255 to apply to lighten the second colors</span>
+<span class="c1"># Make all the secondary colors lighter, by applying an alpha</span>
+<span class="c1"># Graphviz takes this as an alpha value in hex form</span>
+<span class="c1"># https://graphviz.org/docs/attr-types/color/</span>
+<span class="n">alpha_hex</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="n">ALPHA</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span>
+
+
+<span class="k">def</span> <span class="nf">color</span><span class="p">(</span><span class="n">original_color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">highlighted</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">original_color</span>
+    <span class="c1"># If not highlighted, make it more transparent</span>
+    <span class="k">return</span> <span class="n">original_color</span> <span class="o">+</span> <span class="n">alpha_hex</span>
+
+
+<span class="n">BORDER_COLOR</span> <span class="o">=</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;grey&quot;</span><span class="p">]</span>
+<span class="n">FONT_COLOR</span> <span class="o">=</span> <span class="s2">&quot;#000000&quot;</span>
+
+<span class="n">CLUSTER_EDGE_COLOR</span> <span class="o">=</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;grey&quot;</span><span class="p">]</span>
+
+
+<span class="n">ColorableType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">NodeType</span><span class="p">,</span> <span class="n">ExtraLabelType</span><span class="p">,</span> <span class="n">VisualEdgeType</span><span class="p">]</span>
+
+
+<span class="c1"># Mapping of each node type to its color</span>
+<span class="n">COLORS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">ColorableType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;#d4d4d4&quot;</span><span class="p">,</span>  <span class="c1"># use a slightly darker grey by default</span>
+    <span class="p">{</span>
+        <span class="n">NodeType</span><span class="o">.</span><span class="n">CallNode</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;pink&quot;</span><span class="p">],</span>
+        <span class="n">NodeType</span><span class="o">.</span><span class="n">LiteralNode</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;green&quot;</span><span class="p">],</span>
+        <span class="n">NodeType</span><span class="o">.</span><span class="n">MutateNode</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;red&quot;</span><span class="p">],</span>
+        <span class="n">NodeType</span><span class="o">.</span><span class="n">ImportNode</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;purple&quot;</span><span class="p">],</span>
+        <span class="n">NodeType</span><span class="o">.</span><span class="n">LookupNode</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;yellow&quot;</span><span class="p">],</span>
+        <span class="c1"># Make the global node and variables same color, since both are about variables</span>
+        <span class="n">NodeType</span><span class="o">.</span><span class="n">GlobalNode</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;brown&quot;</span><span class="p">],</span>
+        <span class="n">ExtraLabelType</span><span class="o">.</span><span class="n">VARIABLE</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;brown&quot;</span><span class="p">],</span>
+        <span class="n">ExtraLabelType</span><span class="o">.</span><span class="n">ARTIFACT</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;orange&quot;</span><span class="p">],</span>
+        <span class="c1"># Make same color as mutate node</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">LATEST_MUTATE_SOURCE</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;red&quot;</span><span class="p">],</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">VIEW</span><span class="p">:</span> <span class="n">BREWER_PASTEL</span><span class="p">[</span><span class="s2">&quot;blue&quot;</span><span class="p">],</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+
+<span class="c1"># Labels for node types for legend</span>
+<span class="n">NODE_LABELS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">NodeType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">CallNode</span><span class="p">:</span> <span class="s2">&quot;Call&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">LiteralNode</span><span class="p">:</span> <span class="s2">&quot;Literal&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">ImportNode</span><span class="p">:</span> <span class="s2">&quot;Import&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">LookupNode</span><span class="p">:</span> <span class="s2">&quot;Lookup&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">MutateNode</span><span class="p">:</span> <span class="s2">&quot;Mutate&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">GlobalNode</span><span class="p">:</span> <span class="s2">&quot;Global&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="n">NODE_SHAPES</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">NodeType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">CallNode</span><span class="p">:</span> <span class="s2">&quot;record&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">LiteralNode</span><span class="p">:</span> <span class="s2">&quot;box&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">ImportNode</span><span class="p">:</span> <span class="s2">&quot;box&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">LookupNode</span><span class="p">:</span> <span class="s2">&quot;box&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">MutateNode</span><span class="p">:</span> <span class="s2">&quot;record&quot;</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="o">.</span><span class="n">GlobalNode</span><span class="p">:</span> <span class="s2">&quot;box&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">UNDIRECTED_EDGE_TYPES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="n">EDGE_STYLES</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;solid&quot;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">MUTATE_CALL</span><span class="p">:</span> <span class="s2">&quot;dashed&quot;</span><span class="p">,</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">NEXT_LINE</span><span class="p">:</span> <span class="s2">&quot;invis&quot;</span><span class="p">,</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">SOURCE_CODE</span><span class="p">:</span> <span class="s2">&quot;dotted&quot;</span><span class="p">,</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">IMPLICIT_DEPENDENCY</span><span class="p">:</span> <span class="s2">&quot;bold&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="extra_label_labels"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.graphviz.extra_label_labels">[docs]</a><span class="k">def</span> <span class="nf">extra_label_labels</span><span class="p">(</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">ExtraLabelType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Labels for the extra label, to use in the legend,</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">ExtraLabelType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_artifacts</span><span class="p">:</span>
+        <span class="n">l</span><span class="p">[</span><span class="n">ExtraLabelType</span><span class="o">.</span><span class="n">ARTIFACT</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Artifact Name&quot;</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_variables</span><span class="p">:</span>
+        <span class="n">l</span><span class="p">[</span><span class="n">ExtraLabelType</span><span class="o">.</span><span class="n">VARIABLE</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Variable Name&quot;</span>
+    <span class="k">return</span> <span class="n">l</span></div>
+
+
+<div class="viewcode-block" id="edge_labels"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.graphviz.edge_labels">[docs]</a><span class="k">def</span> <span class="nf">edge_labels</span><span class="p">(</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VisualEdgeType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Labels for the edge types to use in the legend,</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">VisualEdgeType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">SOURCE_CODE</span><span class="p">:</span> <span class="s2">&quot;Source Code&quot;</span><span class="p">,</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">MUTATE_CALL</span><span class="p">:</span> <span class="s2">&quot;Mutate Call&quot;</span><span class="p">,</span>
+        <span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">IMPLICIT_DEPENDENCY</span><span class="p">:</span> <span class="s2">&quot;Implicit Dependency&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_implied_mutations</span><span class="p">:</span>
+        <span class="n">l</span><span class="p">[</span><span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">LATEST_MUTATE_SOURCE</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Implied Mutate&quot;</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">show_views</span><span class="p">:</span>
+        <span class="n">l</span><span class="p">[</span><span class="n">VisualEdgeType</span><span class="o">.</span><span class="n">VIEW</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;View&quot;</span>
+    <span class="k">return</span> <span class="n">l</span></div>
+
+
+<div class="viewcode-block" id="get_color"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.graphviz.get_color">[docs]</a><span class="k">def</span> <span class="nf">get_color</span><span class="p">(</span><span class="n">tp</span><span class="p">:</span> <span class="n">ColorableType</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the color for a type. Note that graphviz colorscheme indexing</span>
+<span class="sd">    is 1 based</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">color</span><span class="p">(</span><span class="n">COLORS</span><span class="p">[</span><span class="n">tp</span><span class="p">],</span> <span class="n">highlighted</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">to_graphviz</span><span class="p">(</span><span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">graphviz</span><span class="o">.</span><span class="n">Digraph</span><span class="p">:</span>
+    <span class="n">dot</span> <span class="o">=</span> <span class="n">graphviz</span><span class="o">.</span><span class="n">Digraph</span><span class="p">(</span><span class="n">node_attr</span><span class="o">=</span><span class="n">NODE_STYLE</span><span class="p">,</span> <span class="n">edge_attr</span><span class="o">=</span><span class="n">EDGE_STYLE</span><span class="p">)</span>
+    <span class="n">dot</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="o">**</span><span class="n">GRAPH_STYLE</span><span class="p">)</span>
+
+    <span class="n">add_legend</span><span class="p">(</span><span class="n">dot</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="n">vg</span> <span class="o">=</span> <span class="n">to_visual_graph</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">vg</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+        <span class="n">render_node</span><span class="p">(</span><span class="n">dot</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">vg</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span>
+        <span class="n">render_edge</span><span class="p">(</span><span class="n">dot</span><span class="p">,</span> <span class="n">edge</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dot</span>
+
+
+<span class="k">def</span> <span class="nf">render_edge</span><span class="p">(</span><span class="n">dot</span><span class="p">,</span> <span class="n">edge</span><span class="p">:</span> <span class="n">VisualEdge</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">dot</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+        <span class="n">edge_id_to_str</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source</span><span class="p">),</span>
+        <span class="n">edge_id_to_str</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">target</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">edge_type_to_kwargs</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">edge</span><span class="o">.</span><span class="n">highlighted</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">edge_id_to_str</span><span class="p">(</span><span class="n">edge_id</span><span class="p">:</span> <span class="n">VisualEdgeID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">edge_id</span><span class="o">.</span><span class="n">port</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">edge_id</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">edge_id</span><span class="o">.</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="n">edge_id</span><span class="o">.</span><span class="n">node_id</span>
+
+
+<div class="viewcode-block" id="extra_labels_to_html"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.graphviz.extra_labels_to_html">[docs]</a><span class="k">def</span> <span class="nf">extra_labels_to_html</span><span class="p">(</span><span class="n">extra_labels</span><span class="p">:</span> <span class="n">ExtraLabels</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert extra labels into an HTML table, where each label is a row.</span>
+<span class="sd">    A single node could have multiple variables and artifacts pointing at it.</span>
+<span class="sd">    So we make a table with a row for each artifact. Why a table? Well we are putting</span>
+<span class="sd">    it in the xlabel and a table was an easy way to have multiple rows with different colors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s1">&#39;&lt;TR &gt;&lt;TD BGCOLOR=&quot;</span><span class="si">{</span><span class="n">get_color</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&gt;&lt;FONT POINT-SIZE=&quot;10&quot;&gt;</span><span class="si">{</span><span class="n">el</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s1">&lt;/FONT&gt;&lt;/TD&gt;&lt;/TR&gt;&#39;</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">extra_labels</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;&lt;TABLE BORDER=&quot;0&quot; CELLBORDER=&quot;0&quot; CELLSPACING=&quot;0&quot;&gt;</span><span class="si">{</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/TABLE&gt;&gt;&#39;</span></div>
+
+
+<span class="k">def</span> <span class="nf">node_type_to_kwargs</span><span class="p">(</span>
+    <span class="n">node_type</span><span class="p">:</span> <span class="n">VisualNodeType</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node_type</span><span class="p">,</span> <span class="n">SourceLineType</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="s2">&quot;plaintext&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fontcolor&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">(</span><span class="n">FONT_COLOR</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;fillcolor&quot;</span><span class="p">:</span> <span class="n">get_color</span><span class="p">(</span><span class="n">node_type</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">),</span>
+        <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="n">NODE_SHAPES</span><span class="p">[</span><span class="n">node_type</span><span class="p">],</span>
+        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">(</span><span class="n">BORDER_COLOR</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">),</span>
+        <span class="s2">&quot;fontcolor&quot;</span><span class="p">:</span> <span class="n">color</span><span class="p">(</span><span class="n">FONT_COLOR</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">),</span>
+        <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="s2">&quot;filled&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">edge_type_to_kwargs</span><span class="p">(</span>
+    <span class="n">edge_type</span><span class="p">:</span> <span class="n">VisualEdgeType</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">get_color</span><span class="p">(</span><span class="n">edge_type</span><span class="p">,</span> <span class="n">highlighted</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dir&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span> <span class="k">if</span> <span class="n">edge_type</span> <span class="ow">in</span> <span class="n">UNDIRECTED_EDGE_TYPES</span> <span class="k">else</span> <span class="s2">&quot;forward&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="n">EDGE_STYLES</span><span class="p">[</span><span class="n">edge_type</span><span class="p">],</span>
+    <span class="p">}</span>
+
+
+<div class="viewcode-block" id="add_legend"><a class="viewcode-back" href="../../../autogen/lineapy.visualizer.html#lineapy.visualizer.graphviz.add_legend">[docs]</a><span class="k">def</span> <span class="nf">add_legend</span><span class="p">(</span><span class="n">dot</span><span class="p">:</span> <span class="n">graphviz</span><span class="o">.</span><span class="n">Digraph</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">VisualGraphOptions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a legend with nodes and edge styles.</span>
+
+<span class="sd">    Creates one node for each node style and one edge for each edge style.</span>
+
+<span class="sd">    It was difficult to get it to appear in a way that didn&#39;t disrupt the  main</span>
+<span class="sd">    graph. It was easiest to get it to be a vertically aligned column of nodes,</span>
+<span class="sd">    on the left of the graph. To do this, I link all the nodes with invisible</span>
+<span class="sd">    edges so they stay vertically aligned.</span>
+
+<span class="sd">    https://stackoverflow.com/a/52300532/907060.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">dot</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;cluster_0&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">CLUSTER_EDGE_COLOR</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Legend&quot;</span><span class="p">)</span>
+
+        <span class="c1">##</span>
+        <span class="c1"># Add nodes to legend</span>
+        <span class="c1">##</span>
+
+        <span class="c1"># Save the previous ID so we can add an invisible edge.</span>
+        <span class="n">prev_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">node_type</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">NODE_LABELS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;legend_node_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="n">extra_labels</span><span class="p">:</span> <span class="n">ExtraLabels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># If this isn&#39;t in the first node, add an invisible edge from</span>
+            <span class="c1"># the previous node to it.</span>
+            <span class="k">if</span> <span class="n">prev_id</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">prev_id</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;invis&quot;</span><span class="p">)</span>
+            <span class="c1"># If this is the first node, add sample extra labels</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">extra_label_label</span> <span class="ow">in</span> <span class="n">extra_label_labels</span><span class="p">(</span>
+                    <span class="n">options</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">extra_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExtraLabel</span><span class="p">(</span><span class="n">extra_label_label</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+            <span class="n">render_node</span><span class="p">(</span>
+                <span class="n">c</span><span class="p">,</span>
+                <span class="n">VisualNode</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">node_type</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">extra_labels</span><span class="p">),</span>
+                <span class="n">fontname</span><span class="o">=</span><span class="n">SERIF_FONT</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">prev_id</span> <span class="o">=</span> <span class="n">id_</span>
+
+        <span class="c1">##</span>
+        <span class="c1"># Add edges to legend</span>
+        <span class="c1">##</span>
+        <span class="n">edges_for_legend</span> <span class="o">=</span> <span class="n">edge_labels</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">edges_for_legend</span><span class="p">:</span>
+            <span class="c1"># Keep adding invisible edges, so that all of the nodes are aligned vertically</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="s2">&quot;legend_edge&quot;</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;invis&quot;</span><span class="p">)</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">prev_id</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;invis&quot;</span><span class="p">)</span>
+            <span class="n">prev_id</span> <span class="o">=</span> <span class="n">id_</span>
+            <span class="k">for</span> <span class="n">edge_type</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">edges_for_legend</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">id_</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;legend_edge_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="c1"># Add invisible nodes, so the edges have something to point to.</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;invis&quot;</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span>
+                    <span class="n">prev_id</span><span class="p">,</span>
+                    <span class="n">id_</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">edge_type_to_kwargs</span><span class="p">(</span><span class="n">edge_type</span><span class="p">,</span> <span class="n">highlighted</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">prev_id</span> <span class="o">=</span> <span class="n">id_</span>
+    <span class="k">return</span> <span class="n">id_</span></div>
+
+
+<span class="k">def</span> <span class="nf">render_node</span><span class="p">(</span>
+    <span class="n">dot</span><span class="p">:</span> <span class="n">graphviz</span><span class="o">.</span><span class="n">Digraph</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">VisualNode</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">node_type_to_kwargs</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">highlighted</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">extra_labels</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;xlabel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extra_labels_to_html</span><span class="p">(</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">extra_labels</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">highlighted</span>
+        <span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">overrides</span><span class="p">)</span>
+    <span class="n">dot</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">contents</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

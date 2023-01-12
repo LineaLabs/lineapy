@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PostgreSQL &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="FAQ" href="../../../support/faq.html" />
+    <link rel="prev" title="Databases for Artifact Store" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Managing Artifacts</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Databases for Artifact Store</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PostgreSQL</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#run-postgresql-with-docker">Run PostgreSQL with Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-database-adapter">Install Database Adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#connect-lineapy-with-postgresql">Connect LineaPy with PostgreSQL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#known-issues">Known Issues</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Managing Artifacts</a> &raquo;</li>
+          <li><a href="index.html">Databases for Artifact Store</a> &raquo;</li>
+      <li>PostgreSQL</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/guide/manage_artifacts/database/postgres.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="postgresql">
+<span id="postgres"></span><h1>PostgreSQL<a class="headerlink" href="#postgresql" title="Permalink to this heading"></a></h1>
+<p>By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
+Given the limitations of SQLite (e.g., single write access to a database at a time), however,
+we may want to use a more advanced database such as PostgreSQL.</p>
+<section id="run-postgresql-with-docker">
+<h2>Run PostgreSQL with Docker<a class="headerlink" href="#run-postgresql-with-docker" title="Permalink to this heading"></a></h2>
+<p>The easiest way to use PostgreSQL with LineaPy is through <a class="reference external" href="https://docs.docker.com/get-docker/">Docker</a>.
+We can spin up a PostgreSQL instance with Docker using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker run --name lineaPostgres -p <span class="m">15432</span>:5432 -e <span class="nv">POSTGRES_USER</span><span class="o">=</span>postgresuser -e <span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>postgrespwd -e <span class="nv">POSTGRES_DB</span><span class="o">=</span>postgresdb -d postgres
+</pre></div>
+</div>
+<p>where</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--name</span> <span class="pre">lineaPostgres</span></code> sets the Docker container name as <code class="docutils literal notranslate"><span class="pre">lineaPostgres</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">15432:5432</span></code> exposes PostgreSQL at port 15432 (5432 is the default PostgreSQL port within the Docker image)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-e</span> <span class="pre">POSTGRES_USER=postgresuser</span></code> sets the username as <code class="docutils literal notranslate"><span class="pre">postgresuser</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-e</span> <span class="pre">POSTGRES_PASSWORD=postgrespwd</span></code> sets the password as <code class="docutils literal notranslate"><span class="pre">postgrespwd</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-e</span> <span class="pre">POSTGRES_DB=postgresdb</span></code> sets the database name as <code class="docutils literal notranslate"><span class="pre">postgresdb</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">postgres</span></code> specifies the name of the official PostgreSQL Docker image</p></li>
+</ul>
+<p>To validate whether the Docker container has been started successfully, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker ps -a <span class="p">|</span> grep lineaPostgres
+</pre></div>
+</div>
+<p>which will show the container information if it exists, as the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1b68ae97e029   postgres   &quot;docker-entrypoint.s…&quot;   6 hours ago   Up 6 hours   0.0.0.0:15432-&gt;5432/tcp   lineaPostgres
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may experience trouble launching the container if the container name or port is already occupied.
+If so, simply change the container name or port and relaunch the container as instructed above.
+Or, you can remove the conflicting container with <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">rm</span> <span class="pre">-f</span> <span class="pre">CONTAINER_ID</span></code> where <code class="docutils literal notranslate"><span class="pre">CONTAINER_ID</span></code>
+is the ID of the conflicting container to remove (e.g., <code class="docutils literal notranslate"><span class="pre">1b68ae97e029</span></code> above).</p>
+</div>
+</section>
+<section id="install-database-adapter">
+<h2>Install Database Adapter<a class="headerlink" href="#install-database-adapter" title="Permalink to this heading"></a></h2>
+<p>To support interaction between Python and PostgreSQL, we need to install a database adapter. A popular choice
+is a Python package called <code class="docutils literal notranslate"><span class="pre">psycopg2</span></code>, which can be installed as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install psycopg2
+</pre></div>
+</div>
+</section>
+<section id="connect-lineapy-with-postgresql">
+<h2>Connect LineaPy with PostgreSQL<a class="headerlink" href="#connect-lineapy-with-postgresql" title="Permalink to this heading"></a></h2>
+<p>Now that the new database is in place, we need to make LineaPy recognize and use it.
+We can do this by exporting the database connection string into an environmental variable
+<code class="docutils literal notranslate"><span class="pre">LINEA_DATABASE_URL</span></code>, like so:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">LINEA_DATABASE_URL</span><span class="o">=</span>postgresql://postgresuser:postgrespwd@localhost:15432/postgresdb
+</pre></div>
+</div>
+<p>Note that this has to be done prior to using LineaPy so that the environment variable exists in runtime.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to use PostgreSQL as the default backend, you can make the environment variable
+persist across sessions by defining it in <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> or <code class="docutils literal notranslate"><span class="pre">.zshrc</span></code>.</p>
+</div>
+<p>You can check the connection between LineaPy and PostgreSQL with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lineapy.db.db</span> <span class="kn">import</span> <span class="n">RelationalLineaDB</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">RelationalLineaDB</span><span class="o">.</span><span class="n">from_environment</span><span class="p">()</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which will print:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>postgresql://postgresuser:postgrespwd@localhost:15432/postgresdb
+</pre></div>
+</div>
+<p>if successful. Otherwise, it will default back to SQLite and print:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sqlite:///.lineapy/db.sqlite
+</pre></div>
+</div>
+</section>
+<section id="known-issues">
+<h2>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this heading"></a></h2>
+<p>If you are using PostgreSQL as your database, you might encounter the following error:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>NoSuchModuleError: Can&#39;t load plugin: sqlalchemy.dialects:postgres
+</pre></div>
+</div>
+<p>This is caused by a change in SQLAlchemy where they dropped support for DB URLs of the form <code class="docutils literal notranslate"><span class="pre">postgres://</span></code>.
+Using <code class="docutils literal notranslate"><span class="pre">postgresql://</span></code> instead should fix this error.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Databases for Artifact Store" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../../support/faq.html" class="btn btn-neutral float-right" title="FAQ" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

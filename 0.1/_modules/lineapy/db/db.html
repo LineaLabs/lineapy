@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.db.db &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.db.db</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.db.db</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">defaultload</span><span class="p">,</span> <span class="n">scoped_session</span><span class="p">,</span> <span class="n">sessionmaker</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">StaticPool</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">and_</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Artifact</span><span class="p">,</span>
+    <span class="n">CallNode</span><span class="p">,</span>
+    <span class="n">Execution</span><span class="p">,</span>
+    <span class="n">GlobalNode</span><span class="p">,</span>
+    <span class="n">ImportNode</span><span class="p">,</span>
+    <span class="n">JupyterCell</span><span class="p">,</span>
+    <span class="n">KeywordArgument</span><span class="p">,</span>
+    <span class="n">LineaID</span><span class="p">,</span>
+    <span class="n">LiteralNode</span><span class="p">,</span>
+    <span class="n">LiteralType</span><span class="p">,</span>
+    <span class="n">LookupNode</span><span class="p">,</span>
+    <span class="n">MutateNode</span><span class="p">,</span>
+    <span class="n">Node</span><span class="p">,</span>
+    <span class="n">NodeValue</span><span class="p">,</span>
+    <span class="n">PositionalArgument</span><span class="p">,</span>
+    <span class="n">SessionContext</span><span class="p">,</span>
+    <span class="n">SourceCode</span><span class="p">,</span>
+    <span class="n">SourceLocation</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.relational</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ArtifactORM</span><span class="p">,</span>
+    <span class="n">Base</span><span class="p">,</span>
+    <span class="n">BaseNodeORM</span><span class="p">,</span>
+    <span class="n">CallNodeORM</span><span class="p">,</span>
+    <span class="n">ExecutionORM</span><span class="p">,</span>
+    <span class="n">GlobalNodeORM</span><span class="p">,</span>
+    <span class="n">GlobalReferenceORM</span><span class="p">,</span>
+    <span class="n">ImplicitDependencyORM</span><span class="p">,</span>
+    <span class="n">ImportNodeORM</span><span class="p">,</span>
+    <span class="n">KeywordArgORM</span><span class="p">,</span>
+    <span class="n">LiteralNodeORM</span><span class="p">,</span>
+    <span class="n">LookupNodeORM</span><span class="p">,</span>
+    <span class="n">MutateNodeORM</span><span class="p">,</span>
+    <span class="n">NodeORM</span><span class="p">,</span>
+    <span class="n">NodeValueORM</span><span class="p">,</span>
+    <span class="n">PositionalArgORM</span><span class="p">,</span>
+    <span class="n">SessionContextORM</span><span class="p">,</span>
+    <span class="n">SourceCodeORM</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.utils</span> <span class="kn">import</span> <span class="n">OVERRIDE_HELP_TEXT</span><span class="p">,</span> <span class="n">resolve_db_url</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.db_exceptions</span> <span class="kn">import</span> <span class="n">ArtifactSaveException</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.user_exception</span> <span class="kn">import</span> <span class="n">UserException</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.analytics.event_schemas</span> <span class="kn">import</span> <span class="n">ExceptionEvent</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.analytics.usage_tracking</span> <span class="kn">import</span> <span class="n">track</span>  <span class="c1"># circular dep issues</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.constants</span> <span class="kn">import</span> <span class="n">DB_SQLITE_PREFIX</span><span class="p">,</span> <span class="n">SQLALCHEMY_ECHO</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">get_literal_value_from_string</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="RelationalLineaDB"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB">[docs]</a><span class="k">class</span> <span class="nc">RelationalLineaDB</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    - Note that LineaDB coordinates with asset manager and relational db.</span>
+
+<span class="sd">      - The asset manager deals with binaries (e.g., cached values)</span>
+<span class="sd">        The relational db deals with more structured data,</span>
+<span class="sd">        such as the Nodes and edges.</span>
+<span class="sd">    - Also, at some point we might have a &quot;cache&quot; such that the readers</span>
+<span class="sd">      don&#39;t have to go to the database if it&#39;s already</span>
+<span class="sd">      loaded, but that&#39;s low priority.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a linea DB, by connecting to a database url:</span>
+<span class="sd">        https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create_engine params from</span>
+        <span class="c1"># https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">url</span>
+        <span class="n">echo</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">SQLALCHEMY_ECHO</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Connecting to Linea DB at </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">additional_args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">DB_SQLITE_PREFIX</span><span class="p">):</span>
+            <span class="n">additional_args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;check_same_thread&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="n">connect_args</span><span class="o">=</span><span class="n">additional_args</span><span class="p">,</span>
+            <span class="n">poolclass</span><span class="o">=</span><span class="n">StaticPool</span><span class="p">,</span>
+            <span class="n">echo</span><span class="o">=</span><span class="n">echo</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+        <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">renew_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">DB_SQLITE_PREFIX</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_environment</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RelationalLineaDB</span><span class="p">:</span>
+        <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Creates a new database.</span>
+
+<span class="s2">        url: </span><span class="si">{</span><span class="n">OVERRIDE_HELP_TEXT</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">resolve_db_url</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_type_of_literal_value</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LiteralType</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">LiteralType</span><span class="o">.</span><span class="n">String</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">LiteralType</span><span class="o">.</span><span class="n">Boolean</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">LiteralType</span><span class="o">.</span><span class="n">Integer</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">LiteralType</span><span class="o">.</span><span class="n">Float</span>
+        <span class="k">elif</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LiteralType</span><span class="o">.</span><span class="n">NoneType</span>
+        <span class="k">elif</span> <span class="n">val</span> <span class="ow">is</span> <span class="o">...</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LiteralType</span><span class="o">.</span><span class="n">Ellipsis</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Literal </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2"> is of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">SessionContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+
+        <span class="n">context_orm</span> <span class="o">=</span> <span class="n">SessionContextORM</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">context_orm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">DB_SQLITE_PREFIX</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renew_session</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RelationalLineaDB.commit"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        End the transaction and commit the changes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">ArtifactSaveException</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">e</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.close"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Close the database connection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Always close, even if error is raised</span>
+        <span class="c1"># https://docs.sqlalchemy.org/en/14/orm/session_api.html#sqlalchemy.orm.sessionmaker</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.write_source_code"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.write_source_code">[docs]</a>    <span class="k">def</span> <span class="nf">write_source_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_code</span><span class="p">:</span> <span class="n">SourceCode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes a source code object to the database.</span>
+
+<span class="sd">        It first has to convert it to a SourceCodeORM object, which has the fields</span>
+<span class="sd">        inlined instead of a union</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">source_code_orm</span> <span class="o">=</span> <span class="n">SourceCodeORM</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">source_code</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">source_code</span><span class="o">.</span><span class="n">code</span>
+        <span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">source_code</span><span class="o">.</span><span class="n">location</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+            <span class="n">source_code_orm</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+            <span class="n">source_code_orm</span><span class="o">.</span><span class="n">jupyter_execution_count</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_code_orm</span><span class="o">.</span><span class="n">jupyter_session_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source_code_orm</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_code_orm</span><span class="o">.</span><span class="n">jupyter_execution_count</span> <span class="o">=</span> <span class="n">location</span><span class="o">.</span><span class="n">execution_count</span>
+            <span class="n">source_code_orm</span><span class="o">.</span><span class="n">jupyter_session_id</span> <span class="o">=</span> <span class="n">location</span><span class="o">.</span><span class="n">session_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">source_code_orm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renew_session</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">write_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;session_id&quot;</span><span class="p">,</span> <span class="s2">&quot;node_type&quot;</span><span class="p">})</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">source_location</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;lineno&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">lineno</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;col_offset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">col_offset</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;end_lineno&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">end_lineno</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;end_col_offset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">end_col_offset</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;source_code_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="n">node_orm</span><span class="p">:</span> <span class="n">NodeORM</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">CallNode</span><span class="p">):</span>
+            <span class="n">node_orm</span> <span class="o">=</span> <span class="n">CallNodeORM</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+                <span class="n">function_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">function_id</span><span class="p">,</span>
+                <span class="n">positional_args</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">PositionalArgORM</span><span class="p">(</span>
+                        <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">starred</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">starred</span><span class="p">,</span> <span class="n">arg_node_id</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">id</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">)</span>
+                <span class="p">},</span>
+                <span class="n">keyword_args</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">KeywordArgORM</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">arg_node_id</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">starred</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">starred</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keyword_args</span>
+                <span class="p">},</span>
+                <span class="n">global_reads</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">GlobalReferenceORM</span><span class="p">(</span>
+                        <span class="n">call_node_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                        <span class="n">variable_name</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                        <span class="n">variable_node_id</span><span class="o">=</span><span class="n">id_</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">global_reads</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">},</span>
+                <span class="n">implicit_dependencies</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">ImplicitDependencyORM</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">arg_node_id</span><span class="o">=</span><span class="n">id_</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">id_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">implicit_dependencies</span><span class="p">)</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ImportNode</span><span class="p">):</span>
+            <span class="n">node_orm</span> <span class="o">=</span> <span class="n">ImportNodeORM</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">package_name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">package_name</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">LiteralNode</span><span class="p">):</span>
+            <span class="c1"># The value_type is not currently used anywhere</span>
+            <span class="c1"># Was used before for rendering to a web UI.</span>
+            <span class="c1"># Keeping it for now for anticipation of platform work.</span>
+            <span class="n">node_orm</span> <span class="o">=</span> <span class="n">LiteralNodeORM</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+                <span class="n">value_type</span><span class="o">=</span><span class="n">RelationalLineaDB</span><span class="o">.</span><span class="n">get_type_of_literal_value</span><span class="p">(</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">value</span>
+                <span class="p">),</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">MutateNode</span><span class="p">):</span>
+            <span class="n">node_orm</span> <span class="o">=</span> <span class="n">MutateNodeORM</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+                <span class="n">call_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">,</span>
+                <span class="n">source_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">source_id</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">GlobalNode</span><span class="p">):</span>
+            <span class="n">node_orm</span> <span class="o">=</span> <span class="n">GlobalNodeORM</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span> <span class="n">call_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">node_orm</span> <span class="o">=</span> <span class="n">LookupNodeORM</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node_orm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renew_session</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">write_node_value</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node_value</span><span class="p">:</span> <span class="n">NodeValue</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">NodeValueORM</span><span class="p">(</span><span class="o">**</span><span class="n">node_value</span><span class="o">.</span><span class="n">dict</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renew_session</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">write_artifact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">artifact</span><span class="p">:</span> <span class="n">Artifact</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">artifact_orm</span> <span class="o">=</span> <span class="n">ArtifactORM</span><span class="p">(</span>
+            <span class="n">node_id</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">execution_id</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">execution_id</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">date_created</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">date_created</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">artifact_orm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renew_session</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RelationalLineaDB.artifact_in_db"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.artifact_in_db">[docs]</a>    <span class="k">def</span> <span class="nf">artifact_in_db</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the artifact is already in the DB.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">and_</span><span class="p">(</span>
+                    <span class="n">ArtifactORM</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="n">node_id</span><span class="p">,</span>
+                    <span class="n">ArtifactORM</span><span class="o">.</span><span class="n">execution_id</span> <span class="o">==</span> <span class="n">execution_id</span><span class="p">,</span>
+                    <span class="n">ArtifactORM</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">,</span>
+                    <span class="n">ArtifactORM</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="n">version</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">write_execution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">execution</span><span class="p">:</span> <span class="n">Execution</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">execution_orm</span> <span class="o">=</span> <span class="n">ExecutionORM</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">execution</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">execution</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">execution_orm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">DB_SQLITE_PREFIX</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renew_session</span><span class="p">()</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Readers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">map_orm_to_pydantic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">NodeORM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="n">args</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">&quot;session_id&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span>
+            <span class="s2">&quot;node_type&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">node_type</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">source_code</span><span class="p">:</span>
+            <span class="n">source_code</span> <span class="o">=</span> <span class="n">SourceCode</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">source_code_id</span><span class="p">,</span>
+                <span class="n">code</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+                <span class="n">location</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">path</span>
+                    <span class="k">else</span> <span class="n">JupyterCell</span><span class="p">(</span>
+                        <span class="n">execution_count</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">jupyter_execution_count</span><span class="p">,</span>
+                        <span class="n">session_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">source_code</span><span class="o">.</span><span class="n">jupyter_session_id</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;source_location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SourceLocation</span><span class="p">(</span>
+                <span class="n">lineno</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span>
+                <span class="n">col_offset</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">col_offset</span><span class="p">,</span>
+                <span class="n">end_lineno</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">end_lineno</span><span class="p">,</span>
+                <span class="n">end_col_offset</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">end_col_offset</span><span class="p">,</span>
+                <span class="n">source_code</span><span class="o">=</span><span class="n">source_code</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="c1"># cast string serialized values to their appropriate types</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">LiteralNodeORM</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">LiteralNode</span><span class="p">(</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">get_literal_value_from_string</span><span class="p">(</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">value_type</span>
+                <span class="p">),</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ImportNodeORM</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ImportNode</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">package_name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">package_name</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">CallNodeORM</span><span class="p">):</span>
+            <span class="n">positional_args</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">v</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="c1"># Not sure why we need cast here, index field isn&#39;t optional</span>
+                        <span class="c1"># but mypy thinks it is</span>
+                        <span class="p">(</span>
+                            <span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                            <span class="n">PositionalArgument</span><span class="p">(</span>
+                                <span class="nb">id</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">arg_node_id</span><span class="p">,</span> <span class="n">starred</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">starred</span>
+                            <span class="p">),</span>
+                        <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">positional_args</span>
+                    <span class="p">),</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">keyword_args</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">KeywordArgument</span><span class="p">(</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">arg_node_id</span><span class="p">,</span> <span class="n">starred</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">starred</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keyword_args</span>
+            <span class="p">]</span>
+            <span class="n">global_reads</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">gr</span><span class="o">.</span><span class="n">variable_name</span><span class="p">:</span> <span class="n">gr</span><span class="o">.</span><span class="n">variable_node_id</span>
+                <span class="k">for</span> <span class="n">gr</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">global_reads</span>
+            <span class="p">}</span>
+            <span class="n">implicit_dependencies</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">arg_node_id</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">implicit_dependencies</span>
+            <span class="p">]</span>
+            <span class="k">return</span> <span class="n">CallNode</span><span class="p">(</span>
+                <span class="n">function_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">function_id</span><span class="p">,</span>
+                <span class="n">positional_args</span><span class="o">=</span><span class="n">positional_args</span><span class="p">,</span>
+                <span class="n">keyword_args</span><span class="o">=</span><span class="n">keyword_args</span><span class="p">,</span>
+                <span class="n">global_reads</span><span class="o">=</span><span class="n">global_reads</span><span class="p">,</span>
+                <span class="n">implicit_dependencies</span><span class="o">=</span><span class="n">implicit_dependencies</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">MutateNodeORM</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">MutateNode</span><span class="p">(</span>
+                <span class="n">call_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">,</span>
+                <span class="n">source_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">source_id</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">GlobalNodeORM</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">GlobalNode</span><span class="p">(</span>
+                <span class="n">call_id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">call_id</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">args</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">LookupNode</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_node_by_id"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_node_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linea_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the node by looking up the database by ID</span>
+<span class="sd">        SQLAlchemy is able to translate between the two types on demand</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">linea_id</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">one</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_orm_to_pydantic</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">get_session_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linea_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SessionContext</span><span class="p">:</span>
+        <span class="n">query_obj</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SessionContextORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SessionContextORM</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">linea_id</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">one</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">SessionContext</span><span class="o">.</span><span class="n">from_orm</span><span class="p">(</span><span class="n">query_obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">get_node_value_from_db</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NodeValueORM</span><span class="p">]:</span>
+        <span class="n">value_orm</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">NodeValueORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">and_</span><span class="p">(</span>
+                    <span class="n">NodeValueORM</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="n">node_id</span><span class="p">,</span>
+                    <span class="n">NodeValueORM</span><span class="o">.</span><span class="n">execution_id</span> <span class="o">==</span> <span class="n">execution_id</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">value_orm</span>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_node_value_path"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_node_value_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_value_path</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the path to the value of the artifact.</span>
+<span class="sd">        :param other: Additional argument to let you query another artifact&#39;s value path.</span>
+<span class="sd">                      This is set to be optional and if its not set, we will use the current artifact</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_value_from_db</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="n">execution_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No value saved for this node&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.node_value_in_db"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.node_value_in_db">[docs]</a>    <span class="k">def</span> <span class="nf">node_value_in_db</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">,</span> <span class="n">execution_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the node value is already in the DB.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">NodeValueORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">and_</span><span class="p">(</span>
+                    <span class="n">NodeValueORM</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="n">node_id</span><span class="p">,</span>
+                    <span class="n">NodeValueORM</span><span class="o">.</span><span class="n">execution_id</span> <span class="o">==</span> <span class="n">execution_id</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_libraries_for_session"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_libraries_for_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_libraries_for_session</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ImportNodeORM</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets all dependencies for a session, assuming all the libs in a</span>
+<span class="sd">        particular session will be required to set up a new env.</span>
+
+<span class="sd">        TODO: I think this distinct is still broken, because we want to</span>
+<span class="sd">        make it distinct on a subset of columns: session_id, name, and version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ImportNodeORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">and_</span><span class="p">(</span>
+                    <span class="n">ImportNodeORM</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">,</span>
+                    <span class="n">ImportNodeORM</span><span class="o">.</span><span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="n">ImportNodeORM</span><span class="o">.</span><span class="n">package_name</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_artifacts_for_session"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_artifacts_for_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_artifacts_for_session</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ArtifactORM</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a code slice for an artifact by name, assuming there is only</span>
+<span class="sd">        one artifact with that name,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">)</span>
+            <span class="c1"># Don&#39;t include source code in query, since it&#39;s not needed</span>
+            <span class="o">.</span><span class="n">options</span><span class="p">(</span>
+                <span class="n">defaultload</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="o">.</span><span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="n">raiseload</span><span class="p">(</span>
+                    <span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">source_code</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_artifact_by_name"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_artifact_by_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_artifact_by_name</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">artifact_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArtifactORM</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the most recent artifact with a certain name.</span>
+<span class="sd">        If a version is not specified, it will return the most recent</span>
+<span class="sd">        version sorted by date_created</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">ArtifactORM</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">artifact_name</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">version</span><span class="p">:</span>
+            <span class="n">res_query</span> <span class="o">=</span> <span class="n">res_query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="n">version</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res_query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Artifact </span><span class="si">{</span><span class="n">artifact_name</span><span class="si">}</span><span class="s2"> (version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="k">if</span> <span class="n">version</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Artifact </span><span class="si">{</span><span class="n">artifact_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">track</span><span class="p">(</span><span class="n">ExceptionEvent</span><span class="p">(</span><span class="s2">&quot;UserException&quot;</span><span class="p">,</span> <span class="s2">&quot;Artifact not found&quot;</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">UserException</span><span class="p">(</span>
+                <span class="ne">NameError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts.&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_latest_artifact_version"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_latest_artifact_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_artifact_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">artifact_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the latest version number of an artifact.</span>
+<span class="sd">        If the artifact does not exist, it will return -1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">artifact_name</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>
+            <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">res</span><span class="o">.</span><span class="n">version</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_all_artifacts"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_all_artifacts">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_artifacts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ArtifactORM</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Used by the catalog to get all the artifacts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ArtifactORM</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="RelationalLineaDB.get_nodes_for_session"><a class="viewcode-back" href="../../../autogen/lineapy.db.html#lineapy.db.db.RelationalLineaDB.get_nodes_for_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_nodes_for_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all the nodes associated with the session, which does</span>
+<span class="sd">         NOT include things like SessionContext</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node_orms</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">map_orm_to_pydantic</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_orms</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">get_source_code_for_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="n">LineaID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_session_context</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span><span class="o">.</span><span class="n">environment_type</span><span class="o">.</span><span class="n">name</span>
+            <span class="o">==</span> <span class="s2">&quot;JUPYTER&quot;</span>
+        <span class="p">):</span>
+            <span class="n">jupyter_source_code_orms</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SourceCodeORM</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SourceCodeORM</span><span class="o">.</span><span class="n">jupyter_session_id</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">SourceCodeORM</span><span class="o">.</span><span class="n">jupyter_execution_count</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">source_code</span><span class="o">.</span><span class="n">code</span> <span class="k">for</span> <span class="n">source_code</span> <span class="ow">in</span> <span class="n">jupyter_source_code_orms</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">script_source_code_orms</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SourceCodeORM</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">BaseNodeORM</span><span class="p">,</span> <span class="n">SourceCodeORM</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">source_code_id</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">script_source_code_orms</span><span class="o">.</span><span class="n">code</span>
+                <span class="k">if</span> <span class="n">script_source_code_orms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+            <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.visualizer package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="lineapy.utils.analytics package" href="lineapy.utils.analytics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.visualizer package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.visualizer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-visualizer-package">
+<h1>lineapy.visualizer package<a class="headerlink" href="#lineapy-visualizer-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.visualizer.graphviz">
+<span id="lineapy-visualizer-graphviz-module"></span><h2>lineapy.visualizer.graphviz module<a class="headerlink" href="#module-lineapy.visualizer.graphviz" title="Permalink to this heading"></a></h2>
+<p>Functionality to display the tracer as a visual graph.</p>
+<p>It first convert it to a graph, using <cite>visual_graph.py</cite>, and then renders
+that with graphviz.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.graphviz.add_legend">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.graphviz.</span></span><span class="sig-name descname"><span class="pre">add_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Digraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="lineapy.visualizer.visual_graph.VisualGraphOptions"><span class="pre">VisualGraphOptions</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/graphviz.html#add_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.graphviz.add_legend" title="Permalink to this definition"></a></dt>
+<dd><p>Add a legend with nodes and edge styles.</p>
+<p>Creates one node for each node style and one edge for each edge style.</p>
+<p>It was difficult to get it to appear in a way that didn’t disrupt the  main
+graph. It was easiest to get it to be a vertically aligned column of nodes,
+on the left of the graph. To do this, I link all the nodes with invisible
+edges so they stay vertically aligned.</p>
+<p><a class="reference external" href="https://stackoverflow.com/a/52300532/907060">https://stackoverflow.com/a/52300532/907060</a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.graphviz.edge_labels">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.graphviz.</span></span><span class="sig-name descname"><span class="pre">edge_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="lineapy.visualizer.visual_graph.VisualGraphOptions"><span class="pre">VisualGraphOptions</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualEdgeType" title="lineapy.visualizer.visual_graph.VisualEdgeType"><span class="pre">VisualEdgeType</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/graphviz.html#edge_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.graphviz.edge_labels" title="Permalink to this definition"></a></dt>
+<dd><p>Labels for the edge types to use in the legend,</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.graphviz.extra_label_labels">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.graphviz.</span></span><span class="sig-name descname"><span class="pre">extra_label_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="lineapy.visualizer.visual_graph.VisualGraphOptions"><span class="pre">VisualGraphOptions</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.visualizer.visual_graph.ExtraLabelType" title="lineapy.visualizer.visual_graph.ExtraLabelType"><span class="pre">ExtraLabelType</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/graphviz.html#extra_label_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.graphviz.extra_label_labels" title="Permalink to this definition"></a></dt>
+<dd><p>Labels for the extra label, to use in the legend,</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.graphviz.extra_labels_to_html">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.graphviz.</span></span><span class="sig-name descname"><span class="pre">extra_labels_to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extra_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.visualizer.visual_graph.ExtraLabel" title="lineapy.visualizer.visual_graph.ExtraLabel"><span class="pre">ExtraLabel</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/graphviz.html#extra_labels_to_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.graphviz.extra_labels_to_html" title="Permalink to this definition"></a></dt>
+<dd><p>Convert extra labels into an HTML table, where each label is a row.
+A single node could have multiple variables and artifacts pointing at it.
+So we make a table with a row for each artifact. Why a table? Well we are putting
+it in the xlabel and a table was an easy way to have multiple rows with different colors.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.graphviz.get_color">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.graphviz.</span></span><span class="sig-name descname"><span class="pre">get_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.NodeType" title="lineapy.data.types.NodeType"><span class="pre">NodeType</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.visualizer.visual_graph.ExtraLabelType" title="lineapy.visualizer.visual_graph.ExtraLabelType"><span class="pre">ExtraLabelType</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualEdgeType" title="lineapy.visualizer.visual_graph.VisualEdgeType"><span class="pre">VisualEdgeType</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/graphviz.html#get_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.graphviz.get_color" title="Permalink to this definition"></a></dt>
+<dd><p>Get the color for a type. Note that graphviz colorscheme indexing
+is 1 based</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.visualizer.optimize_svg">
+<span id="lineapy-visualizer-optimize-svg-module"></span><h2>lineapy.visualizer.optimize_svg module<a class="headerlink" href="#module-lineapy.visualizer.optimize_svg" title="Permalink to this heading"></a></h2>
+<p>Optimizes an SVG file to reduce the size in the notebook.</p>
+</section>
+<section id="module-lineapy.visualizer.visual_graph">
+<span id="lineapy-visualizer-visual-graph-module"></span><h2>lineapy.visualizer.visual_graph module<a class="headerlink" href="#module-lineapy.visualizer.visual_graph" title="Permalink to this heading"></a></h2>
+<p>An abstract graph representation that is conducive to being visualized easily.</p>
+<p>We include in this graph:</p>
+<ul class="simple">
+<li><p>From the DB about this session:
+* Nodes
+* Artifacts
+* Source code</p></li>
+<li><p>From the tracer:
+* Mutation and view edges
+* Variables</p></li>
+</ul>
+<p>We currently don’t include, but could:</p>
+<ul class="simple">
+<li><p>Node values</p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.ExtraLabel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">ExtraLabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'str'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'ExtraLabelType'</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#ExtraLabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.ExtraLabel" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.ExtraLabelType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">ExtraLabelType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#ExtraLabelType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.ExtraLabelType" title="Permalink to this definition"></a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.SourceLineType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">SourceLineType</span></span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#SourceLineType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.SourceLineType" title="Permalink to this definition"></a></dt>
+<dd><p>Type used to represent a source code line</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualEdge">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">VisualEdge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'VisualEdgeID'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'VisualEdgeID'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'VisualEdgeType'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'bool'</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualEdge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualEdge" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualEdgeID">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">VisualEdgeID</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'str'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'Optional[str]'</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualEdgeID"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualEdgeID" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualEdgeType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">VisualEdgeType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualEdgeType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualEdgeType" title="Permalink to this definition"></a></dt>
+<dd><p>A visual edges includes all the possible edges in our DB types,
+as well as the edges we store temporarily to assist in tracing</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualGraph">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">VisualGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_nodes:</span> <span class="pre">~typing.List[~lineapy.visualizer.visual_graph.VisualNode]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_edges:</span> <span class="pre">~typing.List[~lineapy.visualizer.visual_graph.VisualEdge]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_node_id_to_parent_edges:</span> <span class="pre">~typing.Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.List[~lineapy.visualizer.visual_graph.VisualEdge]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_node_id_to_node:</span> <span class="pre">~typing.Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~lineapy.visualizer.visual_graph.VisualNode]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualGraph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualGraph" title="Permalink to this definition"></a></dt>
+<dd><p>A visual graph contains a number of nodes and directed edges</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualGraph.highlight_ancestors">
+<span class="sig-name descname"><span class="pre">highlight_ancestors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualGraph.highlight_ancestors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualGraph.highlight_ancestors" title="Permalink to this definition"></a></dt>
+<dd><p>Update a graph to only highlight the ancestors of a certain node.</p>
+<p>We could instead do this graph traversal with the original nodes,
+as we do when computing the program slice. However we have some graph only nodes,
+like the source code, so for now we are re-walking the graph to determine
+the slice at the visual graph level.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualGraphOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">VisualGraphOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.tracer.Tracer" title="lineapy.instrumentation.tracer.Tracer"><span class="pre">Tracer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_implied_mutations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_views</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_artifacts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualGraphOptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="Permalink to this definition"></a></dt>
+<dd><p>Class to store options for the visualizer, so that we can properly type them
+as we pass this down the stack.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.VisualNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">VisualNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'str'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'VisualNodeType'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'str'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'ExtraLabels'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'bool'</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#VisualNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.VisualNode" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.process_node">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">process_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraph" title="lineapy.visualizer.visual_graph.VisualGraph"><span class="pre">VisualGraph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="lineapy.visualizer.visual_graph.VisualGraphOptions"><span class="pre">VisualGraphOptions</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#process_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.process_node" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the contents of a node and add its edges.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.visualizer.visual_graph.to_visual_graph">
+<span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.visual_graph.</span></span><span class="sig-name descname"><span class="pre">to_visual_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="lineapy.visualizer.visual_graph.VisualGraphOptions"><span class="pre">VisualGraphOptions</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraph" title="lineapy.visualizer.visual_graph.VisualGraph"><span class="pre">VisualGraph</span></a></span></span><a class="reference internal" href="../_modules/lineapy/visualizer/visual_graph.html#to_visual_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.visual_graph.to_visual_graph" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a visual graph based on the options.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.visualizer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.visualizer" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.visualizer.Visualizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.visualizer.</span></span><span class="sig-name descname"><span class="pre">Visualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">InitVar</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.visualizer.visual_graph.VisualGraphOptions" title="lineapy.visualizer.visual_graph.VisualGraphOptions"><span class="pre">VisualGraphOptions</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/visualizer.html#Visualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.Visualizer" title="Permalink to this definition"></a></dt>
+<dd><p>Stores a rendered graphviz digraph. Has helper classmethods to use
+for construction, as well as methods for output as different useful
+formats.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.visualizer.Visualizer.for_public">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">for_public</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.tracer.Tracer" title="lineapy.instrumentation.tracer.Tracer"><span class="pre">Tracer</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.visualizer.Visualizer" title="lineapy.visualizer.Visualizer"><span class="pre">Visualizer</span></a></span></span><a class="reference internal" href="../_modules/lineapy/visualizer.html#Visualizer.for_public"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.Visualizer.for_public" title="Permalink to this definition"></a></dt>
+<dd><p>Create a graph for our public API, when showing the whole graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.visualizer.Visualizer.for_public_node">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">for_public_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.visualizer.Visualizer" title="lineapy.visualizer.Visualizer"><span class="pre">Visualizer</span></a></span></span><a class="reference internal" href="../_modules/lineapy/visualizer.html#Visualizer.for_public_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.Visualizer.for_public_node" title="Permalink to this definition"></a></dt>
+<dd><p>Create a graph for our public API, when showing a single node.</p>
+<p>Note: The tracer won’t be passed in this case, since it is happening
+inside the executor and we don’t have access to the tracer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.visualizer.Visualizer.for_test_cli">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">for_test_cli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.tracer.Tracer" title="lineapy.instrumentation.tracer.Tracer"><span class="pre">Tracer</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.visualizer.Visualizer" title="lineapy.visualizer.Visualizer"><span class="pre">Visualizer</span></a></span></span><a class="reference internal" href="../_modules/lineapy/visualizer.html#Visualizer.for_test_cli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.Visualizer.for_test_cli" title="Permalink to this definition"></a></dt>
+<dd><p>Create a graph to use when visualizing after passing in <cite>–visualize</cite>
+during testing.</p>
+<p>Show as much as we can for debugging.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.visualizer.Visualizer.for_test_snapshot">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">for_test_snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.tracer.Tracer" title="lineapy.instrumentation.tracer.Tracer"><span class="pre">Tracer</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.visualizer.Visualizer" title="lineapy.visualizer.Visualizer"><span class="pre">Visualizer</span></a></span></span><a class="reference internal" href="../_modules/lineapy/visualizer.html#Visualizer.for_test_snapshot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.Visualizer.for_test_snapshot" title="Permalink to this definition"></a></dt>
+<dd><p>Create a graph for saving as a snapshot, to help with visual diffs in PRs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.visualizer.Visualizer.render_pdf_file">
+<span class="sig-name descname"><span class="pre">render_pdf_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tracer'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/visualizer.html#Visualizer.render_pdf_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.visualizer.Visualizer.render_pdf_file" title="Permalink to this definition"></a></dt>
+<dd><p>Renders a PDF file for the graph and tries to open it.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.utils.analytics.html" class="btn btn-neutral float-left" title="lineapy.utils.analytics package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

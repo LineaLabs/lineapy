@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Refactoring Code &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Building Pipelines" href="../build_pipelines/index.html" />
+    <link rel="prev" title="API Basics" href="../../tutorials/00_api_basics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> lineapy
+            <img src="../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Refactoring Code</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/guide/refactor_code/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="refactoring-code">
+<h1>Refactoring Code<a class="headerlink" href="#refactoring-code" title="Permalink to this heading"></a></h1>
+<p>Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
+Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
+leads to long, messy code, the majority of which has no impact on the final result.</p>
+<p>Code refactoring is hence an essential step for moving data science work into production. Yet, it often becomes a major
+bottleneck as it involves manual inspection of long, messy code that sometimes does not make sense even to its own
+author. With the complete development history stored in artifacts, LineaPy enables automatic code clean-up,
+facilitating code refactoring and hence transition to production.</p>
+<p>For instance, say we are a botanical data scientist modeling the relationship between different parts of
+the iris flower, and we end up with the following development code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">lineapy</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+
+<span class="c1"># Load data</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># View data</span>
+<span class="n">df</span>
+
+<span class="c1"># Plot petal vs. sepal width</span>
+<span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;sepal.width&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Calculate correlation coefficient</span>
+<span class="n">df</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;sepal.width&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">)</span>
+
+<span class="c1"># Initiate the model</span>
+<span class="n">lm_1</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+
+<span class="c1"># Fit the model</span>
+<span class="n">lm_1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+   <span class="n">X</span><span class="o">=</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">]],</span>
+   <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;sepal.width&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># Check result</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for petal.width: </span><span class="si">{</span><span class="n">lm_1</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check species and their counts</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+
+<span class="c1"># Create dummy variables encoding species</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;d_versicolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Versicolor&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;d_virginica&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Virginica&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># View data</span>
+<span class="n">df</span>
+
+<span class="c1"># Initiate the model</span>
+<span class="n">lm_2</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+
+<span class="c1"># Fit the model</span>
+<span class="n">lm_2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+   <span class="n">X</span><span class="o">=</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;d_versicolor&quot;</span><span class="p">,</span> <span class="s2">&quot;d_virginica&quot;</span><span class="p">]],</span>
+   <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;sepal.width&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># Check result</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for petal.width: </span><span class="si">{</span><span class="n">lm_2</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for d_versicolor: </span><span class="si">{</span><span class="n">lm_2</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for d_virginica: </span><span class="si">{</span><span class="n">lm_2</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Map each species to a color</span>
+<span class="n">color_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Setosa&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;Versicolor&quot;</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;Virginica&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">}</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;variety&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">color_map</span><span class="p">)</span>
+
+<span class="c1"># Plot petal vs. sepal width by species</span>
+<span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;sepal.width&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;variety_color&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Create interaction terms for species</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;i_versicolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d_versicolor&quot;</span><span class="p">]</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;i_virginica&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d_virginica&quot;</span><span class="p">]</span>
+
+<span class="c1"># Initiate the model</span>
+<span class="n">lm_3</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+
+<span class="c1"># Fit the model</span>
+<span class="n">lm_3</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+   <span class="n">X</span><span class="o">=</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;petal.width&quot;</span><span class="p">,</span> <span class="s2">&quot;d_versicolor&quot;</span><span class="p">,</span> <span class="s2">&quot;d_virginica&quot;</span><span class="p">,</span> <span class="s2">&quot;i_versicolor&quot;</span><span class="p">,</span> <span class="s2">&quot;i_virginica&quot;</span><span class="p">]],</span>
+   <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;sepal.width&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># Check result</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for petal.width: </span><span class="si">{</span><span class="n">lm_3</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for d_versicolor: </span><span class="si">{</span><span class="n">lm_3</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for d_virginica: </span><span class="si">{</span><span class="n">lm_3</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for i_versicolor: </span><span class="si">{</span><span class="n">lm_3</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coefficient for i_virginica: </span><span class="si">{</span><span class="n">lm_3</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As shown, the code interweaves various plots, models, and print statements, reflecting dynamic nature
+of the development stage of data science work.</p>
+<p>Say we are interested in productionizing the second model (<code class="docutils literal notranslate"><span class="pre">lm_2</span></code>). Normally, this would involve manually
+sifting through the entire code to identify relevant parts only. We can cut through such manual labor with
+the help of LineaPy.</p>
+<p>First, we store the model as a LineaPy artifact:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save desired model as an artifact</span>
+<span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">lm_2</span><span class="p">,</span> <span class="s2">&quot;linear_model_v2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, we simply ask for its cleaned-up code, like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve the model artifact</span>
+<span class="n">artifact</span> <span class="o">=</span> <span class="n">lineapy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;linear_model_v2&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get cleaned-up code</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">get_code</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>And we get:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+df = pd.read_csv(
+   &quot;https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv&quot;
+)
+df[&quot;d_versicolor&quot;] = df[&quot;variety&quot;].apply(lambda x: 1 if x == &quot;Versicolor&quot; else 0)
+df[&quot;d_virginica&quot;] = df[&quot;variety&quot;].apply(lambda x: 1 if x == &quot;Virginica&quot; else 0)
+lm_2 = LinearRegression()
+lm_2.fit(
+   X=df[[&quot;petal.width&quot;, &quot;d_versicolor&quot;, &quot;d_virginica&quot;]],
+   y=df[&quot;sepal.width&quot;],
+)
+</pre></div>
+</div>
+<p>which is more concise and manageable than what we initially had — a long, messy collection of various operations.
+Note that the cleaned-up code above is a subset of the original development code. That is, LineaPy “condensed” the
+original code by removing extraneous operations that do not affect the artifact we care about, i.e., <code class="docutils literal notranslate"><span class="pre">lm_2</span></code>.</p>
+<p>In practice, development scripts/notebooks by data scientists are much longer and more complicated than this simple example.
+Hence, LineaPy’s automatic code clean-up can save considerable time for data scientists to move their work into production.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This does not mean that we lost other parts of the development code. We can still access the artifact’s
+full session code (including comments) with <code class="docutils literal notranslate"><span class="pre">artifact.get_session_code()</span></code>. This should come in handy when trying to remember
+or understand the original development context of a given artifact.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In fact, <code class="docutils literal notranslate"><span class="pre">lineapy.save()</span></code> itself returns the artifact object, so we could have simply
+executed <code class="docutils literal notranslate"><span class="pre">artifact</span> <span class="pre">=</span> <span class="pre">lineapy.save(lm_2,</span> <span class="pre">&quot;linear_model_v2&quot;)</span></code> above.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want hands-on practice,
+check out <a class="reference external" href="https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/01_refactor_code.ipynb">this</a> tutorial notebook.</p>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../tutorials/00_api_basics.html" class="btn btn-neutral float-left" title="API Basics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../build_pipelines/index.html" class="btn btn-neutral float-right" title="Building Pipelines" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

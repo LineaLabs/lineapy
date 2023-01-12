@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interfaces &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Concepts" href="concepts.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#jupyter-and-ipython">Jupyter and IPython</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hosted-jupyter-environment">Hosted Jupyter Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli">CLI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Interfaces</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/fundamentals/interfaces.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="interfaces">
+<span id="id1"></span><h1>Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this heading"></a></h1>
+<section id="jupyter-and-ipython">
+<h2>Jupyter and IPython<a class="headerlink" href="#jupyter-and-ipython" title="Permalink to this heading"></a></h2>
+<p>To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython,
+launch the environment with the <code class="docutils literal notranslate"><span class="pre">lineapy</span></code> command, like so:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ lineapy jupyter notebook
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ lineapy jupyter lab
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ lineapy ipython
+</pre></div>
+</div>
+<p>Each will automatically load the LineaPy extension in the corresponding interactive shell application.</p>
+<p>Or, if the application is already running without the extension loaded, which can happen
+when we start the Jupyter server with <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> or <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">lab</span></code> without <code class="docutils literal notranslate"><span class="pre">lineapy</span></code>,
+you can load it on the fly with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">load_ext</span> <span class="n">lineapy</span>
+</pre></div>
+</div>
+<p>executed at the top of your session. Please note:</p>
+<ul class="simple">
+<li><p>You will need to run this as the first command in a given session; executing it in the middle of a session will lead to erroneous behaviors by LineaPy.</p></li>
+<li><p>This loads the extension to the current session only, i.e., it does not carry over to different sessions; you will need to repeat it for each new session.</p></li>
+</ul>
+</section>
+<section id="hosted-jupyter-environment">
+<h2>Hosted Jupyter Environment<a class="headerlink" href="#hosted-jupyter-environment" title="Permalink to this heading"></a></h2>
+<p>In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle or other environments
+that you do not start your notebook from CLI (such as Jupyter extension within VS Code), you need to
+install <code class="docutils literal notranslate"><span class="pre">lineapy</span></code> directly within your notebook first via:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>!pip install lineapy
+</pre></div>
+</div>
+<p>Then you can manually load <code class="docutils literal notranslate"><span class="pre">lineapy</span></code> extension with :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">load_ext</span> <span class="n">lineapy</span>
+</pre></div>
+</div>
+<p>For environments with older versions <code class="docutils literal notranslate"><span class="pre">IPython&lt;7.0</span></code> like Google Colab, we need to upgrade the <code class="docutils literal notranslate"><span class="pre">IPython&gt;=7.0</span></code> module before the above steps, we can upgrade <code class="docutils literal notranslate"><span class="pre">IPython</span></code> via:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>!pip install --upgrade ipython
+</pre></div>
+</div>
+<p>and restart the notebook runtime:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Finally, we can start setting up LineaPy as described previously.</p>
+</section>
+<section id="cli">
+<h2>CLI<a class="headerlink" href="#cli" title="Permalink to this heading"></a></h2>
+<p>We can also use LineaPy as a CLI command. Run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ lineapy python --help
+</pre></div>
+</div>
+<p>to see available options.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="concepts.html" class="btn btn-neutral float-right" title="Concepts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

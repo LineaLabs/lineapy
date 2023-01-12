@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LineaPy 101 &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Installation" href="setup.html" />
+    <link rel="prev" title="Welcome to LineaPy!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LineaPy 101</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-lineapy">What is LineaPy?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-use-lineapy">Why Use LineaPy?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-case-1-cleaning-messy-notebooks">Use Case 1: Cleaning Messy Notebooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-case-2-revisiting-previous-work">Use Case 2: Revisiting Previous Work</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-case-3-building-pipelines">Use Case 3: Building Pipelines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>LineaPy 101</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/fundamentals/intro.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-101">
+<span id="intro"></span><h1>LineaPy 101<a class="headerlink" href="#lineapy-101" title="Permalink to this heading"></a></h1>
+<section id="what-is-lineapy">
+<h2>What is LineaPy?<a class="headerlink" href="#what-is-lineapy" title="Permalink to this heading"></a></h2>
+<p>LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
+At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
+of the code and its context. This understanding allows LineaPy to provide a set of tools that help
+data scientists bring their work to production more quickly and easily, with just <em>two lines</em> of code.</p>
+</section>
+<section id="why-use-lineapy">
+<h2>Why Use LineaPy?<a class="headerlink" href="#why-use-lineapy" title="Permalink to this heading"></a></h2>
+<p>Going from data science development to production is full of friction. The engineering process to make messy development code production-ready is manual and
+time-consuming. LineaPy creates a frictionless path for taking your data science work from development to production with just <strong>two lines</strong> of code.</p>
+<section id="use-case-1-cleaning-messy-notebooks">
+<h3>Use Case 1: Cleaning Messy Notebooks<a class="headerlink" href="#use-case-1-cleaning-messy-notebooks" title="Permalink to this heading"></a></h3>
+<p>When working in a Jupyter notebook day-to-day, it is easy to write messy code by
+jumping around between cells, deleting cells, editing cells, and executing the same cell multiple times
+&amp;mdash; until we think we have some good results (e.g., tables, models, charts).
+With this highly dynamic and interactive nature of notebook use, some issues may arise. For instance,
+our colleagues who try to rerun the notebook may not be able to reproduce our results. Worse, with time passing,
+we ourselves may have forgotten the exact steps to produce the previous results, hence unable to help our
+colleagues.</p>
+<p>One way to deal with this problem is to keep the notebook in sequential operations by constantly re-executing
+the entire notebook during development. However, we soon realize that this interrupts our natural workflows and stream of
+thoughts, decreasing our productivity. Therefore, it is much more common to clean up the notebook after development. This is a very time-consuming process and is not immune from reproducibility issues caused by deleting cells and out-of-order cell executions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To see how LineaPy can help here, check out <a class="reference external" href="https://github.com/LineaLabs/demos/blob/main/story/clean_up_a_messy_notebook/clean_up_a_messy_notebook.ipynb">this</a> demo.</p>
+</div>
+</section>
+<section id="use-case-2-revisiting-previous-work">
+<h3>Use Case 2: Revisiting Previous Work<a class="headerlink" href="#use-case-2-revisiting-previous-work" title="Permalink to this heading"></a></h3>
+<p>Data science is often a team effort where one person’s work uses results from another’s. For instance,
+a data scientist building a model may use various features engineered by other colleagues.
+In using results generated by other people, we may encounter issues such as missing values, numbers that
+look suspicious, and unintelligible variable names. If so, we may need to check how
+these results came into being in the first place. Often, this means tracing back the code that was used
+to generate the result in question (e.g., feature table). In practice, this can become a challenging task
+because it may not be clear who produced the result. Even if we knew who to ask, the person might not remember
+where the exact version of the code is. Worse, the person may have overwritten the code without version control.
+Or, the person may no longer be in the organization with no proper handover of the relevant knowledge.
+In any of these cases, it becomes extremely difficult to identify the root of the issue, which may render the result
+unreliable and even unusable.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To see how LineaPy can help here, check out <a class="reference external" href="https://github.com/LineaLabs/demos/blob/main/story/discover_and_trace_past_work/discover_and_trace_past_work.ipynb">this</a> demo.</p>
+</div>
+</section>
+<section id="use-case-3-building-pipelines">
+<h3>Use Case 3: Building Pipelines<a class="headerlink" href="#use-case-3-building-pipelines" title="Permalink to this heading"></a></h3>
+<p>As our notebooks become more mature, they may get used like pipelines. For instance, our notebook might process the
+latest data to update dashboards. Or, it may pre-process data and dump it to the filesystem for downstream model development.
+Since other people rely on up-to-date results from our work, we might be expected to re-execute these processes on a regular basis.
+Running a notebook is a manual, brittle process prone to errors, so we may want to set up proper pipelines for production.
+Relevant engineering support may not be available, so we may need to clean up and refactor the notebook code so it can be used in
+orchestration systems or job schedulers (e.g., cron, Apache Airflow, Prefect). Of course, this is assuming that we already know
+what they are and how to work with them. If not, we need to spend time learning about them in the first place.
+All this operational work involves time-consuming, manual labor, which means less time for us to spend on our core duties as a data scientist.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To see how LineaPy can help here, check out <a class="reference external" href="https://github.com/LineaLabs/demos/blob/main/story/create_a_simple_pipeline/create_a_simple_pipeline.ipynb">this</a> demo.</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to LineaPy!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="setup.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributor Guide" href="../references/development.html" />
+    <link rel="prev" title="PostgreSQL" href="../guide/manage_artifacts/database/postgres.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#why-do-i-get-an-error-for-database-lock">Why do I get an error for database lock?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-do-i-get-no-context-set-error">Why do I get “No context set” error?</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>FAQ</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/support/faq.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="faq">
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this heading"></a></h1>
+<section id="why-do-i-get-an-error-for-database-lock">
+<h2>Why do I get an error for database lock?<a class="headerlink" href="#why-do-i-get-an-error-for-database-lock" title="Permalink to this heading"></a></h2>
+<p>By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
+However, SQLite has several limitations, one of which is that it does not support multiple concurrent
+writes to a database (it will result in a database lock). Such concurrent writes to a database can happen,
+for instance, when multiple scripts or notebook sessions are running at the same time.
+If your SQLite is locked, you can unlock it by terminating the exact process locking the file. Specifically,
+navigate to your home directory and run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ fuser .lineapy/db.sqlite
+</pre></div>
+</div>
+<p>which will list process ID(s) connecting to the database, like so:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.lineapy/db.sqlite: 78638
+</pre></div>
+</div>
+<p>You can then terminate the troublesome process(es) with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">kill</span> <span class="m">78638</span>
+</pre></div>
+</div>
+<p>which will unlock the database.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Be cautious about terminating a process as it may result in loss of ongoing work. For instance, if your notebook
+involved heavy computation and the database got locked while storing the result as an artifact, you may consider
+storing it in a different form (e.g., a Parquet file) before terminating the notebook’s process.</p>
+</div>
+<p>If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
+for which relevant instructions can be found <a class="reference internal" href="../guide/manage_artifacts/database/postgres.html#postgres"><span class="std std-ref">here</span></a>.</p>
+</section>
+<hr class="docutils" />
+<section id="why-do-i-get-no-context-set-error">
+<h2>Why do I get “No context set” error?<a class="headerlink" href="#why-do-i-get-no-context-set-error" title="Permalink to this heading"></a></h2>
+<p>When trying to use LineaPy, you may run into <code class="docutils literal notranslate"><span class="pre">RuntimeError:</span> <span class="pre">No</span> <span class="pre">context</span> <span class="pre">set</span></code> error, such as the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>---------------------------------------------------------------------------
+RuntimeError                              Traceback (most recent call last)
+/tmp/ipykernel_101389/3008679649.py in &lt;module&gt;
+    8     y = pd.read_sql(&quot;select * from test&quot;, conn)
+    9
+---&gt; 10 art = lineapy.save(y, &quot;y&quot;)
+    11 print(art.code)
+
+~/linea-dev/lineapy/lineapy/api/api.py in save(reference, name)
+    40         information we have stored about the artifact (value, version), and other automation capabilities, such as `to_airflow`.
+    41     &quot;&quot;&quot;
+---&gt; 42     execution_context = get_context()
+    43     executor = execution_context.executor
+    44     db = executor.db
+
+~/linea-dev/lineapy/lineapy/execution/context.py in get_context()
+    87 def get_context() -&gt; ExecutionContext:
+    88     if not _current_context:
+---&gt; 89         raise RuntimeError(&quot;No context set&quot;)
+    90
+    91     return _current_context
+
+RuntimeError: No context set
+</pre></div>
+</div>
+<p>This could be because you are running vanilla Jupyter, e.g., launching Jupyter server with <code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">jupyter</span> <span class="pre">notebook</span></code>.
+Instead, you should launch with <code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">lineapy</span> <span class="pre">jupyter</span> <span class="pre">notebook</span></code> (or <code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">lineapy</span> <span class="pre">jupyter</span> <span class="pre">lab</span></code> if you are using Jupyter Lab),
+which automatically loads the LineaPy extension in the interactive shell application.</p>
+<p>Similarly, for Python CLI, you should run <code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">lineapy</span> <span class="pre">python</span> <span class="pre">your_file.py</span></code> rather than <code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">python</span> <span class="pre">your_file.py</span></code>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../guide/manage_artifacts/database/postgres.html" class="btn btn-neutral float-left" title="PostgreSQL" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../references/development.html" class="btn btn-neutral float-right" title="Contributor Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

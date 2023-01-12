@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.api.api &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> lineapy
+            <img src="../../../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references/api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>lineapy.api.api</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lineapy.api.api</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">User facing APIs.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">lineapy.data.types</span> <span class="kn">import</span> <span class="n">Artifact</span><span class="p">,</span> <span class="n">NodeValue</span><span class="p">,</span> <span class="n">PipelineType</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.relational</span> <span class="kn">import</span> <span class="n">SessionContextORM</span>
+<span class="kn">from</span> <span class="nn">lineapy.db.utils</span> <span class="kn">import</span> <span class="n">FILE_PICKLER_BASEDIR</span><span class="p">,</span> <span class="n">FilePickler</span>
+<span class="kn">from</span> <span class="nn">lineapy.exceptions.db_exceptions</span> <span class="kn">import</span> <span class="n">ArtifactSaveException</span>
+<span class="kn">from</span> <span class="nn">lineapy.execution.context</span> <span class="kn">import</span> <span class="n">get_context</span>
+<span class="kn">from</span> <span class="nn">lineapy.graph_reader.apis</span> <span class="kn">import</span> <span class="n">LineaArtifact</span><span class="p">,</span> <span class="n">LineaCatalog</span>
+<span class="kn">from</span> <span class="nn">lineapy.instrumentation.annotation_spec</span> <span class="kn">import</span> <span class="n">ExternalState</span>
+<span class="kn">from</span> <span class="nn">lineapy.plugins.airflow</span> <span class="kn">import</span> <span class="n">AirflowDagConfig</span><span class="p">,</span> <span class="n">AirflowPlugin</span>
+<span class="kn">from</span> <span class="nn">lineapy.plugins.script</span> <span class="kn">import</span> <span class="n">ScriptPlugin</span>
+<span class="kn">from</span> <span class="nn">lineapy.plugins.task</span> <span class="kn">import</span> <span class="n">TaskGraphEdge</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.analytics</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CatalogEvent</span><span class="p">,</span>
+    <span class="n">ExceptionEvent</span><span class="p">,</span>
+    <span class="n">GetEvent</span><span class="p">,</span>
+    <span class="n">SaveEvent</span><span class="p">,</span>
+    <span class="n">ToPipelineEvent</span><span class="p">,</span>
+    <span class="n">side_effect_to_str</span><span class="p">,</span>
+    <span class="n">track</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.config</span> <span class="kn">import</span> <span class="n">linea_folder</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.logging_config</span> <span class="kn">import</span> <span class="n">configure_logging</span>
+<span class="kn">from</span> <span class="nn">lineapy.utils.utils</span> <span class="kn">import</span> <span class="n">get_value_type</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="c1"># TODO: figure out if we need to configure it all the time</span>
+<span class="n">configure_logging</span><span class="p">()</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dev notes: We should keep these external APIs as small as possible, and unless</span>
+<span class="sd">there is a very compelling use case, not support more than</span>
+<span class="sd">one way to access the same feature.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="save"><a class="viewcode-back" href="../../../autogen/lineapy.api.html#lineapy.save">[docs]</a><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">reference</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LineaArtifact</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Publishes the object to the Linea DB.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reference: Union[object, ExternalState]</span>
+<span class="sd">        The reference could be a variable name, in which case Linea will save</span>
+<span class="sd">        the value of the variable, with out default serialization mechanism.</span>
+<span class="sd">        Alternatively, it could be a &quot;side effect&quot; reference, which currently includes either :class:`lineapy.file_system` or :class:`lineapy.db`.</span>
+<span class="sd">        Linea will save the associated process that creates the final side effects.</span>
+<span class="sd">        We are in the process of adding more side effect references, including `assert` statements.</span>
+<span class="sd">    name: str</span>
+<span class="sd">        The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LineaArtifact</span>
+<span class="sd">        returned value offers methods to access</span>
+<span class="sd">        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_pipeline`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">execution_context</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">executor</span> <span class="o">=</span> <span class="n">execution_context</span><span class="o">.</span><span class="n">executor</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">db</span>
+    <span class="n">call_node</span> <span class="o">=</span> <span class="n">execution_context</span><span class="o">.</span><span class="n">node</span>
+
+    <span class="c1"># If this value is stored as a global in the executor (meaning its an external side effect)</span>
+    <span class="c1"># then look it up from there, instead of using this node.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">ExternalState</span><span class="p">):</span>
+        <span class="n">value_node_id</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">lookup_external_state</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No change to the </span><span class="si">{</span><span class="n">reference</span><span class="o">.</span><span class="n">external_state</span><span class="si">}</span><span class="s2"> was recorded. If it was in fact changed, please open a Github issue.&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value_node_id</span><span class="p">:</span>
+            <span class="n">track</span><span class="p">(</span><span class="n">ExceptionEvent</span><span class="p">(</span><span class="s2">&quot;SaveAPI&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Lookup the first arguments id, which is the id for the value, and</span>
+        <span class="c1"># save that as the artifact</span>
+        <span class="n">value_node_id</span> <span class="o">=</span> <span class="n">call_node</span><span class="o">.</span><span class="n">positional_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+
+    <span class="n">execution_id</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">id</span>
+    <span class="n">timing</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">get_execution_time</span><span class="p">(</span><span class="n">value_node_id</span><span class="p">)</span>
+
+    <span class="c1"># serialize value to db if we haven&#39;t before</span>
+    <span class="c1"># (happens with multiple artifacts pointing to the same value)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">db</span><span class="o">.</span><span class="n">node_value_in_db</span><span class="p">(</span>
+        <span class="n">node_id</span><span class="o">=</span><span class="n">value_node_id</span><span class="p">,</span> <span class="n">execution_id</span><span class="o">=</span><span class="n">execution_id</span>
+    <span class="p">):</span>
+        <span class="c1"># can raise ArtifactSaveException</span>
+        <span class="n">pickled_path</span> <span class="o">=</span> <span class="n">_try_write_to_db</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">write_node_value</span><span class="p">(</span>
+            <span class="n">NodeValue</span><span class="p">(</span>
+                <span class="n">node_id</span><span class="o">=</span><span class="n">value_node_id</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">pickled_path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()),</span>
+                <span class="n">execution_id</span><span class="o">=</span><span class="n">execution_id</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">timing</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">end_time</span><span class="o">=</span><span class="n">timing</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">value_type</span><span class="o">=</span><span class="n">get_value_type</span><span class="p">(</span><span class="n">reference</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># we have to commit eagerly because if we just add it</span>
+        <span class="c1">#   to the queue, the `res` value may have mutated</span>
+        <span class="c1">#   and that&#39;s incorrect.</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c1"># artifact_version = 0 if artifact exists else bump one version</span>
+    <span class="n">date_created</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+    <span class="n">artifact_version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_latest_artifact_version</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">artifact_to_write</span> <span class="o">=</span> <span class="n">Artifact</span><span class="p">(</span>
+        <span class="n">node_id</span><span class="o">=</span><span class="n">value_node_id</span><span class="p">,</span>
+        <span class="n">execution_id</span><span class="o">=</span><span class="n">execution_id</span><span class="p">,</span>
+        <span class="n">date_created</span><span class="o">=</span><span class="n">date_created</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">artifact_version</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">write_artifact</span><span class="p">(</span><span class="n">artifact_to_write</span><span class="p">)</span>
+    <span class="n">track</span><span class="p">(</span><span class="n">SaveEvent</span><span class="p">(</span><span class="n">side_effect</span><span class="o">=</span><span class="n">side_effect_to_str</span><span class="p">(</span><span class="n">reference</span><span class="p">)))</span>
+
+    <span class="n">linea_artifact</span> <span class="o">=</span> <span class="n">LineaArtifact</span><span class="p">(</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">date_created</span><span class="o">=</span><span class="n">date_created</span><span class="p">,</span>
+        <span class="n">_execution_id</span><span class="o">=</span><span class="n">execution_id</span><span class="p">,</span>
+        <span class="n">_node_id</span><span class="o">=</span><span class="n">value_node_id</span><span class="p">,</span>
+        <span class="n">_session_id</span><span class="o">=</span><span class="n">call_node</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span>
+        <span class="n">_version</span><span class="o">=</span><span class="n">artifact_version</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">linea_artifact</span></div>
+
+
+<span class="k">def</span> <span class="nf">_try_write_to_db</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ArtifactSaveException</span><span class="p">()</span>
+    <span class="c1"># i think there&#39;s pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">linea_folder</span><span class="p">()</span>
+        <span class="o">/</span> <span class="n">FILE_PICKLER_BASEDIR</span>
+        <span class="o">/</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+                <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span>
+                <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span>
+                <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span>
+                <span class="n">k</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">filepath</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">FilePickler</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">PicklingError</span> <span class="k">as</span> <span class="n">pe</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">pe</span><span class="p">)</span>
+        <span class="n">track</span><span class="p">(</span><span class="n">ExceptionEvent</span><span class="p">(</span><span class="s2">&quot;ArtifactSaveException&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">pe</span><span class="p">)))</span>
+        <span class="k">raise</span> <span class="n">ArtifactSaveException</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">filepath</span>
+
+
+<div class="viewcode-block" id="get"><a class="viewcode-back" href="../../../autogen/lineapy.api.html#lineapy.get">[docs]</a><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">artifact_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LineaArtifact</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets an artifact from the DB.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    artifact_name: str</span>
+<span class="sd">        name of the artifact. Note that if you do not remember the artifact,</span>
+<span class="sd">        you can use the catalog to browse the options</span>
+<span class="sd">    version: Optional[str]</span>
+<span class="sd">        version of the artifact. If None, the latest version will be returned.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LineaArtifact</span>
+<span class="sd">        returned value offers methods to access</span>
+<span class="sd">        information we have stored about the artifact</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">execution_context</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">execution_context</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">db</span>
+    <span class="n">artifact</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_artifact_by_name</span><span class="p">(</span><span class="n">artifact_name</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="n">linea_artifact</span> <span class="o">=</span> <span class="n">LineaArtifact</span><span class="p">(</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+        <span class="n">_execution_id</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">execution_id</span><span class="p">,</span>
+        <span class="n">_node_id</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span>
+        <span class="n">_session_id</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span>
+        <span class="n">_version</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">artifact_name</span><span class="p">,</span>
+        <span class="n">date_created</span><span class="o">=</span><span class="n">artifact</span><span class="o">.</span><span class="n">date_created</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+    <span class="p">)</span>
+
+    <span class="n">track</span><span class="p">(</span><span class="n">GetEvent</span><span class="p">(</span><span class="n">version_specified</span><span class="o">=</span><span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">linea_artifact</span></div>
+
+
+<div class="viewcode-block" id="catalog"><a class="viewcode-back" href="../../../autogen/lineapy.api.html#lineapy.catalog">[docs]</a><span class="k">def</span> <span class="nf">catalog</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">LineaCatalog</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LineaCatalog</span>
+<span class="sd">        An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">execution_context</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">cat</span> <span class="o">=</span> <span class="n">LineaCatalog</span><span class="p">(</span><span class="n">execution_context</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+    <span class="n">track</span><span class="p">(</span><span class="n">CatalogEvent</span><span class="p">(</span><span class="n">catalog_size</span><span class="o">=</span><span class="n">cat</span><span class="o">.</span><span class="n">len</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cat</span></div>
+
+
+<span class="c1"># TODO - this piece needs to test more than just the output of jupyter cell.</span>
+<span class="c1"># we need to ensure all the required files (python module and the dag file) get written to the right place.</span>
+<div class="viewcode-block" id="to_pipeline"><a class="viewcode-back" href="../../../autogen/lineapy.api.html#lineapy.to_pipeline">[docs]</a><span class="k">def</span> <span class="nf">to_pipeline</span><span class="p">(</span>
+    <span class="n">artifacts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">framework</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SCRIPT&quot;</span><span class="p">,</span>
+    <span class="n">pipeline_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">dependencies</span><span class="p">:</span> <span class="n">TaskGraphEdge</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">pipeline_dag_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AirflowDagConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes the pipeline job to a path on disk.</span>
+
+<span class="sd">    :param artifacts: list of artifact names to be included in the DAG.</span>
+<span class="sd">    :param framework: &#39;AIRFLOW&#39; or &#39;SCRIPT&#39;</span>
+<span class="sd">    :param pipeline_name: name of the pipeline</span>
+<span class="sd">    :param dependencies: tasks dependencies in graphlib format {&#39;B&#39;:{&#39;A&#39;,&#39;C&#39;}},</span>
+<span class="sd">        this means task A and C are prerequisites for task B.</span>
+<span class="sd">    :param output_dir_path: Directory of the DAG and the python file it is</span>
+<span class="sd">        saved in; only use for PipelineType.AIRFLOW</span>
+<span class="sd">    :return: string containing the path of the DAG file that was exported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">execution_context</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">execution_context</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">db</span>
+    <span class="n">session_orm</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SessionContextORM</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">SessionContextORM</span><span class="o">.</span><span class="n">creation_time</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>
+        <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">session_orm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">track</span><span class="p">(</span><span class="n">ExceptionEvent</span><span class="p">(</span><span class="s2">&quot;DBError&quot;</span><span class="p">,</span> <span class="s2">&quot;NoSessionFound&quot;</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No sessions found in the database.&quot;</span><span class="p">)</span>
+    <span class="n">last_session</span> <span class="o">=</span> <span class="n">session_orm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">framework</span> <span class="ow">in</span> <span class="n">PipelineType</span><span class="o">.</span><span class="n">__members__</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">PipelineType</span><span class="p">[</span><span class="n">framework</span><span class="p">]</span> <span class="o">==</span> <span class="n">PipelineType</span><span class="o">.</span><span class="n">AIRFLOW</span><span class="p">:</span>
+
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">AirflowPlugin</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">last_session</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">sliced_airflow_dag</span><span class="p">(</span>
+                <span class="n">artifacts</span><span class="p">,</span>
+                <span class="n">pipeline_name</span><span class="p">,</span>
+                <span class="n">dependencies</span><span class="p">,</span>
+                <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+                <span class="n">airflow_dag_config</span><span class="o">=</span><span class="n">pipeline_dag_config</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">ScriptPlugin</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">last_session</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">sliced_pipeline_dag</span><span class="p">(</span>
+                <span class="n">artifacts</span><span class="p">,</span>
+                <span class="n">pipeline_name</span><span class="p">,</span>
+                <span class="n">dependencies</span><span class="p">,</span>
+                <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># send the info</span>
+        <span class="n">track</span><span class="p">(</span>
+            <span class="n">ToPipelineEvent</span><span class="p">(</span>
+                <span class="n">framework</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">artifacts</span><span class="p">),</span>
+                <span class="n">dependencies</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="n">pipeline_dag_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No PipelineType for </span><span class="si">{</span><span class="n">framework</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.db package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.editors package" href="lineapy.editors.html" />
+    <link rel="prev" title="lineapy.data package" href="lineapy.data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.db package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.db.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-db-package">
+<h1>lineapy.db package<a class="headerlink" href="#lineapy-db-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.db.db">
+<span id="lineapy-db-db-module"></span><h2>lineapy.db.db module<a class="headerlink" href="#module-lineapy.db.db" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.db.</span></span><span class="sig-name descname"><span class="pre">RelationalLineaDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB" title="Permalink to this definition"></a></dt>
+<dd><ul class="simple">
+<li><p>Note that LineaDB coordinates with asset manager and relational db.</p>
+<ul>
+<li><p>The asset manager deals with binaries (e.g., cached values)
+The relational db deals with more structured data,
+such as the Nodes and edges.</p></li>
+</ul>
+</li>
+<li><p>Also, at some point we might have a “cache” such that the readers
+don’t have to go to the database if it’s already
+loaded, but that’s low priority.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.artifact_in_db">
+<span class="sig-name descname"><span class="pre">artifact_in_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.artifact_in_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.artifact_in_db" title="Permalink to this definition"></a></dt>
+<dd><p>Returns true if the artifact is already in the DB.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.close" title="Permalink to this definition"></a></dt>
+<dd><p>Close the database connection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.commit">
+<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.commit" title="Permalink to this definition"></a></dt>
+<dd><p>End the transaction and commit the changes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_all_artifacts">
+<span class="sig-name descname"><span class="pre">get_all_artifacts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.db.relational.ArtifactORM" title="lineapy.db.relational.ArtifactORM"><span class="pre">ArtifactORM</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_all_artifacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_all_artifacts" title="Permalink to this definition"></a></dt>
+<dd><p>Used by the catalog to get all the artifacts</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_artifact_by_name">
+<span class="sig-name descname"><span class="pre">get_artifact_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifact_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.db.relational.ArtifactORM" title="lineapy.db.relational.ArtifactORM"><span class="pre">ArtifactORM</span></a></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_artifact_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_artifact_by_name" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the most recent artifact with a certain name.
+If a version is not specified, it will return the most recent
+version sorted by date_created</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_artifacts_for_session">
+<span class="sig-name descname"><span class="pre">get_artifacts_for_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.db.relational.ArtifactORM" title="lineapy.db.relational.ArtifactORM"><span class="pre">ArtifactORM</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_artifacts_for_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_artifacts_for_session" title="Permalink to this definition"></a></dt>
+<dd><p>Gets a code slice for an artifact by name, assuming there is only
+one artifact with that name,</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_latest_artifact_version">
+<span class="sig-name descname"><span class="pre">get_latest_artifact_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifact_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_latest_artifact_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_latest_artifact_version" title="Permalink to this definition"></a></dt>
+<dd><p>Get the latest version number of an artifact.
+If the artifact does not exist, it will return -1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_libraries_for_session">
+<span class="sig-name descname"><span class="pre">get_libraries_for_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.db.relational.ImportNodeORM" title="lineapy.db.relational.ImportNodeORM"><span class="pre">ImportNodeORM</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_libraries_for_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_libraries_for_session" title="Permalink to this definition"></a></dt>
+<dd><p>Gets all dependencies for a session, assuming all the libs in a
+particular session will be required to set up a new env.</p>
+<p>TODO: I think this distinct is still broken, because we want to
+make it distinct on a subset of columns: session_id, name, and version.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_node_by_id">
+<span class="sig-name descname"><span class="pre">get_node_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linea_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_node_by_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_node_by_id" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the node by looking up the database by ID
+SQLAlchemy is able to translate between the two types on demand</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_node_value_path">
+<span class="sig-name descname"><span class="pre">get_node_value_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_node_value_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_node_value_path" title="Permalink to this definition"></a></dt>
+<dd><p>Get the path to the value of the artifact.
+:param other: Additional argument to let you query another artifact’s value path.</p>
+<blockquote>
+<div><p>This is set to be optional and if its not set, we will use the current artifact</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.get_nodes_for_session">
+<span class="sig-name descname"><span class="pre">get_nodes_for_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.get_nodes_for_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.get_nodes_for_session" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Get all the nodes associated with the session, which does</dt><dd><p>NOT include things like SessionContext</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.node_value_in_db">
+<span class="sig-name descname"><span class="pre">node_value_in_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.node_value_in_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.node_value_in_db" title="Permalink to this definition"></a></dt>
+<dd><p>Returns true if the node value is already in the DB.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.db.db.RelationalLineaDB.write_source_code">
+<span class="sig-name descname"><span class="pre">write_source_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.data.html#lineapy.data.types.SourceCode" title="lineapy.data.types.SourceCode"><span class="pre">SourceCode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/db/db.html#RelationalLineaDB.write_source_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.db.RelationalLineaDB.write_source_code" title="Permalink to this definition"></a></dt>
+<dd><p>Writes a source code object to the database.</p>
+<p>It first has to convert it to a SourceCodeORM object, which has the fields
+inlined instead of a union</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-lineapy.db.relational">
+<span id="lineapy-db-relational-module"></span><h2>lineapy.db.relational module<a class="headerlink" href="#module-lineapy.db.relational" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt>This file contains the ORM versions of the graph node in types.py.</dt><dd><p>Pydantic allows us to extract out a Dataclass like object from the ORM,
+but not let us directly write to the ORM.</p>
+</dd>
+</dl>
+<section id="relationships">
+<h3>Relationships<a class="headerlink" href="#relationships" title="Permalink to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>non exhaustive list</p>
+</div>
+<p>SessionContext
+- ImportNode (One to Many)
+- HardwareSpec (Many to One)</p>
+<p>Node
+- SessionContext (Many to One)</p>
+<p>CallNode
+- Node (Many to Many)</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.ArtifactORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">ArtifactORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#ArtifactORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.ArtifactORM" title="Permalink to this definition"></a></dt>
+<dd><p>An artifact is a named pointer to a node.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.BaseNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">BaseNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#BaseNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.BaseNodeORM" title="Permalink to this definition"></a></dt>
+<dd><p>node.source_code has a path value if node.session.environment_type == “script”
+otherwise the environment type is “jupyter” and it has a jupyter execution
+count and session id, which is equal to the node.session</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li><p>Because other nodes are inheriting from BaseNodeORM, finding a node
+based on its id is easy (something like the following):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BaseNodeORM</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">linea_id</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Each node inheriting from BaseNodeORM must have non null values for
+all of lineno, col_offset, end_lineno, end_col_offset and source_code_id
+or nulls for all of them.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.CallNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">CallNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#CallNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.CallNodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.ExecutionORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">ExecutionORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#ExecutionORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.ExecutionORM" title="Permalink to this definition"></a></dt>
+<dd><p>An execution represents one Python interpreter invocation of some number of nodes</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.GlobalNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">GlobalNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#GlobalNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.GlobalNodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.GlobalReferenceORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">GlobalReferenceORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#GlobalReferenceORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.GlobalReferenceORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.ImplicitDependencyORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">ImplicitDependencyORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#ImplicitDependencyORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.ImplicitDependencyORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.ImportNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">ImportNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#ImportNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.ImportNodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.KeywordArgORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">KeywordArgORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#KeywordArgORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.KeywordArgORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.LiteralNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">LiteralNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#LiteralNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.LiteralNodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.LookupNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">LookupNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#LookupNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.LookupNodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.MutateNodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">MutateNodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#MutateNodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.MutateNodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.NodeValueORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">NodeValueORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#NodeValueORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.NodeValueORM" title="Permalink to this definition"></a></dt>
+<dd><p>A node value represents the value of a node during some execution.</p>
+<p>It is uniquely identified by the <cite>node_id</cite> and <cite>execution_id</cite>.</p>
+<p>The following invariant holds:
+<cite>value.node.session == value.execution.session</cite></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.PositionalArgORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">PositionalArgORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#PositionalArgORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.PositionalArgORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.SessionContextORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">SessionContextORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#SessionContextORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.SessionContextORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.relational.SourceCodeORM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.relational.</span></span><span class="sig-name descname"><span class="pre">SourceCodeORM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/db/relational.html#SourceCodeORM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.relational.SourceCodeORM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="module-lineapy.db.utils">
+<span id="lineapy-db-utils-module"></span><h2>lineapy.db.utils module<a class="headerlink" href="#module-lineapy.db.utils" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.db.utils.FilePickler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.db.utils.</span></span><span class="sig-name descname"><span class="pre">FilePickler</span></span><a class="reference internal" href="../_modules/lineapy/db/utils.html#FilePickler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.db.utils.FilePickler" title="Permalink to this definition"></a></dt>
+<dd><p>Tries to pickle an object, and if it fails returns None.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.db">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.db" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.data.html" class="btn btn-neutral float-left" title="lineapy.data package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.editors.html" class="btn btn-neutral float-right" title="lineapy.editors package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

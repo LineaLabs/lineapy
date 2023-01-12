@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lineapy.execution package &mdash; lineapy 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/lineapy-square-light.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="//script.crazyegg.com/pages/scripts/0111/9525.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="lineapy.graph_reader package" href="lineapy.graph_reader.html" />
+    <link rel="prev" title="lineapy.exceptions package" href="lineapy.exceptions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> lineapy
+            <img src="../_static/lineapy-white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/intro.html">LineaPy 101</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/setup.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fundamentals/concepts.html">Concepts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/00_api_basics.html">API Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/refactor_code/index.html">Refactoring Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/build_pipelines/index.html">Building Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/manage_artifacts/index.html">Managing Artifacts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../references/development.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references/internals.html">LineaPy Internals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references/api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">lineapy</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lineapy.html">lineapy package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="lineapy.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lineapy.html#module-lineapy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lineapy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../references/api_reference.html">API Reference</a> &raquo;</li>
+          <li><a href="modules.html">lineapy</a> &raquo;</li>
+          <li><a href="lineapy.html">lineapy package</a> &raquo;</li>
+      <li>lineapy.execution package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autogen/lineapy.execution.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="lineapy-execution-package">
+<h1>lineapy.execution package<a class="headerlink" href="#lineapy-execution-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-lineapy.execution.context">
+<span id="lineapy-execution-context-module"></span><h2>lineapy.execution.context module<a class="headerlink" href="#module-lineapy.execution.context" title="Permalink to this heading"></a></h2>
+<p>This module contains a number of globals, which are set by the execution when
+it is processing call nodes.</p>
+<p>They are used as a side channel to pass values from the executor to special functions
+which need to know more about the execution context, like in the <cite>exec</cite> to know
+the source code of the current node.</p>
+<p>This module exposes three global functions, which are meant to be used like:</p>
+<ol class="arabic simple">
+<li><p>The <cite>executor</cite> calls <cite>set_context</cite> before executing every call node.</p></li>
+<li><p>The function being called can call <cite>get_context</cite> to get the current context.</p></li>
+<li><p>The <cite>executor</cite> calls <cite>teardown_context</cite> after its finished executing</p></li>
+</ol>
+<p>I.e. the context is created for every call.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.context.ContextResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.context.</span></span><span class="sig-name descname"><span class="pre">ContextResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">added_or_modified</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'Dict[str,</span> <span class="pre">object]'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side_effects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'SideEffects'</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/context.html#ContextResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.context.ContextResult" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.context.ExecutionContext">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.context.</span></span><span class="sig-name descname"><span class="pre">ExecutionContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">executor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.execution.executor.Executor" title="lineapy.execution.executor.Executor"><span class="pre">Executor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_input_node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_input_globals_mutable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.system_tracing.html#lineapy.system_tracing.function_call.FunctionCall" title="lineapy.system_tracing.function_call.FunctionCall"><span class="pre">FunctionCall</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/context.html#ExecutionContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.context.ExecutionContext" title="Permalink to this definition"></a></dt>
+<dd><p>This class is available during execution of CallNodes to the functions which are being called.</p>
+<p>It is used as a side channel to pass in metadata about the execution, such as the current node, and other global nodes
+(used during exec).</p>
+<p>The <cite>side_effects</cite> property is read after the function is finished, by the executor, so that the
+function can pass additional side effects that were triggered back to it indirectly. This is also
+used by the exec functions.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="lineapy.execution.context.ExecutionContext.global_variables">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">global_variables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#lineapy.execution.context.ExecutionContext.global_variables" title="Permalink to this definition"></a></dt>
+<dd><p>The current globals dictionary</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.context.set_context">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.context.</span></span><span class="sig-name descname"><span class="pre">set_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">executor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#lineapy.execution.executor.Executor" title="lineapy.execution.executor.Executor"><span class="pre">Executor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/execution/context.html#set_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.context.set_context" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the context of the executor to the given node.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.context.teardown_context">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.context.</span></span><span class="sig-name descname"><span class="pre">teardown_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#lineapy.execution.context.ContextResult" title="lineapy.execution.context.ContextResult"><span class="pre">ContextResult</span></a></span></span><a class="reference internal" href="../_modules/lineapy/execution/context.html#teardown_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.context.teardown_context" title="Permalink to this definition"></a></dt>
+<dd><p>Tearsdown the context, returning the nodes that were accessed
+and a mapping variables to new values that were added or crated</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.execution.executor">
+<span id="lineapy-execution-executor-module"></span><h2>lineapy.execution.executor module<a class="headerlink" href="#module-lineapy.execution.executor" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.executor.Executor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.executor.</span></span><span class="sig-name descname"><span class="pre">Executor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">db:</span> <span class="pre">~lineapy.db.db.RelationalLineaDB,</span> <span class="pre">_globals:</span> <span class="pre">dict[str,</span> <span class="pre">object],</span> <span class="pre">module_file:</span> <span class="pre">~typing.Optional[str]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">_function_inspector:</span> <span class="pre">~lineapy.execution.inspect_function.FunctionInspector</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">_id_to_value:</span> <span class="pre">dict[lineapy.data.types.LineaID,</span> <span class="pre">object]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">_execution_time:</span> <span class="pre">dict[lineapy.data.types.LineaID,</span> <span class="pre">typing.Tuple[datetime.datetime,</span> <span class="pre">datetime.datetime]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">_node_to_bound_self:</span> <span class="pre">~typing.Dict[~lineapy.data.types.LineaID,</span> <span class="pre">~lineapy.data.types.LineaID]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">_node_to_globals:</span> <span class="pre">~typing.Dict[~lineapy.data.types.LineaID,</span> <span class="pre">~typing.Dict[str,</span> <span class="pre">object]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">_value_to_node:</span> <span class="pre">~typing.Dict[~typing.Hashable,</span> <span class="pre">~lineapy.data.types.LineaID]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#Executor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.Executor" title="Permalink to this definition"></a></dt>
+<dd><p>An executor that is responsible for executing a graph, either node by
+node as it is created, or in a batch, after the fact.</p>
+<p>To use the executor, you first instantiate it. Then you can execute nodes, by calling
+<cite>execute_node</cite>. This returns a list of side effects that executing that node causes.</p>
+<p>You can also query for the time a node took to execute or its value, using <cite>get_value</cite> and <cite>get_execution_time</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.executor.Executor.execute_graph">
+<span class="sig-name descname"><span class="pre">execute_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Graph</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#Executor.execute_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.Executor.execute_graph" title="Permalink to this definition"></a></dt>
+<dd><p>Executes a graph in visit order making sure to setup the working directory first.</p>
+<p>TODO: Possibly move to graph instead of on executor, since it rather cleanly uses the
+executor’s public API? Or move to function?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.executor.Executor.execute_node">
+<span class="sig-name descname"><span class="pre">execute_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.ImportNode" title="lineapy.data.types.ImportNode"><span class="pre">ImportNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.CallNode" title="lineapy.data.types.CallNode"><span class="pre">CallNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LiteralNode" title="lineapy.data.types.LiteralNode"><span class="pre">LiteralNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.LookupNode" title="lineapy.data.types.LookupNode"><span class="pre">LookupNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.MutateNode" title="lineapy.data.types.MutateNode"><span class="pre">MutateNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.data.html#lineapy.data.types.GlobalNode" title="lineapy.data.types.GlobalNode"><span class="pre">GlobalNode</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.execution.side_effects.MutatedNode" title="lineapy.execution.side_effects.MutatedNode"><span class="pre">MutatedNode</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.execution.side_effects.ViewOfNodes" title="lineapy.execution.side_effects.ViewOfNodes"><span class="pre">ViewOfNodes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.execution.side_effects.AccessedGlobals" title="lineapy.execution.side_effects.AccessedGlobals"><span class="pre">AccessedGlobals</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.execution.side_effects.ImplicitDependencyNode" title="lineapy.execution.side_effects.ImplicitDependencyNode"><span class="pre">ImplicitDependencyNode</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#Executor.execute_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.Executor.execute_node" title="Permalink to this definition"></a></dt>
+<dd><p>Variables is the mapping from local variable names to their nodes. It
+is passed in on the first execution, but on re-executions it is empty.</p>
+<p>At that point we know which variables each call node depends on, since
+the first time we executed we captured that.</p>
+<p>Does the following:</p>
+<ul class="simple">
+<li><p>Executes a node</p></li>
+<li><p>And records</p>
+<ul>
+<li><p>value (currently: only for call nodes and all call nodes)</p></li>
+<li><p>execution time</p></li>
+</ul>
+</li>
+<li><p>Add a new frame to the stack to support error reporting. Without it,
+the traceback will be empty.</p></li>
+<li><p>Returns the <cite>SideEffects</cite> of this node that’s analyzed at runtime (hence in the executor).</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.executor.Executor.get_execution_time">
+<span class="sig-name descname"><span class="pre">get_execution_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">datetime</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#Executor.get_execution_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.Executor.get_execution_time" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the (startime, endtime) for a node that was execute.</p>
+<p>Only applies for function call nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.executor.Executor.get_value">
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LineaID</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#Executor.get_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.Executor.get_value" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the Python in memory value for a node which was already executed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.executor.Executor.lookup_external_state">
+<span class="sig-name descname"><span class="pre">lookup_external_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ExternalState" title="lineapy.instrumentation.annotation_spec.ExternalState"><span class="pre">ExternalState</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">LineaID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#Executor.lookup_external_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.Executor.lookup_external_state" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the node ID if we have created a node already for some external state.</p>
+<p>Otherwise, returns None.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.executor.PrivateExecuteResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.executor.</span></span><span class="sig-name descname"><span class="pre">PrivateExecuteResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'object'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'datetime'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'datetime'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side_effects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'List[SideEffect]'</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/executor.html#PrivateExecuteResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.executor.PrivateExecuteResult" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-lineapy.execution.globals_dict">
+<span id="lineapy-execution-globals-dict-module"></span><h2>lineapy.execution.globals_dict module<a class="headerlink" href="#module-lineapy.execution.globals_dict" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.globals_dict.GlobalsDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.globals_dict.</span></span><span class="sig-name descname"><span class="pre">GlobalsDict</span></span><a class="reference internal" href="../_modules/lineapy/execution/globals_dict.html#GlobalsDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.globals_dict.GlobalsDict" title="Permalink to this definition"></a></dt>
+<dd><p>A custom dict that is meant to be accessed in a particular way, in order
+to record getitems. It is used for setting as the globals when executing
+some code, so we can try to understand which globals were accessed.</p>
+<p>It is meant to be used like:</p>
+<ol class="arabic simple">
+<li><p>Instantiate it empty like <cite>GlobalsDict()</cite></p></li>
+<li><p>Call <cite>setup_globals(d)</cite> to update it with the input globals</p></li>
+<li><p>Execute some code that uses it as globals, which will call <cite>__setitem__</cite>
+as well as our custom <cite>__getitem__</cite>.</p></li>
+<li><p>Call <cite>teardown_globals()</cite> which will return the <cite>Result</cite>, containing the
+a record of all the original globals that were accessed and any new
+globals that were updated or added.</p></li>
+</ol>
+<p>We cannot overload the <cite>__setitem__</cite> method, since Python will not respect
+it for custom globals, but we can overload the __getitem__ method.</p>
+<p>See <a class="reference external" href="https://stackoverflow.com/a/12185315/907060">https://stackoverflow.com/a/12185315/907060</a>
+which refers to <a class="reference external" href="https://bugs.python.org/issue14385">https://bugs.python.org/issue14385</a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.globals_dict.GlobalsDictResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.globals_dict.</span></span><span class="sig-name descname"><span class="pre">GlobalsDictResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accessed_inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'List[str]'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added_or_modified</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'Dict[str,</span> <span class="pre">object]'</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/globals_dict.html#GlobalsDictResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.globals_dict.GlobalsDictResult" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.globals_dict.State">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.globals_dict.</span></span><span class="sig-name descname"><span class="pre">State</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs:</span> <span class="pre">'Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object]'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accessed_inputs:</span> <span class="pre">'List[str]'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/globals_dict.html#State"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.globals_dict.State" title="Permalink to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.globals_dict.State.process_getitem">
+<span class="sig-name descname"><span class="pre">process_getitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/execution/globals_dict.html#State.process_getitem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.globals_dict.State.process_getitem" title="Permalink to this definition"></a></dt>
+<dd><p>If we haven’t recorded this key and its value is the same as the value
+in the input globals (meaning we haven’t overwritten it), then record
+it as a getitem.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-lineapy.execution.inspect_function">
+<span id="lineapy-execution-inspect-function-module"></span><h2>lineapy.execution.inspect_function module<a class="headerlink" href="#module-lineapy.execution.inspect_function" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.FunctionInspector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">FunctionInspector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specs:</span> <span class="pre">~typing.Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.List[~lineapy.instrumentation.annotation_spec.Annotation]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parsed:</span> <span class="pre">~lineapy.execution.inspect_function.FunctionInspectorParsed</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#FunctionInspector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.FunctionInspector" title="Permalink to this definition"></a></dt>
+<dd><p>The FunctionInspector does two different loading steps.</p>
+<ol class="arabic simple">
+<li><p>Load all the specs from disk with <cite>get_specs</cite>. This happens once on creation of the object.</p></li>
+<li><p>On initialization, and before every spec call, go through all the specs and “parse” any for modules we have already imported,
+which means turning the criteria into in memory objects, we can compare against when inspecting.</p></li>
+</ol>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.FunctionInspector.inspect">
+<span class="sig-name descname"><span class="pre">inspect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ViewOfValues" title="lineapy.instrumentation.annotation_spec.ViewOfValues"><span class="pre">ViewOfValues</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.MutatedValue" title="lineapy.instrumentation.annotation_spec.MutatedValue"><span class="pre">MutatedValue</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ImplicitDependencyValue" title="lineapy.instrumentation.annotation_spec.ImplicitDependencyValue"><span class="pre">ImplicitDependencyValue</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#FunctionInspector.inspect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.FunctionInspector.inspect" title="Permalink to this definition"></a></dt>
+<dd><p>Inspects a function and returns how calling it mutates the args/result and
+creates view relationships between them.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.FunctionInspectorParsed">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">FunctionInspectorParsed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">function_to_side_effects:</span> <span class="pre">~typing.Dict[~typing.Callable,</span> <span class="pre">~typing.List[~typing.Union[~lineapy.instrumentation.annotation_spec.ViewOfValues,</span> <span class="pre">~lineapy.instrumentation.annotation_spec.MutatedValue,</span> <span class="pre">~lineapy.instrumentation.annotation_spec.ImplicitDependencyValue]]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">method_name_to_type_to_side_effects:</span> <span class="pre">~typing.Dict[str,</span> <span class="pre">~typing.Dict[type,</span> <span class="pre">~typing.List[~typing.Union[~lineapy.instrumentation.annotation_spec.ViewOfValues,</span> <span class="pre">~lineapy.instrumentation.annotation_spec.MutatedValue,</span> <span class="pre">~lineapy.instrumentation.annotation_spec.ImplicitDependencyValue]]]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">keyword_name_and_value_to_type_to_side_effects:</span> <span class="pre">~typing.Dict[~typing.Tuple[str,</span> <span class="pre">~typing.Hashable],</span> <span class="pre">~typing.Dict[type,</span> <span class="pre">~typing.List[~typing.Union[~lineapy.instrumentation.annotation_spec.ViewOfValues,</span> <span class="pre">~lineapy.instrumentation.annotation_spec.MutatedValue,</span> <span class="pre">~lineapy.instrumentation.annotation_spec.ImplicitDependencyValue]]]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#FunctionInspectorParsed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.FunctionInspectorParsed" title="Permalink to this definition"></a></dt>
+<dd><p>Contains the parsed function inspector criteria.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.FunctionInspectorParsed.add_annotations">
+<span class="sig-name descname"><span class="pre">add_annotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.Annotation" title="lineapy.instrumentation.annotation_spec.Annotation"><span class="pre">Annotation</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#FunctionInspectorParsed.add_annotations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.FunctionInspectorParsed.add_annotations" title="Permalink to this definition"></a></dt>
+<dd><p>Parse a list of annotations and look them up to add them to our parsed criteria.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.FunctionInspectorParsed.inspect">
+<span class="sig-name descname"><span class="pre">inspect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ViewOfValues" title="lineapy.instrumentation.annotation_spec.ViewOfValues"><span class="pre">ViewOfValues</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.MutatedValue" title="lineapy.instrumentation.annotation_spec.MutatedValue"><span class="pre">MutatedValue</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ImplicitDependencyValue" title="lineapy.instrumentation.annotation_spec.ImplicitDependencyValue"><span class="pre">ImplicitDependencyValue</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#FunctionInspectorParsed.inspect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.FunctionInspectorParsed.inspect" title="Permalink to this definition"></a></dt>
+<dd><p>Inspect a function call and return a list of side effects, if it matches any of the annotations</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.get_imported_module">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">get_imported_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">module</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#get_imported_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.get_imported_module" title="Permalink to this definition"></a></dt>
+<dd><p>Return a module, if it has been imported.</p>
+<p>Also handles the corner case where a submodule has not been imported, but is accessible
+as an attribute on the parent module. This is needed for the example <cite>tensorflow.keras.utils</cite>, which
+is not imported when importing <cite>tensorflow</cite>, but is accessible as a property of <cite>tensorflow</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.get_specs">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">get_specs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.Annotation" title="lineapy.instrumentation.annotation_spec.Annotation"><span class="pre">Annotation</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#get_specs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.get_specs" title="Permalink to this definition"></a></dt>
+<dd><p>yaml specs are for non-built in functions.
+Captures all the .annotations.yaml files in the lineapy directory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.is_mutable">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">is_mutable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#is_mutable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.is_mutable" title="Permalink to this definition"></a></dt>
+<dd><p>Returns true if the object is mutable.</p>
+<p>Note that currently, <cite>tempfile.NamedTemporaryFile()</cite> is not mutable, and
+the semantics is actually correct, because it doesn’t end up changing the
+file system. However, the following registers as normal files (which
+are mutable).</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">filename</span> <span class="pre">=</span> <span class="pre">NamedTemporaryFile().name</span>
+<span class="pre">handle</span> <span class="pre">=</span> <span class="pre">open(filename,</span> <span class="pre">&quot;wb&quot;)</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.logger">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Logger</span> <span class="pre">lineapy.execution.inspect_function</span> <span class="pre">(INFO)&gt;</span></em><a class="headerlink" href="#lineapy.execution.inspect_function.logger" title="Permalink to this definition"></a></dt>
+<dd><p>helper functions</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.new_side_effect_without_all_positional_arg">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">new_side_effect_without_all_positional_arg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">side_effect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ViewOfValues" title="lineapy.instrumentation.annotation_spec.ViewOfValues"><span class="pre">ViewOfValues</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ViewOfValues" title="lineapy.instrumentation.annotation_spec.ViewOfValues"><span class="pre">ViewOfValues</span></a></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#new_side_effect_without_all_positional_arg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.new_side_effect_without_all_positional_arg" title="Permalink to this definition"></a></dt>
+<dd><p>This method must NOT modify the original side_effect, since these
+annotations are dependent on the runtime values that are different
+for each call—AllPositionalArgs will have a different set of arguments.</p>
+<p>Note that we might need to add something like “all keyword arguments”, but
+that use case hasn’t come up yet.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lineapy.execution.inspect_function.validate">
+<span class="sig-prename descclassname"><span class="pre">lineapy.execution.inspect_function.</span></span><span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ModuleAnnotation" title="lineapy.instrumentation.annotation_spec.ModuleAnnotation"><span class="pre">ModuleAnnotation</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/lineapy/execution/inspect_function.html#validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.inspect_function.validate" title="Permalink to this definition"></a></dt>
+<dd><p>We cannot filer the specs by module, because it might be loaded later.
+This causes a bit of inefficiency in our function inspection, but we
+can fix later if it’s a problem.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.execution.side_effects">
+<span id="lineapy-execution-side-effects-module"></span><h2>lineapy.execution.side_effects module<a class="headerlink" href="#module-lineapy.execution.side_effects" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.side_effects.AccessedGlobals">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.side_effects.</span></span><span class="sig-name descname"><span class="pre">AccessedGlobals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">retrieved</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added_or_updated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/side_effects.html#AccessedGlobals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.side_effects.AccessedGlobals" title="Permalink to this definition"></a></dt>
+<dd><p>Represents some global variables that were retrieved or changed during this call.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.side_effects.ID">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.side_effects.</span></span><span class="sig-name descname"><span class="pre">ID</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'LineaID'</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/side_effects.html#ID"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.side_effects.ID" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.side_effects.ImplicitDependencyNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.side_effects.</span></span><span class="sig-name descname"><span class="pre">ImplicitDependencyNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pointer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.execution.side_effects.ID" title="lineapy.execution.side_effects.ID"><span class="pre">ID</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.execution.side_effects.Variable" title="lineapy.execution.side_effects.Variable"><span class="pre">Variable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ExternalState" title="lineapy.instrumentation.annotation_spec.ExternalState"><span class="pre">ExternalState</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/side_effects.html#ImplicitDependencyNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.side_effects.ImplicitDependencyNode" title="Permalink to this definition"></a></dt>
+<dd><p>Represents that the call node has an implicit dependency on another node.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.side_effects.MutatedNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.side_effects.</span></span><span class="sig-name descname"><span class="pre">MutatedNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pointer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.execution.side_effects.ID" title="lineapy.execution.side_effects.ID"><span class="pre">ID</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.execution.side_effects.Variable" title="lineapy.execution.side_effects.Variable"><span class="pre">Variable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ExternalState" title="lineapy.instrumentation.annotation_spec.ExternalState"><span class="pre">ExternalState</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/side_effects.html#MutatedNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.side_effects.MutatedNode" title="Permalink to this definition"></a></dt>
+<dd><p>Represents that a node has been mutated.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.side_effects.Variable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.side_effects.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'str'</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/side_effects.html#Variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.side_effects.Variable" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="lineapy.execution.side_effects.ViewOfNodes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lineapy.execution.side_effects.</span></span><span class="sig-name descname"><span class="pre">ViewOfNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pointers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#lineapy.execution.side_effects.ID" title="lineapy.execution.side_effects.ID"><span class="pre">ID</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#lineapy.execution.side_effects.Variable" title="lineapy.execution.side_effects.Variable"><span class="pre">Variable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="lineapy.instrumentation.html#lineapy.instrumentation.annotation_spec.ExternalState" title="lineapy.instrumentation.annotation_spec.ExternalState"><span class="pre">ExternalState</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lineapy/execution/side_effects.html#ViewOfNodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lineapy.execution.side_effects.ViewOfNodes" title="Permalink to this definition"></a></dt>
+<dd><p>Represents that a set of nodes are now “views” of each other, meaning that
+if any are mutated they all could be mutated.</p>
+</dd></dl>
+
+</section>
+<section id="module-lineapy.execution">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lineapy.execution" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lineapy.exceptions.html" class="btn btn-neutral float-left" title="lineapy.exceptions package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lineapy.graph_reader.html" class="btn btn-neutral float-right" title="lineapy.graph_reader package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Linea Labs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
