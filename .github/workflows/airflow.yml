@@ -12,6 +12,7 @@ on:
       - "lineapy/plugins/base_pipeline_writer.py"
       - "tests/test_airflow.ipynb"
       - "tests/test_pipeline_run_airflow.py"
+      - "test_pipeline_airflow_req.txt"
   pull_request:
     paths:
       - "lineapy/plugins/jinja_templates/*"
@@ -19,7 +20,7 @@ on:
       - "lineapy/plugins/base_pipeline_writer.py"
       - "tests/test_airflow.ipynb"
       - "tests/test_pipeline_run_airflow.py"
-      - "airflow-requirements.txt"
+      - "test_pipeline_airflow_req.txt"
 jobs:
   airflow:
     runs-on: ubuntu-latest

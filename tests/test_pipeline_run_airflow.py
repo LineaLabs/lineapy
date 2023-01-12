@@ -135,7 +135,9 @@ def test_run_airflow_dag(
     # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
     req_path = Path(tmp_path, f"{pipeline_name}_requirements.txt")
     virtualenv.run(f"pip install -r {req_path}", capture=False, cd=".")
-    virtualenv.run("pip install apache-airflow==2.2.4", capture=False, cd=".")
+    virtualenv.run(
+        "pip install -r test_pipeline_airflow_req.txt", capture=False, cd="."
+    )
 
     # Set the airflow home for subsequent calls
     virtualenv.env["AIRFLOW_HOME"] = str(airflow_home)

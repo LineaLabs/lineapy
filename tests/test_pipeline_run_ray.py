@@ -101,8 +101,9 @@ def test_run_ray_dag(
     # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
     req_path = Path(tmp_path, f"{pipeline_name}_requirements.txt")
     virtualenv.run(f"pip install -r {req_path}", capture=False, cd=".")
-    virtualenv.run("pip install ray==2.2.0", capture=False, cd=".")
-    virtualenv.run("pip install ray[data]", capture=False, cd=".")
+    virtualenv.run(
+        "pip install -r test_pipeline_ray_req.txt", capture=False, cd="."
+    )
 
     dag_path = Path(tmp_path, f"{pipeline_name}_dag.py")
 

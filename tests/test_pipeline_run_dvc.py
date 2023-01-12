@@ -24,7 +24,7 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["y", "p value"],
             "dvc_pipeline_housing_artifacts_w_dependencies",
             {"p value": {"y"}},
-            {},
+            {"dag_flavor": "StagePerArtifact"},
             [],
             id="dvc_pipeline_housing_artifacts_w_dependencies",
         ),
@@ -34,7 +34,9 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["y", "p value"],
             "dvc_pipeline_housing_session_w_dependencies",
             {"p value": {"y"}},
-            {},
+            {
+                # TODO LIN-626 add dag config for per session flavor
+            },
             [],
             id="dvc_pipeline_housing_session_w_dependencies",
         ),
@@ -104,7 +106,9 @@ def test_run_dvc_dag(
 
     req_path = Path(tmp_path, f"{pipeline_name}_requirements.txt")
     virtualenv.run(f"pip install -r {req_path}", capture=False, cd=".")
-    virtualenv.run("pip install dvc==2.38.1", capture=False, cd=".")
+    virtualenv.run(
+        "pip install -r test_pipeline_dvc_req.txt", capture=False, cd="."
+    )
 
     virtualenv.run("git init", capture=False, cd=tmp_path)
     virtualenv.run("dvc init", capture=False, cd=tmp_path)

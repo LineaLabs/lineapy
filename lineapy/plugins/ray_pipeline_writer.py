@@ -116,7 +116,10 @@ class RayPipelineWriter(BasePipelineWriter):
 
     def _get_requirements(self):
         libraries = super()._get_requirements()
-        libraries["packaging"] = "21.3"
+        # add packaging library which is required for the DAG to check ray version
+        # this library is not used by any task and must be added in post
+        if "packaging" not in libraries:
+            libraries["packaging"] = "21.3"
         return libraries
 
     def get_rendered_task_definitions(
