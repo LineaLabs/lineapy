@@ -2958,13 +2958,14 @@ writes to a database (it will result in a database lock). Such concurrent writes
 for instance, when multiple scripts or notebook sessions are running at the same time.
 If your SQLite is locked, you can unlock it by terminating the exact process locking the file. Specifically,
 navigate to your home directory and run:</p>
-<p><code>bash
-fuser .lineapy/db.sqlite</code></p>
+<div class="highlight"><pre><span></span><code>fuser .lineapy/db.sqlite
+</code></pre></div>
 <p>which will list process ID(s) connecting to the database, like so:</p>
-<p><code>.lineapy/db.sqlite: 78638</code></p>
+<div class="highlight"><pre><span></span><code>.lineapy/db.sqlite: 78638
+</code></pre></div>
 <p>You can then terminate the troublesome process(es) with:</p>
-<p><code>bash
-kill 78638</code></p>
+<div class="highlight"><pre><span></span><code><span class="nb">kill</span> <span class="m">78638</span>
+</code></pre></div>
 <p>which will unlock the database.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
