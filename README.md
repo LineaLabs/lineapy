@@ -95,10 +95,10 @@ pip install lineapy
 ```
 
 If you want to run the latest version of LineaPy directly from the source, follow instructions
-[here](https://lineapy-docs.netlify.app/latest/guides/setup/#installing-lineapy).
+[here](https://docs.lineapy.org/latest/guides/setup/#installing-lineapy).
 
 LineaPy offers several extras to extend its core capabilities, such as support for PostgreSQL or Amazon S3.
-Learn more about these and other installation options [here](https://lineapy-docs.netlify.app/latest/guides/setup/#extras).
+Learn more about these and other installation options [here](https://docs.lineapy.org/latest/guides/setup/#extras).
 
 ### Interfaces
 
@@ -193,7 +193,7 @@ mod.fit(
 )
 ```
 
-Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://lineapy-docs.netlify.app/latest/concepts/artifact/) with the following code:
+Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://docs.lineapy.org/latest/concepts/artifact/) with the following code:
 
 ```python
 # Save the model as an artifact
@@ -247,7 +247,7 @@ lineapy.to_pipeline(
 ```
 
 This command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
-[tutorial](https://lineapy-docs.netlify.app/latest/tutorials/02_pipeline_building/) for more details.)
+[tutorial](https://docs.lineapy.org/latest/tutorials/02_pipeline_building/) for more details.)
 
 In short, LineaPy automates time-consuming, manual steps in a data science workflow, helping us get
 our work to production more quickly and easily.
@@ -267,7 +267,7 @@ export LINEAPY_DO_NOT_TRACK=true
 
 ## What Next?
 
-To learn more about LineaPy, please check out the project [documentation](https://lineapy-docs.netlify.app/latest/)
+To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/)
 which contains many examples you can follow with. Some key resources include:
 
 | Resource            | Description                                                                              |
@@ -280,10 +280,10 @@ which contains many examples you can follow with. Some key resources include:
 | **[Contribute]**    | Want to contribute? These instructions will help you get set up!                         |
 | **[Slack]**         | Have questions or issues unresolved? Join our community and ask away!                    |
 
-[Docs]: https://lineapy-docs.netlify.app/latest/
-[Concepts]: https://lineapy-docs.netlify.app/latest/concepts/artifact/
+[Docs]: https://docs.lineapy.org/latest/
+[Concepts]: https://docs.lineapy.org/latest/concepts/artifact/
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
-[API Reference]: https://lineapy-docs.netlify.app/latest/reference/lineapy/
-[Contribute]: https://lineapy-docs.netlify.app/latest/
+[API Reference]: https://docs.lineapy.org/latest/reference/lineapy/
+[Contribute]: https://docs.lineapy.org/latest/
 [Slack]: https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q
