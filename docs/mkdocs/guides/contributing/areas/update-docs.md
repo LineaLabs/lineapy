@@ -60,11 +60,13 @@ Finally, open a PR with the changes.
     to a few select members. Please contact the LineaPy core team on [Slack](../../support.md#community)
     for relevant questions or requests.
 
-!!! info
+LineaPy keeps a separate branch for each version of the package (e.g., `v0.2.x`).
+This means each version’s documentation should be built from its own branch,
+which makes sense because the `main` branch may include changes that are not yet
+ready for public release and use.
 
-    LineaPy uses [`mike`](https://github.com/jimporter/mike) to build and maintain versioned documentation.
-
-To publish documentation, run:
+Accordingly, to build/update documentation for a particular version, run the following
+***on the corresponding version branch*** (e.g., `v0.2.x`):
 
 === "Update Existing Version"
 
@@ -82,3 +84,9 @@ To publish documentation, run:
 
 where `<version_number>` is formatted `<major>.<minor>` (e.g., `0.2`) as defined in
 [semantic versioning](https://semver.org/#summary).
+
+!!! info
+
+    LineaPy uses [`mike`](https://github.com/jimporter/mike) to build and maintain versioned documentation.
+    Specifically, it compiles different versions of the documentation into static files and commits them
+    to the `gh-pages` branch, which is continuously deployed by [Netlify](https://www.netlify.com/).
