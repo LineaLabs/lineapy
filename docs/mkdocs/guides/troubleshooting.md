@@ -9,21 +9,21 @@ for instance, when multiple scripts or notebook sessions are running at the same
 If your SQLite is locked, you can unlock it by terminating the exact process locking the file. Specifically,
 navigate to your home directory and run:
 
-``bash
+```bash
 fuser .lineapy/db.sqlite
-``
+```
 
 which will list process ID(s) connecting to the database, like so:
 
-``
+```
 .lineapy/db.sqlite: 78638
-``
+```
 
 You can then terminate the troublesome process(es) with:
 
-``bash
+```bash
 kill 78638
-``
+```
 
 which will unlock the database.
 
