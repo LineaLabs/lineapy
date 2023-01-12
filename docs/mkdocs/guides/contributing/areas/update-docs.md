@@ -26,7 +26,7 @@ to add a new page under `Concepts` section:
 3. Preview the update by starting a built-in dev-server:
 
     ```bash
-    # Run from lineapy/docs/
+    # Run from docs/
     mkdocs serve
     ```
 
@@ -44,7 +44,7 @@ For code documentation, first add or update docstrings using the
 Then, run:
 
 ```bash
-# Run from lineapy/docs/
+# Run from docs/
 python gen_ref_pages.py
 ```
 
@@ -71,14 +71,14 @@ Accordingly, to build/update documentation for a particular version, run the fol
 === "Update Existing Version"
 
     ```bash
-    # Run from lineapy/docs/
+    # Run from docs/
     mike deploy --push <version_number>
     ```
 
 === "Create New Version"
 
     ```bash
-    # Run from lineapy/docs/
+    # Run from docs/
     mike deploy --push --update-aliases <version_number> latest
     ```
 
