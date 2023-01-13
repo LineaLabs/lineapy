@@ -66,6 +66,9 @@ extra:
     link: https://www.linkedin.com/company/lineapy/
   version:
     provider: mike
+  analytics:
+    provider: google
+    property: G-7CQ167DZNG
 
 nav:
   - Home: index.md
