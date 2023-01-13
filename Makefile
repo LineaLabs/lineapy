@@ -112,7 +112,7 @@ export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
 
 airflow_venv: 
 	python -m venv ${AIRFLOW_VENV}
-	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r test_pipeline_airflow_req.txts.txt
+	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r test_pipeline_airflow_req.txt
 
 
 airflow_home: 
