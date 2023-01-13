@@ -48,9 +48,7 @@ class DVCPipelineWriter(BasePipelineWriter):
         return "dvc_dockerfile.jinja"
 
     def _write_dag(self) -> None:
-        dag_flavor = self.dag_config.get(
-            "dag_flavor", "SingleStageAllSessions"
-        )
+        dag_flavor = self.dag_config.get("dag_flavor", "StagePerArtifact")
 
         # Check if the given DAG flavor is a supported/valid one
         if dag_flavor not in DVCDagFlavor.__members__:
