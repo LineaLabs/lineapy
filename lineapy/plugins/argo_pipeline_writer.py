@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
@@ -10,7 +10,6 @@ from lineapy.plugins.task import (
     TaskDefinition,
     TaskSerializer,
     render_task_definitions,
-    render_task_io_serialize_blocks,
 )
 from lineapy.plugins.taskgen import (
     get_noop_setup_task_definition,

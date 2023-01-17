@@ -11,7 +11,6 @@ from lineapy.plugins.task import (
     TaskDefinition,
     TaskSerializer,
     render_task_definitions,
-    render_task_io_serialize_blocks,
 )
 from lineapy.plugins.taskgen import get_task_graph
 from lineapy.plugins.utils import load_plugin_template
