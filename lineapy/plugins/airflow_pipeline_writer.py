@@ -56,7 +56,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "airflow_dockerfile.jinja"
+        return "airflow/airflow_dockerfile.jinja"
 
     def _write_dag(self) -> None:
 
@@ -147,7 +147,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
         to control pipeline runs at a finer level and allows for further customization.
         """
 
-        DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
+        DAG_TEMPLATE = load_plugin_template(
+            "airflow/airflow_dag_PythonOperator.jinja"
+        )
 
         if dag_flavor == AirflowDagFlavor.PythonOperatorPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession

@@ -67,7 +67,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         Returns a code block containing all the operators for a Kubeflow DAG.
         """
 
-        DAG_TEMPLATE = load_plugin_template("kubeflow_dag.jinja")
+        DAG_TEMPLATE = load_plugin_template("kubeflow/kubeflow_dag.jinja")
 
         if dag_flavor == KubeflowDagFlavor.ComponentPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession
@@ -122,7 +122,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "kubeflow_dockerfile.jinja"
+        return "kubeflow/kubeflow_dockerfile.jinja"
 
     def get_rendered_task_definitions(
         self,

@@ -1,32 +1,28 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Airflow
+name: Kubeflow
 
 on:
   push:
     branches: [main]
     paths:
-      - "lineapy/plugins/jinja_templates/airflow/*"
+      - "lineapy/plugins/jinja_templates/kubeflow/*"
       - "lineapy/plugins/jinja_templates/task/*"
       - "lineapy/plugins/jinja_templates/module/*"
-      - "lineapy/plugins/airflow_pipeline_writer.py"
+      - "lineapy/plugins/kubeflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
-      - "tests/notebook/test_airflow.ipynb"
-      - "tests/unit/plugins/framework_specific/airflow/*"
-      - "test_pipeline_airflow_req.txt"
+      - "tests/unit/plugins/framework_specific/kubeflow/*"
   pull_request:
     paths:
-      - "lineapy/plugins/jinja_templates/airflow/*"
+      - "lineapy/plugins/jinja_templates/kubeflow/*"
       - "lineapy/plugins/jinja_templates/task/*"
       - "lineapy/plugins/jinja_templates/module/*"
-      - "lineapy/plugins/airflow_pipeline_writer.py"
+      - "lineapy/plugins/kubeflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
-      - "tests/notebook/test_airflow.ipynb"
-      - "tests/unit/plugins/framework_specific/airflow/*"
-      - "test_pipeline_airflow_req.txt"
+      - "tests/unit/plugins/framework_specific/kubeflow/*"
 jobs:
-  airflow:
+  kubeflow:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -42,4 +38,4 @@ jobs:
           pip install -r requirements.txt && python setup.py install && rm -rf build
       - name: Test with pytest
         run: |
-          pytest -vv -m 'airflow'
+          pytest -vv -m 'kubeflow'
