@@ -130,7 +130,7 @@ class DVCPipelineWriter(BasePipelineWriter):
         return full_code
 
     def _write_params(self, stages: List[dict]):
-        PARAMS_TEMPLATE = load_plugin_template("dvc_dag_params.jinja")
+        PARAMS_TEMPLATE = load_plugin_template("dvc/dvc_dag_params.jinja")
 
         params_code = PARAMS_TEMPLATE.render(STAGES=stages)
         filename = "params.yaml"

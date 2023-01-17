@@ -59,9 +59,9 @@ class RayPipelineWriter(BasePipelineWriter):
         """
 
         if self.dag_config.get("use_workflows", True):
-            DAG_TEMPLATE = load_plugin_template("ray_dag_workflow.jinja")
+            DAG_TEMPLATE = load_plugin_template("ray/ray_dag_workflow.jinja")
         else:
-            DAG_TEMPLATE = load_plugin_template("ray_dag_remote.jinja")
+            DAG_TEMPLATE = load_plugin_template("ray/ray_dag_remote.jinja")
 
         if dag_flavor == RayDagFlavor.TaskPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession
