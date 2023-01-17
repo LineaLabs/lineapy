@@ -64,10 +64,14 @@ test-github-action:
 # Additionally, the package pg and psycopg2 should be installed in the main service.
 test-parallel:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc or kubeflow or argo)" tests/
+	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc or kubeflow or argo or integration)" tests/
 
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
+
+# Update pipeline integration specific snapshots.
+test-pipelines:
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "airflow or argo or dvc or ray or kubeflow" tests/unit/plugins/framework_specific/**/test_writer_*.py
 
 lint:
 	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . 

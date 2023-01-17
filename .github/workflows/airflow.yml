@@ -12,7 +12,7 @@ on:
       - "lineapy/plugins/jinja_templates/module/*"
       - "lineapy/plugins/airflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
-      - "tests/test_airflow.ipynb"
+      - "tests/notebook/test_airflow.ipynb"
       - "tests/unit/plugins/framework_specific/airflow/*"
       - "test_pipeline_airflow_req.txt"
   pull_request:
@@ -22,7 +22,7 @@ on:
       - "lineapy/plugins/jinja_templates/module/*"
       - "lineapy/plugins/airflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
-      - "tests/test_airflow.ipynb"
+      - "tests/notebook/test_airflow.ipynb"
       - "tests/unit/plugins/framework_specific/airflow/*"
       - "test_pipeline_airflow_req.txt"
 jobs:
