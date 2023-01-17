@@ -9,6 +9,7 @@ from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
     TaskSerializer,
+    render_task_definitions,
     render_task_io_serialize_blocks,
 )
 from lineapy.plugins.taskgen import (
@@ -92,10 +93,10 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         task_names = list(task_defs.keys())
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
-        (
-            rendered_task_defs,
-            task_loading_blocks,
-        ) = self.get_rendered_task_definitions(task_defs)
+        rendered_task_defs = self.get_rendered_task_definitions(task_defs)
+        task_loading_blocks = self.get_task_input_loading_code_blocks(
+            task_defs
+        )
 
         input_parameters_dict: Dict[str, Any] = {}
         for parameter_name, input_spec in super().get_pipeline_args().items():
@@ -124,27 +125,33 @@ class KubeflowPipelineWriter(BasePipelineWriter):
     def docker_template_name(self) -> str:
         return "kubeflow/kubeflow_dockerfile.jinja"
 
-    def get_rendered_task_definitions(
-        self,
-        task_defs: Dict[str, TaskDefinition],
-    ) -> Tuple[List[str], Dict[str, str]]:
+    def get_task_input_loading_code_blocks(self, task_defs) -> Dict[str, str]:
         """
-        Returns rendered tasks for the pipeline tasks along with a dictionary to lookup
-        previous task outputs.
+        Returns a dictionary to lookup previous task outputs.
 
         The returned dictionary is used by the DAG to connect the right input files to
         output files for inter task communication.
         """
-        TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function.jinja"
-        )
-        rendered_task_defs: List[str] = []
-        task_loading_blocks: Dict[str, str] = {}
+        task_input_loading_code_blocks: Dict[str, str] = {}
 
         for task_name, task_def in task_defs.items():
-            loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, TaskSerializer.ParametrizedPickle
-            )
+            # this task will output variables to a file that other tasks can access
+            # through KFP's task.outputs attribute
+            for return_variable in task_def.return_vars:
+                task_input_loading_code_blocks[
+                    return_variable
+                ] = f'task_{task_name}.outputs["variable_{return_variable}"]'
+        return task_input_loading_code_blocks
+
+    def get_rendered_task_definitions(
+        self,
+        task_defs: Dict[str, TaskDefinition],
+    ) -> List[str]:
+        """
+        Returns rendered tasks for the pipeline tasks
+        """
+
+        def user_input_variables_fn(task_def) -> str:
 
             input_vars = task_def.user_input_variables
 
@@ -158,28 +165,14 @@ class KubeflowPipelineWriter(BasePipelineWriter):
                 for return_variable in task_def.return_vars
             ]
 
-            # this task will output variables to a file that other tasks can access
-            # through KFP's task.outputs attribute
-            for return_variable in task_def.return_vars:
-                task_loading_blocks[
-                    return_variable
-                ] = f'task_{task_name}.outputs["variable_{return_variable}"]'
+            return ", ".join(input_vars + input_paths + output_paths)
 
-            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-                MODULE_NAME=self.pipeline_name + "_module",
-                function_name=task_name,
-                user_input_variables=", ".join(
-                    input_vars + input_paths + output_paths
-                ),
-                typing_blocks=task_def.typing_blocks,
-                loading_blocks=loading_blocks,
-                pre_call_block="",
-                call_block=task_def.call_block,
-                post_call_block=task_def.post_call_block,
-                dumping_blocks=dumping_blocks,
-                include_imports_locally=True,
-                return_block="",
-            )
-            rendered_task_defs.append(task_def_rendered)
+        rendered_task_defs: List[str] = render_task_definitions(
+            task_defs,
+            self.pipeline_name,
+            task_serialization=TaskSerializer.ParametrizedPickle,
+            user_input_variables_fn=user_input_variables_fn,
+            include_imports_locally=True,
+        )
 
-        return rendered_task_defs, task_loading_blocks
+        return rendered_task_defs

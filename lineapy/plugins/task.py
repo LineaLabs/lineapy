@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from itertools import chain
-from typing import Dict, List, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
@@ -197,6 +197,54 @@ class TaskSerializer(Enum):
     # (Current Working Directory)
     CWDPickle = 3
     # TODO: lineapy.get and lineapy.save
+
+
+def render_task_definitions(
+    task_defs: Dict[str, TaskDefinition],
+    pipeline_name: str,
+    task_serialization: Optional[TaskSerializer],
+    task_name_fn: Callable = lambda task_def: task_def.function_name,
+    function_decorator_fn: Callable = lambda task_def: "",
+    user_input_variables_fn: Callable = lambda task_def: ", ".join(
+        task_def.user_input_variables
+    ),
+    typing_blocks_fn: Callable = lambda task_def: task_def.typing_blocks,
+    pre_call_block_fn: Callable = lambda task_def: task_def.pre_call_block,
+    call_block_fn: Callable = lambda task_def: task_def.call_block,
+    post_call_block_fn: Callable = lambda task_def: task_def.post_call_block,
+    return_block_fn: Callable = lambda task_def: "",
+    include_imports_locally: bool = False,
+) -> List[str]:
+    """
+    Returns rendered tasks for the pipeline tasks.
+    """
+    TASK_FUNCTION_TEMPLATE = load_plugin_template("task/task_function.jinja")
+    rendered_task_defs: List[str] = []
+    for task_name, task_def in task_defs.items():
+        if task_serialization:
+            loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
+                task_def, task_serialization
+            )
+        else:
+            loading_blocks, dumping_blocks = [], []
+
+        task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
+            MODULE_NAME=pipeline_name + "_module",
+            function_name=task_name_fn(task_def),
+            function_decorator=function_decorator_fn(task_def),
+            user_input_variables=user_input_variables_fn(task_def),
+            typing_blocks=typing_blocks_fn(task_def),
+            loading_blocks=loading_blocks,
+            pre_call_block=pre_call_block_fn(task_def),
+            call_block=call_block_fn(task_def),
+            post_call_block=post_call_block_fn(task_def),
+            dumping_blocks=dumping_blocks,
+            return_block=return_block_fn(task_def),
+            include_imports_locally=include_imports_locally,
+        )
+        rendered_task_defs.append(task_def_rendered)
+
+    return rendered_task_defs
 
 
 def render_task_io_serialize_blocks(

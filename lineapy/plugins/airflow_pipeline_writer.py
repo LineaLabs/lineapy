@@ -9,7 +9,7 @@ from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
     TaskSerializer,
-    render_task_io_serialize_blocks,
+    render_task_definitions,
 )
 from lineapy.plugins.taskgen import (
     get_task_graph,
@@ -215,27 +215,10 @@ class AirflowPipelineWriter(BasePipelineWriter):
         """
         Returns rendered tasks for the pipeline tasks.
         """
-        TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function.jinja"
+        rendered_task_defs: List[str] = render_task_definitions(
+            task_defs,
+            self.pipeline_name,
+            task_serialization=task_serialization,
         )
-        rendered_task_defs: List[str] = []
-        for task_name, task_def in task_defs.items():
-            loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, task_serialization
-            )
-            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-                function_name=task_name,
-                user_input_variables=", ".join(task_def.user_input_variables),
-                typing_blocks=task_def.typing_blocks,
-                loading_blocks=loading_blocks,
-                pre_call_block=task_def.pre_call_block,
-                call_block=task_def.call_block,
-                post_call_block=task_def.post_call_block,
-                dumping_blocks=dumping_blocks,
-                return_block="",
-                include_imports_locally=False,
-            )
-            rendered_task_defs.append(task_def_rendered)
 
-        # sort here to maintain deterministic behavior of writing
-        return sorted(rendered_task_defs)
+        return rendered_task_defs

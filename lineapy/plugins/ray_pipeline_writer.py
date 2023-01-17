@@ -5,7 +5,11 @@ from typing import Any, Dict, List
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
-from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
+from lineapy.plugins.task import (
+    DagTaskBreakdown,
+    TaskDefinition,
+    render_task_definitions,
+)
 from lineapy.plugins.taskgen import get_task_graph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -134,17 +138,13 @@ class RayPipelineWriter(BasePipelineWriter):
         output files for inter task communication.
         """
 
-        TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function.jinja"
-        )
-        rendered_task_defs: List[str] = []
-
-        for task_name, task_def in task_defs.items():
-
+        def user_input_variables_fn(task_def) -> str:
             input_vars = (
                 task_def.user_input_variables + task_def.loaded_input_variables
             )
+            return ", ".join(input_vars)
 
+        def function_decorator_fn(task_def) -> str:
             # only specify num returns in function decorator for worflow
             function_decorator = "@ray.remote"
             if not self.dag_config.get("use_workflows", True):
@@ -153,20 +153,21 @@ class RayPipelineWriter(BasePipelineWriter):
                 )
             elif len(task_def.return_vars) > 1:
                 raise RuntimeError(
-                    f"Ray workflows do not currently support tasks with multiple returns. Task {task_name} has {len(task_def.return_vars)} returns.\n\
+                    f"Ray workflows do not currently support tasks with multiple returns. Task {task_def.function_name} has {len(task_def.return_vars)} returns.\n\
                     Consider use use_workflows=False to disable using Ray Workflows API."
                 )
+            return function_decorator
 
-            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-                function_decorator=function_decorator,
-                function_name=task_name,
-                user_input_variables=", ".join(input_vars),
-                typing_blocks=task_def.typing_blocks,
-                pre_call_block="",
-                call_block=task_def.call_block,
-                post_call_block=task_def.post_call_block,
-                return_block=f"return {', '.join(task_def.return_vars)}",
-            )
-            rendered_task_defs.append(task_def_rendered)
+        def return_block_fn(task_def) -> str:
+            return f"return {', '.join(task_def.return_vars)}"
+
+        rendered_task_defs: List[str] = render_task_definitions(
+            task_defs,
+            self.pipeline_name,
+            task_serialization=None,
+            function_decorator_fn=function_decorator_fn,
+            user_input_variables_fn=user_input_variables_fn,
+            return_block_fn=return_block_fn,
+        )
 
         return rendered_task_defs
