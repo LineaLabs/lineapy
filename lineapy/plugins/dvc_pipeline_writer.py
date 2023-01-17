@@ -105,20 +105,6 @@ class DVCPipelineWriter(BasePipelineWriter):
             task_breakdown=DagTaskBreakdown.TaskPerArtifact,
         )
 
-        # stages = [
-        #     Stage(
-        #         name=key,
-        #         deps=value.loaded_input_variables,
-        #         outs=value.return_vars,
-        #         call_block=value.call_block,
-        #         user_input_variables={
-        #             key: input_parameters_dict[key]
-        #             for key in value.user_input_variables
-        #         },
-        #     ).dict()
-        #     for key, value in task_defs.items()
-        # ]
-
         full_code = DAG_TEMPLATE.render(
             MODULE_NAME=f"{self.pipeline_name}_module", TASK_DEFS=task_defs
         )
