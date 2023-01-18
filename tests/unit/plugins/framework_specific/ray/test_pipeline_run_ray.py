@@ -2,10 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from lineapy.api.models.linea_artifact import get_lineaartifactdef
-from lineapy.data.types import PipelineType
-from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
+from tests.unit.plugins.framework_specific.pipeline_helper import (
+    pipeline_file_generation_helper,
+)
 
 
 @pytest.mark.ray
@@ -66,41 +65,27 @@ def test_run_ray_dag(
     by running the DAG locally.
     """
 
-    code1 = Path(
-        "tests", "unit", "graph_reader", "inputs", input_script1
-    ).read_text()
-    execute(code1, snapshot=False)
-
-    if input_script2 != "":
-        code2 = Path(
-            "tests", "unit", "graph_reader", "inputs", input_script2
-        ).read_text()
-        execute(code2, snapshot=False)
-
-    # Write out pipeline files
-    artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
-    artifact_collection = ArtifactCollection(
+    pipeline_file_generation_helper(
+        tmp_path,
         linea_db,
-        artifact_def_list,
-        input_parameters=input_parameters,
-        dependencies=dependencies,
+        execute,
+        input_script1,
+        input_script2,
+        artifact_list,
+        "RAY",
+        pipeline_name,
+        dependencies,
+        dag_config,
+        input_parameters,
     )
-
-    # Construct pipeline writer
-    pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType.RAY,
-        artifact_collection=artifact_collection,
-        pipeline_name=pipeline_name,
-        output_dir=tmp_path,
-        dag_config=dag_config,
-    )
-    pipeline_writer.write_pipeline_files()
 
     # Run ray in new virtual env so we don't end up with version conflicts
     # with lineapy deps
     # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
+    req_path = Path(tmp_path, f"{pipeline_name}_requirements.txt")
+    virtualenv.run(f"pip install -r {req_path}", capture=False, cd=".")
     virtualenv.run(
-        "pip install -r ray-requirements.txt", capture=False, cd="."
+        "pip install -r test_pipeline_ray_req.txt", capture=False, cd="."
     )
 
     dag_path = Path(tmp_path, f"{pipeline_name}_dag.py")

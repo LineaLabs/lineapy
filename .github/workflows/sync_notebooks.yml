@@ -1,6 +1,7 @@
 name: Sync Demos and docs
 
 on:
+  workflow_dispatch:
   push:
     branches-ignore: [main]
     paths:

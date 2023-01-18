@@ -37,3 +37,7 @@ def test_mlflow_console_config():
     clean_lineapy_env_var()
     for k, v in existing_lineapy_env.items():
         os.environ[k] = v
+
+    # Reset MLFlow options to not affect subsequent tests
+    options.set("mlflow_tracking_uri", None)
+    options.set("default_ml_models_storage_backend", None)

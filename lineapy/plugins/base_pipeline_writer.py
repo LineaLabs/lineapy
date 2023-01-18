@@ -192,10 +192,7 @@ class BasePipelineWriter:
 
         return prettify(module_text)
 
-    def _write_requirements(self) -> None:
-        """
-        Write out requirements file.
-        """
+    def _get_requirements(self) -> Dict:
         libraries = dict()
         for session_artifacts in self.session_artifacts_sorted:
             session_artifact_libs = session_artifacts.get_libraries()
@@ -205,6 +202,13 @@ class BasePipelineWriter:
                         lib.package_name, lib.package_name
                     )
                     libraries[lib_name] = lib.version
+        return libraries
+
+    def _write_requirements(self) -> None:
+        """
+        Write out requirements file.
+        """
+        libraries = self._get_requirements()
         lib_names_text = "\n".join(
             [
                 lib if lib == "lineapy" else f"{lib}=={ver}"
