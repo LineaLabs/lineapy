@@ -40,6 +40,9 @@ markdown_extensions:
 
 plugins:
   - search
+  - gen-files:
+      scripts:
+      - gen_ref_pages.py
   - mkdocs-jupyter
   - mkdocstrings:
       handlers:
@@ -76,6 +79,7 @@ nav:
     - Artifact Store: concepts/artifact-store.md
     - Pipeline: concepts/pipeline.md
   - Tutorials:
+    - Tutorials Overview: tutorials/README.md
     - Getting Started with LineaPy: tutorials/00_lineapy_quickstart.ipynb
     - Working with LineaPy Artifacts: tutorials/01_using_artifacts.ipynb
     - Creating a Pipeline with LineaPy: tutorials/02_pipeline_building.ipynb
