@@ -26,7 +26,7 @@ git remote add upstream https://github.com/LineaLabs/lineapy.git
     Here, we use [venv](https://docs.python.org/3/library/venv.html) for virtual environment setup
     because it comes with Python core distribution. If you prefer a different option (e.g.,
     [conda](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)),
-    you can skip this section.
+    you can skip to [Installing Dependencies](#installing-dependencies)
 
 When done cloning, move into the repo and initiate a virtual environment:
 

@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-LineaPy runs on `Python>=3.7` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
+LineaPy runs on `Python>=3.7,<3.11` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
 so you will need to [install one](https://jupyter.org/install) for interactive computing.
 
 ### Basics

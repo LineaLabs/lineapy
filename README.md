@@ -83,7 +83,7 @@ Check this [section](#what-problems-can-lineapy-solve) for types of problems tha
 
 ### Prerequisites
 
-LineaPy runs on `Python>=3.7` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
+LineaPy runs on `Python>=3.7,<3.11` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
 so you will need to [install one](https://jupyter.org/install) for interactive computing.
 
 ### Installation
@@ -267,7 +267,7 @@ export LINEAPY_DO_NOT_TRACK=true
 
 ## What Next?
 
-To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/)
+To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/guides/contributing/process/)
 which contains many examples you can follow with. Some key resources include:
 
 | Resource            | Description                                                                              |
@@ -285,5 +285,5 @@ which contains many examples you can follow with. Some key resources include:
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
 [API Reference]: https://docs.lineapy.org/latest/reference/lineapy/
-[Contribute]: https://docs.lineapy.org/latest/
+[Contribute]: https://docs.lineapy.org/0.2/guides/contributing/process/
 [Slack]: https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q

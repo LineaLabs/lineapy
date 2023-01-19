@@ -5,7 +5,7 @@ We believe that supporting pipeline frameworks to meet data engineers where they
 
 In this guide, we will go through how to write an new pipeline integration. We will first go through important concepts before diving into concrete steps. If you want to dive right into the concrete steps, skip ahead to the [checklist](#checklist-for-writing-a-new-integration).
 
-We will use Airflow as an illustrative example, but there may not be a one-size-fits-all approach for all integrations so please adapt the content in this guide to suite your individual needs.
+We will use Airflow as an illustrative example, but there may not be a one-size-fits-all approach for all integrations so please adapt the content in this guide to suit your individual needs.
 
 ## The Module File
 

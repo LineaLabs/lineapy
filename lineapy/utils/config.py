@@ -41,7 +41,7 @@ class lineapy_config:
     replace with values in environmental variables if possible. Finally, it sets
     all values in environmental variables.
 
-    Parameters
+    Attributes
     ----------
     home_dir: Path
         Home directory of LineaPy (must be local)

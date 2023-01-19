@@ -146,7 +146,7 @@ class TaskDefinition:
     Definition of an artifact, can extend new keys(user, project, ...)
     in the future.
 
-    Parameters
+    Attributes
     ----------
     function_name: str
         suggested function name this task that wont conflict with other linea generated tasks

@@ -5,6 +5,13 @@
     LineaPy's project documentation is built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
     and deployed with [Netlify](https://www.netlify.com/).
 
+## Pre-requisites
+
+Ensure that you have the requirements needed to build docs installed. 
+`pip install -r requirements.txt` from the `docs/` subdirectory.
+
+## Instructions
+
 To add or update project documentation, take the following steps:
 
 1. Add or update a Markdown file in `docs/` folder. Check existing files or
@@ -30,7 +37,7 @@ to add a new page under `Concepts` section:
     mkdocs serve
     ```
 
-4. Once content with the change(s), open a PR.
+4. Once satisfied with the change(s), open a PR.
 
 ## Updating API Reference
 

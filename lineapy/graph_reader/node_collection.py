@@ -237,7 +237,7 @@ class InputVarNodeCollection(BaseNodeCollection):
 @dataclass
 class NodeInfo:
     """
-    Parameters
+    Attributes
     ----------
     assigned_variables: Set[str]
         variables assigned at this node

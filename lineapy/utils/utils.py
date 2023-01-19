@@ -55,8 +55,8 @@ def get_value_type(val: Any) -> Optional[ValueType]:
     if they are, then we can reference them.
 
     Note:
-
     - Watch out for error here if the Executor tests fail.
+    TODO
     - We currently just silently ignore cases we cant handle
     """
     if isinstance(val, (list, str, int)):
