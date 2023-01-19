@@ -18,7 +18,7 @@ class TaskGraph(object):
     Graph represents for task dependency
     It is constructed based on the "edges" variable
 
-    Parameters
+    Attributes
     ----------
     edges: TaskGraphEdge
         Dictionary with task name as key and set of prerequisite 

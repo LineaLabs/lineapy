@@ -85,14 +85,15 @@ def get_source_segment(source, node, padded=False):
     """
     Get source code segment of the *source* that generated *node*.
 
-    This is a polyfill for the ast.get_source_segment function
-    that was introduced in python 3.8.
+    !!! note
+        This is a polyfill for the ast.get_source_segment function
+        that was introduced in python 3.8.
 
-    If some location information (`lineno`, `end_lineno`, `col_offset`,
-    or `end_col_offset`) is missing, return None.
+        If some location information (`lineno`, `end_lineno`, `col_offset`,
+        or `end_col_offset`) is missing, return None.
 
-    If *padded* is `True`, the first line of a multi-line statement will
-    be padded with spaces to match its original position.
+        If *padded* is `True`, the first line of a multi-line statement will
+        be padded with spaces to match its original position.
     """
     try:
         if node.end_lineno is None or node.end_col_offset is None:
