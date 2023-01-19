@@ -95,6 +95,7 @@ nav:
       - Reusing Past Work: guides/usage/artifact-reuse.md
       - Pipeline Building: guides/usage/pipeline-building.md
       - Pipeline Parametrization: guides/usage/pipeline-parametrization.md
+      - Reusing Pre-Computed Artifact Values: guides/usage/pipeline-reusing-precomputed.md
       - Pipeline Testing: guides/usage/pipeline-testing.md
     - Contributing:
       - Contribution Process: guides/contributing/process.md
