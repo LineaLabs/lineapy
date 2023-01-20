@@ -50,7 +50,7 @@ bash-airflow:
 	docker-compose run --rm ${service_name}-airflow /bin/bash
 
 build-docs:
-	docker-compose run --rm ${service_name} /bin/bash -c "cd docs && rm -rf build source/build source/_build source/autogen && SPHINX_APIDOC_OPTIONS=members sphinx-apidoc -d 2 -f -o ./source/autogen ../lineapy/ && make html"
+	cd docs && python gen_ref_pages.py && mkdocs serve
 
 test:
 	make deps
