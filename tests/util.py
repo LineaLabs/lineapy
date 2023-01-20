@@ -59,30 +59,6 @@ def compare_code_via_ast(code: str, expected: str) -> bool:
     return compare_ast(ast.parse(code), ast.parse(expected))
 
 
-CSV_CODE = f"""import pandas as pd
-import lineapy
-
-df = pd.read_csv('tests/simple_data.csv')
-s = df['a'].sum()
-
-lineapy.{save.__name__}(s, "Graph With CSV Import")
-"""
-
-IMAGE_CODE = f"""import lineapy
-import pandas as pd
-import matplotlib.pyplot as plt
-from PIL.Image import open
-
-df = pd.read_csv('tests/simple_data.csv')
-plt.imsave('simple_data.png', df)
-
-img = open('simple_data.png')
-img = img.resize([200, 200])
-
-lineapy.{save.__name__}(img, "Graph With Image")
-"""
-
-
 def get_project_directory():
     return path.abspath(path.join(__file__, "../.."))
 
