@@ -267,7 +267,7 @@ export LINEAPY_DO_NOT_TRACK=true
 
 ## What Next?
 
-To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/guides/contributing/process/)
+To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/)
 which contains many examples you can follow with. Some key resources include:
 
 | Resource            | Description                                                                              |
