@@ -163,7 +163,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_breakdown=task_breakdown,
         )
 
-        # Add setup and teardown if local pickle serializer is selected
+        # Add setup and teardown if temporary directory pickle serializer is selected
         if task_serialization == TaskSerializer.TmpDirPickle:
             task_defs["setup"] = get_tmpdirpickle_setup_task_definition(
                 self.pipeline_name

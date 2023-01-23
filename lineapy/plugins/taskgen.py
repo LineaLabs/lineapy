@@ -203,8 +203,8 @@ def get_allsessions_task_definition_graph(
 
 def get_tmpdirpickle_setup_task_definition(pipeline_name):
     """
-    Returns a TaskDefinition that is used to set up pipeline that uses local pickle type
-    serialization for inter task communication.
+    Returns a TaskDefinition that is used to set up pipeline that uses pickle
+    serialization to a temporary directory for inter task communication.
 
     This task should be used at the beginning of a pipeline.
     """
@@ -229,11 +229,10 @@ def get_tmpdirpickle_setup_task_definition(pipeline_name):
 
 def get_tmpdir_teardown_task_definition(pipeline_name):
     """
-    Returns a TaskDefinition that is used to teardown a pipeline that uses local pickle type
-    serialization for inter task communication.
+    Returns a TaskDefinition that is used to teardown a pipeline that uses pickle
+    serialization to a temporary directory for inter task communication.
 
     This task should be used at the end of a pipeline.
-
     """
     TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE = load_plugin_template(
         "task/tmpdirpickle/task_teardown.jinja"

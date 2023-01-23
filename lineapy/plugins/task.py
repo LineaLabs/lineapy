@@ -183,6 +183,7 @@ class TaskSerializer(Enum):
     # Write to a pickle directory that can be parametrized
     ParametrizedPickle = 2
     # Write pickle to same directory as pipeline files
+    # (Current Working Directory)
     CWDPickle = 3
     # TODO: lineapy.get and lineapy.save
 
