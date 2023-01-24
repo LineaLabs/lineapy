@@ -149,13 +149,10 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         # use index to keep track of which rendered task should be written
         # since they are returned in the same order as the keys in task_defs
-        index = 0
-        for task_name, task_def in task_defs.items():
-            python_operator_code = rendered_task_defs[index]
-
+        for index, (task_name, task_def) in enumerate(task_defs.items()):
             stage_code = STAGE_TEMPLATE.render(
                 MODULE_NAME=f"{self.pipeline_name}_module",
-                TASK_CODE=python_operator_code,
+                TASK_CODE=rendered_task_defs[index],
                 task_name=task_name,
                 # DVC tasks read each input variable and cannot rely on DAG to provide them
                 # provide a list here for the main function body
@@ -166,5 +163,3 @@ class DVCPipelineWriter(BasePipelineWriter):
             python_operator_file = self.output_dir / filename
             python_operator_file.write_text(prettify(stage_code))
             logger.info(f"Generated DAG file: {python_operator_file}")
-
-            index += 1
