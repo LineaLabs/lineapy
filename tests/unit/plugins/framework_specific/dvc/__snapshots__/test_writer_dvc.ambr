@@ -676,33 +676,46 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h].3
   '
-  
-  import dvc_complex_h_module
   import pickle
   
+  import dvc_complex_h_module
+  
+  
   def task_f():
-      c = pickle.load(open('c.pickle','rb'))
+  
+      c = pickle.load(open("c.pickle", "rb"))
+  
       f = dvc_complex_h_module.get_f(c)
-      pickle.dump(f, open('f.pickle','wb'))
+  
+      pickle.dump(f, open("f.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_f()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h].4
   '
-  
-  import dvc_complex_h_module
   import pickle
   
+  import dvc_complex_h_module
+  
+  
   def task_h():
-      a = pickle.load(open('a.pickle','rb'))
-      c = pickle.load(open('c.pickle','rb'))
+  
+      a = pickle.load(open("a.pickle", "rb"))
+  
+      c = pickle.load(open("c.pickle", "rb"))
+  
       h = dvc_complex_h_module.get_h(a, c)
-      pickle.dump(h, open('h.pickle','wb'))
+  
+      pickle.dump(h, open("h.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_h()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies]
@@ -816,47 +829,69 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].3
   '
-  
-  import dvc_hidden_session_dependencies_module
   import pickle
   
+  import dvc_hidden_session_dependencies_module
+  
+  
   def task_a():
+  
       a = dvc_hidden_session_dependencies_module.get_a()
-      pickle.dump(a, open('a.pickle','wb'))
+  
+      pickle.dump(a, open("a.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_a()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].4
   '
-  
-  import dvc_hidden_session_dependencies_module
   import pickle
   
+  import dvc_hidden_session_dependencies_module
+  
+  
   def task_linear_second():
-      linear_first = pickle.load(open('linear_first.pickle','rb'))
-      linear_second = dvc_hidden_session_dependencies_module.get_linear_second(linear_first)
-      pickle.dump(linear_second, open('linear_second.pickle','wb'))
+  
+      linear_first = pickle.load(open("linear_first.pickle", "rb"))
+  
+      linear_second = dvc_hidden_session_dependencies_module.get_linear_second(
+          linear_first
+      )
+  
+      pickle.dump(linear_second, open("linear_second.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_linear_second()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].5
   '
-  
-  import dvc_hidden_session_dependencies_module
   import pickle
   
+  import dvc_hidden_session_dependencies_module
+  
+  
   def task_linear_third():
-      linear_first = pickle.load(open('linear_first.pickle','rb'))
-      linear_second = pickle.load(open('linear_second.pickle','rb'))
-      linear_third = dvc_hidden_session_dependencies_module.get_linear_third(linear_first, linear_second)
-      pickle.dump(linear_third, open('linear_third.pickle','wb'))
+  
+      linear_first = pickle.load(open("linear_first.pickle", "rb"))
+  
+      linear_second = pickle.load(open("linear_second.pickle", "rb"))
+  
+      linear_third = dvc_hidden_session_dependencies_module.get_linear_third(
+          linear_first, linear_second
+      )
+  
+      pickle.dump(linear_third, open("linear_third.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_linear_third()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0]
@@ -938,30 +973,40 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0].3
   '
-  
-  import dvc_pipeline_a0_b0_module
   import pickle
   
+  import dvc_pipeline_a0_b0_module
+  
+  
   def task_a0():
+  
       a0 = dvc_pipeline_a0_b0_module.get_a0()
-      pickle.dump(a0, open('a0.pickle','wb'))
+  
+      pickle.dump(a0, open("a0.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_a0()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0].4
   '
-  
-  import dvc_pipeline_a0_b0_module
   import pickle
   
+  import dvc_pipeline_a0_b0_module
+  
+  
   def task_b0():
+  
       b0 = dvc_pipeline_a0_b0_module.get_b0()
-      pickle.dump(b0, open('b0.pickle','wb'))
+  
+      pickle.dump(b0, open("b0.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_b0()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies]
@@ -1043,30 +1088,40 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies].3
   '
-  
-  import dvc_pipeline_a0_b0_dependencies_module
   import pickle
   
+  import dvc_pipeline_a0_b0_dependencies_module
+  
+  
   def task_a0():
+  
       a0 = dvc_pipeline_a0_b0_dependencies_module.get_a0()
-      pickle.dump(a0, open('a0.pickle','wb'))
+  
+      pickle.dump(a0, open("a0.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_a0()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies].4
   '
-  
-  import dvc_pipeline_a0_b0_dependencies_module
   import pickle
   
+  import dvc_pipeline_a0_b0_dependencies_module
+  
+  
   def task_b0():
+  
       b0 = dvc_pipeline_a0_b0_dependencies_module.get_b0()
-      pickle.dump(b0, open('b0.pickle','wb'))
+  
+      pickle.dump(b0, open("b0.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_b0()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar]
@@ -1147,33 +1202,46 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar].3
   '
-  
-  import dvc_pipeline_a_b0_inputpar_module
   import pickle
   
+  import dvc_pipeline_a_b0_inputpar_module
+  
+  
   def task_a():
-      b0 = pickle.load(open('b0.pickle','rb'))
+  
+      b0 = pickle.load(open("b0.pickle", "rb"))
+  
       a = dvc_pipeline_a_b0_inputpar_module.get_a(b0)
-      pickle.dump(a, open('a.pickle','wb'))
+  
+      pickle.dump(a, open("a.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_a()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar].4
   '
-  import dvc.api
-  
-  import dvc_pipeline_a_b0_inputpar_module
   import pickle
   
+  import dvc.api
+  import dvc_pipeline_a_b0_inputpar_module
+  
+  
   def task_b0(b0):
+  
+      b0 = int(b0)
+  
       b0 = dvc_pipeline_a_b0_inputpar_module.get_b0(b0)
-      pickle.dump(b0, open('b0.pickle','wb'))
+  
+      pickle.dump(b0, open("b0.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       b0 = dvc.api.params_show()["b0"]
       task_b0(b0)
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple]
@@ -1277,33 +1345,46 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple].3
   '
-  
-  import dvc_pipeline_housing_multiple_module
   import pickle
   
+  import dvc_pipeline_housing_multiple_module
+  
+  
   def task_y():
-      assets = pickle.load(open('assets.pickle','rb'))
+  
+      assets = pickle.load(open("assets.pickle", "rb"))
+  
       y = dvc_pipeline_housing_multiple_module.get_y(assets)
-      pickle.dump(y, open('y.pickle','wb'))
+  
+      pickle.dump(y, open("y.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_y()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple].4
   '
-  
-  import dvc_pipeline_housing_multiple_module
   import pickle
   
+  import dvc_pipeline_housing_multiple_module
+  
+  
   def task_p_value():
-      assets = pickle.load(open('assets.pickle','rb'))
-      y = pickle.load(open('y.pickle','rb'))
+  
+      assets = pickle.load(open("assets.pickle", "rb"))
+  
+      y = pickle.load(open("y.pickle", "rb"))
+  
       p = dvc_pipeline_housing_multiple_module.get_p_value(assets, y)
-      pickle.dump(p, open('p.pickle','wb'))
+  
+      pickle.dump(p, open("p.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_p_value()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_simple]
@@ -1377,16 +1458,21 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_simple].3
   '
-  
-  import dvc_pipeline_housing_simple_module
   import pickle
   
+  import dvc_pipeline_housing_simple_module
+  
+  
   def task_p_value():
+  
       p = dvc_pipeline_housing_simple_module.get_p_value()
-      pickle.dump(p, open('p.pickle','wb'))
+  
+      pickle.dump(p, open("p.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_p_value()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies]
@@ -1490,33 +1576,46 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies].3
   '
-  
-  import dvc_pipeline_housing_w_dependencies_module
   import pickle
   
+  import dvc_pipeline_housing_w_dependencies_module
+  
+  
   def task_y():
-      assets = pickle.load(open('assets.pickle','rb'))
+  
+      assets = pickle.load(open("assets.pickle", "rb"))
+  
       y = dvc_pipeline_housing_w_dependencies_module.get_y(assets)
-      pickle.dump(y, open('y.pickle','wb'))
+  
+      pickle.dump(y, open("y.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_y()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies].4
   '
-  
-  import dvc_pipeline_housing_w_dependencies_module
   import pickle
   
+  import dvc_pipeline_housing_w_dependencies_module
+  
+  
   def task_p_value():
-      assets = pickle.load(open('assets.pickle','rb'))
-      y = pickle.load(open('y.pickle','rb'))
+  
+      assets = pickle.load(open("assets.pickle", "rb"))
+  
+      y = pickle.load(open("y.pickle", "rb"))
+  
       p = dvc_pipeline_housing_w_dependencies_module.get_p_value(assets, y)
-      pickle.dump(p, open('p.pickle','wb'))
+  
+      pickle.dump(p, open("p.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       task_p_value()
+  
   '
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_two_input_parameter]
@@ -1587,18 +1686,27 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_two_input_parameter].3
   '
-  import dvc.api
-  
-  import dvc_pipeline_two_input_parameter_module
   import pickle
   
+  import dvc.api
+  import dvc_pipeline_two_input_parameter_module
+  
+  
   def task_pn(n, p):
+  
+      n = int(n)
+  
+      p = str(p)
+  
       pn = dvc_pipeline_two_input_parameter_module.get_pn(n, p)
-      pickle.dump(pn, open('pn.pickle','wb'))
+  
+      pickle.dump(pn, open("pn.pickle", "wb"))
+  
   
   if __name__ == "__main__":
       n = dvc.api.params_show()["n"]
       p = dvc.api.params_show()["p"]
       task_pn(n, p)
+  
   '
 ---
