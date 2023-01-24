@@ -3226,24 +3226,7 @@ You are viewing an old version of the documentation.
 <span class="normal">221</span>
 <span class="normal">222</span>
 <span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">AirflowPipelineWriter</span><span class="p">(</span><span class="n">BasePipelineWriter</span><span class="p">):</span>
+<span class="normal">224</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">AirflowPipelineWriter</span><span class="p">(</span><span class="n">BasePipelineWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for pipeline file writer. Corresponds to &quot;AIRFLOW&quot; framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3266,7 +3249,7 @@ You are viewing an old version of the documentation.
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">task_serialization</span> <span class="o">=</span> <span class="n">TaskSerializer</span><span class="p">[</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">dag_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_serialization&quot;</span><span class="p">,</span> <span class="s2">&quot;LocalPickle&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dag_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_serialization&quot;</span><span class="p">,</span> <span class="s2">&quot;TmpDirPickle&quot;</span><span class="p">)</span>
             <span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -3357,12 +3340,12 @@ You are viewing an old version of the documentation.
             <span class="n">task_breakdown</span><span class="o">=</span><span class="n">task_breakdown</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="c1"># Add setup and teardown if local pickle serializer is selected</span>
-        <span class="k">if</span> <span class="n">task_serialization</span> <span class="o">==</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">LocalPickle</span><span class="p">:</span>
-            <span class="n">task_defs</span><span class="p">[</span><span class="s2">&quot;setup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_localpickle_setup_task_definition</span><span class="p">(</span>
+        <span class="c1"># Add setup and teardown if temporary directory pickle serializer is selected</span>
+        <span class="k">if</span> <span class="n">task_serialization</span> <span class="o">==</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">TmpDirPickle</span><span class="p">:</span>
+            <span class="n">task_defs</span><span class="p">[</span><span class="s2">&quot;setup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_tmpdirpickle_setup_task_definition</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span>
             <span class="p">)</span>
-            <span class="n">task_defs</span><span class="p">[</span><span class="s2">&quot;teardown&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_localpickle_teardown_task_definition</span><span class="p">(</span>
+            <span class="n">task_defs</span><span class="p">[</span><span class="s2">&quot;teardown&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_tmpdir_teardown_task_definition</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span>
             <span class="p">)</span>
             <span class="c1"># insert in order to task_names so that setup runs first and teardown runs last</span>
@@ -3409,30 +3392,13 @@ You are viewing an old version of the documentation.
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns rendered tasks for the pipeline tasks.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/task_function.jinja&quot;</span>
+        <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_task_definitions</span><span class="p">(</span>
+            <span class="n">task_defs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span><span class="p">,</span>
+            <span class="n">task_serialization</span><span class="o">=</span><span class="n">task_serialization</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">loading_blocks</span><span class="p">,</span> <span class="n">dumping_blocks</span> <span class="o">=</span> <span class="n">render_task_io_serialize_blocks</span><span class="p">(</span>
-                <span class="n">task_def</span><span class="p">,</span> <span class="n">task_serialization</span>
-            <span class="p">)</span>
-            <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-                <span class="n">function_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
-                <span class="n">user_input_variables</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span><span class="p">),</span>
-                <span class="n">typing_blocks</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
-                <span class="n">loading_blocks</span><span class="o">=</span><span class="n">loading_blocks</span><span class="p">,</span>
-                <span class="n">pre_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">pre_call_block</span><span class="p">,</span>
-                <span class="n">call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
-                <span class="n">post_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span><span class="p">,</span>
-                <span class="n">dumping_blocks</span><span class="o">=</span><span class="n">dumping_blocks</span><span class="p">,</span>
-                <span class="n">return_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-                <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
 
-        <span class="c1"># sort here to maintain deterministic behavior of writing</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rendered_task_defs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rendered_task_defs</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -3478,24 +3444,7 @@ You are viewing an old version of the documentation.
 <span class="normal">221</span>
 <span class="normal">222</span>
 <span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
+<span class="normal">224</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
     <span class="n">task_serialization</span><span class="p">:</span> <span class="n">TaskSerializer</span><span class="p">,</span>
@@ -3503,30 +3452,13 @@ You are viewing an old version of the documentation.
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns rendered tasks for the pipeline tasks.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-        <span class="s2">&quot;task/task_function.jinja&quot;</span>
+    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_task_definitions</span><span class="p">(</span>
+        <span class="n">task_defs</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span><span class="p">,</span>
+        <span class="n">task_serialization</span><span class="o">=</span><span class="n">task_serialization</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">loading_blocks</span><span class="p">,</span> <span class="n">dumping_blocks</span> <span class="o">=</span> <span class="n">render_task_io_serialize_blocks</span><span class="p">(</span>
-            <span class="n">task_def</span><span class="p">,</span> <span class="n">task_serialization</span>
-        <span class="p">)</span>
-        <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-            <span class="n">function_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
-            <span class="n">user_input_variables</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span><span class="p">),</span>
-            <span class="n">typing_blocks</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
-            <span class="n">loading_blocks</span><span class="o">=</span><span class="n">loading_blocks</span><span class="p">,</span>
-            <span class="n">pre_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">pre_call_block</span><span class="p">,</span>
-            <span class="n">call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
-            <span class="n">post_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span><span class="p">,</span>
-            <span class="n">dumping_blocks</span><span class="o">=</span><span class="n">dumping_blocks</span><span class="p">,</span>
-            <span class="n">return_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
 
-    <span class="c1"># sort here to maintain deterministic behavior of writing</span>
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rendered_task_defs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rendered_task_defs</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>

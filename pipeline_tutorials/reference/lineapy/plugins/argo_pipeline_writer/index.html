@@ -2022,6 +2022,13 @@ You are viewing an old version of the documentation.
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#lineapy.plugins.argo_pipeline_writer.ARGOPipelineWriter.get_task_loading_blocks" class="md-nav__link">
+    get_task_loading_blocks()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2994,6 +3001,13 @@ You are viewing an old version of the documentation.
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#lineapy.plugins.argo_pipeline_writer.ARGOPipelineWriter.get_task_loading_blocks" class="md-nav__link">
+    get_task_loading_blocks()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3189,21 +3203,7 @@ You are viewing an old version of the documentation.
 <span class="normal">181</span>
 <span class="normal">182</span>
 <span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ARGOPipelineWriter</span><span class="p">(</span><span class="n">BasePipelineWriter</span><span class="p">):</span>
+<span class="normal">184</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ARGOPipelineWriter</span><span class="p">(</span><span class="n">BasePipelineWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for pipeline file writer. Corresponds to &quot;ARGO&quot; framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3259,10 +3259,8 @@ You are viewing an old version of the documentation.
 
         <span class="n">task_defs</span> <span class="o">=</span> <span class="p">{</span><span class="n">tn</span><span class="p">:</span> <span class="n">task_defs</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="n">task_names</span><span class="p">}</span>
 
-        <span class="p">(</span>
-            <span class="n">rendered_task_defs</span><span class="p">,</span>
-            <span class="n">task_loading_blocks</span><span class="p">,</span>
-        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rendered_task_definitions</span><span class="p">(</span><span class="n">task_defs</span><span class="p">)</span>
+        <span class="n">rendered_task_defs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rendered_task_definitions</span><span class="p">(</span><span class="n">task_defs</span><span class="p">)</span>
+        <span class="n">task_loading_blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_loading_blocks</span><span class="p">(</span><span class="n">task_defs</span><span class="p">)</span>
 
         <span class="c1"># Handle dependencies</span>
         <span class="n">task_dependencies</span> <span class="o">=</span> <span class="nb">reversed</span><span class="p">(</span>
@@ -3307,52 +3305,40 @@ You are viewing an old version of the documentation.
 
         <span class="k">return</span> <span class="n">full_code</span>
 
-    <span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">get_task_loading_blocks</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns rendered tasks for the pipeline tasks along with a dictionary to lookup</span>
-<span class="sd">        previous task outputs.</span>
+<span class="sd">        Returns  a dictionary to lookup previous task outputs.</span>
 <span class="sd">        The returned dictionary is used by the DAG to connect the right input files to</span>
 <span class="sd">        output files for inter task communication.</span>
 <span class="sd">        This method originates from:</span>
 <span class="sd">        https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be47e3acc0342b4f/examples/k8s_sa.py#L12</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/task_function.jinja&quot;</span>
-        <span class="p">)</span>
-        <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">task_loading_blocks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">loading_blocks</span><span class="p">,</span> <span class="n">dumping_blocks</span> <span class="o">=</span> <span class="n">render_task_io_serialize_blocks</span><span class="p">(</span>
-                <span class="n">task_def</span><span class="p">,</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">LocalPickle</span>
-            <span class="p">)</span>
-
-            <span class="n">input_vars</span> <span class="o">=</span> <span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span>
-
-            <span class="c1"># this task will output variables to a file that other tasks can access</span>
-
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">return_variable</span> <span class="ow">in</span> <span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">:</span>
                 <span class="n">task_loading_blocks</span><span class="p">[</span><span class="n">return_variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">return_variable</span>
+        <span class="k">return</span> <span class="n">task_loading_blocks</span>
 
-            <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-                <span class="n">MODULE_NAME</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span> <span class="o">+</span> <span class="s2">&quot;_module&quot;</span><span class="p">,</span>
-                <span class="n">function_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
-                <span class="n">user_input_variables</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_vars</span><span class="p">),</span>
-                <span class="n">typing_blocks</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
-                <span class="n">loading_blocks</span><span class="o">=</span><span class="n">loading_blocks</span><span class="p">,</span>
-                <span class="n">pre_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">pre_call_block</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                <span class="n">call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
-                <span class="n">post_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                <span class="n">dumping_blocks</span><span class="o">=</span><span class="n">dumping_blocks</span><span class="p">,</span>
-                <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">return_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns rendered tasks for the pipeline tasks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="n">rendered_task_defs</span><span class="p">,</span> <span class="n">task_loading_blocks</span>
+        <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_task_definitions</span><span class="p">(</span>
+            <span class="n">task_defs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span><span class="p">,</span>
+            <span class="n">task_serialization</span><span class="o">=</span><span class="n">TaskSerializer</span><span class="o">.</span><span class="n">TmpDirPickle</span><span class="p">,</span>
+            <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rendered_task_defs</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -3380,32 +3366,11 @@ You are viewing an old version of the documentation.
 
   <div class="doc doc-contents ">
   
-      <p>Returns rendered tasks for the pipeline tasks along with a dictionary to lookup
-previous task outputs.
-The returned dictionary is used by the DAG to connect the right input files to
-output files for inter task communication.
-This method originates from:
-https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be47e3acc0342b4f/examples/k8s_sa.py#L12</p>
+      <p>Returns rendered tasks for the pipeline tasks</p>
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/argo_pipeline_writer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">169</span>
 <span class="normal">170</span>
 <span class="normal">171</span>
 <span class="normal">172</span>
@@ -3420,66 +3385,81 @@ https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be4
 <span class="normal">181</span>
 <span class="normal">182</span>
 <span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
+<span class="normal">184</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns rendered tasks for the pipeline tasks along with a dictionary to lookup</span>
-<span class="sd">    previous task outputs.</span>
+<span class="sd">    Returns rendered tasks for the pipeline tasks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_task_definitions</span><span class="p">(</span>
+        <span class="n">task_defs</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span><span class="p">,</span>
+        <span class="n">task_serialization</span><span class="o">=</span><span class="n">TaskSerializer</span><span class="o">.</span><span class="n">TmpDirPickle</span><span class="p">,</span>
+        <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rendered_task_defs</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="lineapy.plugins.argo_pipeline_writer.ARGOPipelineWriter.get_task_loading_blocks" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_task_loading_blocks</span><span class="p">(</span><span class="n">task_defs</span><span class="p">)</span></code>
+
+<a href="#lineapy.plugins.argo_pipeline_writer.ARGOPipelineWriter.get_task_loading_blocks" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns  a dictionary to lookup previous task outputs.
+The returned dictionary is used by the DAG to connect the right input files to
+output files for inter task communication.
+This method originates from:
+https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be47e3acc0342b4f/examples/k8s_sa.py#L12</p>
+
+      <details class="quote">
+        <summary>Source code in <code>lineapy/plugins/argo_pipeline_writer.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_task_loading_blocks</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns  a dictionary to lookup previous task outputs.</span>
 <span class="sd">    The returned dictionary is used by the DAG to connect the right input files to</span>
 <span class="sd">    output files for inter task communication.</span>
 <span class="sd">    This method originates from:</span>
 <span class="sd">    https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be47e3acc0342b4f/examples/k8s_sa.py#L12</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-        <span class="s2">&quot;task/task_function.jinja&quot;</span>
-    <span class="p">)</span>
-    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">task_loading_blocks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">loading_blocks</span><span class="p">,</span> <span class="n">dumping_blocks</span> <span class="o">=</span> <span class="n">render_task_io_serialize_blocks</span><span class="p">(</span>
-            <span class="n">task_def</span><span class="p">,</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">LocalPickle</span>
-        <span class="p">)</span>
-
-        <span class="n">input_vars</span> <span class="o">=</span> <span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span>
-
-        <span class="c1"># this task will output variables to a file that other tasks can access</span>
-
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">return_variable</span> <span class="ow">in</span> <span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">:</span>
             <span class="n">task_loading_blocks</span><span class="p">[</span><span class="n">return_variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">return_variable</span>
-
-        <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-            <span class="n">MODULE_NAME</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span> <span class="o">+</span> <span class="s2">&quot;_module&quot;</span><span class="p">,</span>
-            <span class="n">function_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
-            <span class="n">user_input_variables</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_vars</span><span class="p">),</span>
-            <span class="n">typing_blocks</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
-            <span class="n">loading_blocks</span><span class="o">=</span><span class="n">loading_blocks</span><span class="p">,</span>
-            <span class="n">pre_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">pre_call_block</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
-            <span class="n">post_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">dumping_blocks</span><span class="o">=</span><span class="n">dumping_blocks</span><span class="p">,</span>
-            <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">return_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">rendered_task_defs</span><span class="p">,</span> <span class="n">task_loading_blocks</span>
+    <span class="k">return</span> <span class="n">task_loading_blocks</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
