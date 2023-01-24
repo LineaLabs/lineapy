@@ -1,0 +1,32 @@
+<head>
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+</head>
+{% set feedback = "exists" %}
+{% if page.meta and page.meta.hide and "feedback" in page.meta.hide %}
+{% set feedback = None %}
+{% endif %}
+{% if feedback %}
+<hr>
+<form name="docs-feedback" method="POST" onSubmit="submit" data-netlify="true" netlify-honeypot="bot-field">
+    <div class="mdc-card" style="padding:0px 25px 25px 25px">
+        <section>
+            <h2 class="mdc-card__title mdc-card__title--large" style="text-align:center">Was this helpful?</h2>
+            <h5 class="mdc-card__subtitle" style="text-align:center">Help us improve docs with your feedback!</h5>
+        </section>
+        <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label">
+            <input name="page" type="text" value="{{ '/' ~ page.url }}" hidden />
+            <span class="mdc-notched-outline">
+                <span class="mdc-notched-outline__leading"></span>
+                <span class="mdc-notched-outline__trailing"></span>
+            </span>
+            <span class="mdc-text-field__resizer">
+                <textarea name="message" class="mdc-text-field__input" rows="3"></textarea>
+            </span>
+        </label>
+        <button type="submit" class="mdc-button mdc-button--raised" style="margin-top:15px">
+            <span class="mdc-button__label">Send</span>
+        </button>
+    </div>
+</form>
+{% endif %}

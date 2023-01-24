@@ -22,10 +22,15 @@ def get_task_graph(
     task_breakdown parameter. This will give the main bulk of tasks that should
     be included in a pipeline dag file.
 
-    Returns a `task_definitions` dictionary, which maps a key corresponding to the task name to
-    Linea's TaskDefinition object.
-    Specific framework implementations of PipelineWriters should serialize the TaskDefinition
-    objects to match the format for pipeline arguments that is expected by that framework.
+    Returns
+    -------
+    Tuple[Dict[str, TaskDefinition], TaskGraph]
+        Returns a `task_definitions` dictionary, which maps a key corresponding
+        to the task name to Linea's TaskDefinition object.
+
+    Specific framework implementations of PipelineWriters should serialize the
+    TaskDefinition objects to match the format for pipeline arguments that is
+    expected by that framework.
     """
     if task_breakdown == DagTaskBreakdown.TaskAllSessions:
         return get_allsessions_task_definition_graph(

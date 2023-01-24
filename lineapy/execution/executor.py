@@ -283,7 +283,7 @@ class Executor:
             value = self._lookup_value(node.name)
             end_time = datetime.now()
         except KeyError:
-            # Matches Python's message---our execution causes a KeyError,
+            # Matches Python's message -- our execution causes a KeyError,
             # but for the same user code, vanilla Python would throw NameError
             # which is why we needed to change the error type.
             message = f"name '{node.name}' is not defined"
@@ -454,10 +454,10 @@ class Executor:
     def execute_graph(self, graph: Graph) -> None:
         """
         Executes a graph in visit order making sure to setup the working directory first.
-
-        TODO: Possibly move to graph instead of on executor, since it rather cleanly uses the
-        executor's public API? Or move to function?
         """
+        # TODO: Possibly move to graph instead of on executor, since it rather
+        # cleanly uses the executor's public API? Or move to function?
+
         logger.debug("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)

@@ -74,14 +74,15 @@ logger = logging.getLogger(__name__)
 
 class RelationalLineaDB:
     """
-    - Note that LineaDB coordinates with asset manager and relational db.
+    ??? note
 
-      - The asset manager deals with binaries (e.g., cached values)
-        The relational db deals with more structured data,
-        such as the Nodes and edges.
-    - Also, at some point we might have a "cache" such that the readers
-      don't have to go to the database if it's already
-      loaded, but that's low priority.
+        - LineaDB coordinates with asset manager and relational db.
+        - The asset manager deals with binaries (e.g., cached values)
+            The relational db deals with more structured data,
+            such as the Nodes and edges.
+        - Also, at some point we might have a "cache" such that the readers
+        don't have to go to the database if it's already
+        loaded, but that's low priority.
     """
 
     def __init__(self, url: str):
@@ -572,9 +573,6 @@ class RelationalLineaDB:
     ) -> Optional[str]:
         """
         Get the path to the value of the artifact.
-
-        :param other: Additional argument to let you query another artifact's value path.
-            This is set to be optional and if its not set, we will use the current artifact
         """
         value = self.get_node_value_from_db(node_id, execution_id)
         if not value:

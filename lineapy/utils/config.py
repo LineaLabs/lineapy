@@ -33,8 +33,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class lineapy_config:
-    """LineaPy Configuration
-
+    """
     A dataclass that holds configuration items and sets them as environmental
     variables. All items are initialized with default value. Then replace
     with values in the configuration file (if it is existing in LINEAPY_HOME_DIR,
@@ -42,18 +41,32 @@ class lineapy_config:
     replace with values in environmental variables if possible. Finally, it sets
     all values in environmental variables.
 
-    :param home_dir: home directory of LineaPy (must be local)
-    :param database_url: database connection string for LineaPy database
-    :param artifact_storage_dir: directory for storing artifacts
-    :param customized_annotation_folder: directory for storing customized annotations
-    :param do_not_track: opt out or user analytics
-    :param logging_level: logging level
-    :param logging_file: logging file location (only support local for at this time)
-    :param storage_options: a dictionary for artifact storage configuration(same as storage_options in pandas, Dask and fsspec)
-    :param mlflow_registry_uri: URI for MLflow registry
-    :param mlflow_tracking_uri: URI for MLflow tracking
-    :param default_ml_models_storage_backend: Default storage backend if
-        at least one of mlflow_tracking_uri or mlflow_registry_uri is not empty
+    Attributes
+    ----------
+    home_dir: Path
+        Home directory of LineaPy (must be local)
+    database_url: Optional[str]
+        Database connection string for LineaPy database
+    artifact_storage_dir: Optional[FilePath]
+        Directory for storing artifacts
+    customized_annotation_folder: Optional[FilePath]
+        Directory for storing customized annotations
+    do_not_track: bool
+        Opt out or user analytics
+    logging_level: str
+        Logging level
+    logging_file: Optional[Path]
+        Logging file location (only support local for at this time)
+    storage_options: Optional[Dict[str, Any]]
+        Dictionary for artifact storage configuration
+        (same as storage_options in pandas, Dask and fsspec)
+    mlflow_registry_uri: Optional[str]
+        URI for MLflow registry
+    mlflow_tracking_uri: Optional[str]
+        URI for MLflow tracking
+    default_ml_models_storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
+        Default storage backend if at least one of mlflow_tracking_uri
+        or mlflow_registry_uri is not empty
     """
 
     home_dir: Path
@@ -219,7 +232,9 @@ class lineapy_config:
                     )
 
     def _set_defaults(self):
-        """Fill empty configuration items"""
+        """
+        Fill empty configuration items
+        """
         self.safe_get("logging_file")
         self.safe_get("database_url")
         self.safe_get("artifact_storage_dir")
@@ -227,8 +242,10 @@ class lineapy_config:
 
     def safe_get(self, name) -> FilePath:
         def safe_get_folder(name) -> FilePath:
-            """Return folder as FilePath
-            Create the folder if it doesn't exist"""
+            """
+            Return folder as FilePath
+            Create the folder if it doesn't exist
+            """
 
             if isinstance(self.__dict__[name], Path) or isinstance(
                 fsspec.core.url_to_fs(self.__dict__[name])[0],

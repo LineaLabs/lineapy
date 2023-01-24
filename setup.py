@@ -103,11 +103,6 @@ benchmark_libs = [
 ]
 
 doc_libs = [
-    "sphinx",
-    "nbsphinx",
-    "sphinx_rtd_theme",
-    "sphinx-autobuild",
-    "sphinx_design",
     "pandoc",
 ]
 

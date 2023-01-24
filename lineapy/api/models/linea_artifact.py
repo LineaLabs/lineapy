@@ -39,7 +39,7 @@ def get_lineaartifactdef(
     art_entry: Union[str, Tuple[str, Optional[int]]]
 ) -> LineaArtifactDef:
     """
-    Convert artifact entry (string) or (string, integer) to LineaArtifactDef
+    Convert artifact entry (string) or (string, integer) to `LineaArtifactDef`.
     """
     args: LineaArtifactDef
     if isinstance(art_entry, str):
@@ -56,7 +56,7 @@ def get_lineaartifactdef(
 @dataclass
 class LineaArtifact:
     """LineaArtifact
-    exposes functionalities we offer around the artifact.
+    Exposes functionalities we offer around the artifact.
     """
 
     db: RelationalLineaDB = field(repr=False)
@@ -72,7 +72,7 @@ class LineaArtifact:
     _artifact_id: Optional[int] = field(default=None, repr=False)
     date_created: Optional[datetime] = field(default=None, repr=False)
     # setting repr to false for date_created, _artifact_id for now since it duplicates version
-    """Optional because date_created and _artifact_id cannot be set by the user. 
+    """Optional because `date_created` and `_artifact_id` cannot be set by the user. 
     it is supposed to be automatically set when the artifact gets saved to the 
     db. so when creating lineaArtifact the first time, it will be unset. When 
     you get the artifact or list of artifacts as an artifact store, we retrieve 
@@ -105,7 +105,7 @@ class LineaArtifact:
     @lru_cache(maxsize=None)
     def get_value(self) -> object:
         """
-        Get and return the value of the artifact
+        Get and return the value of the artifact.
         """
         metadata = self.get_metadata()
         linea_metadata = metadata["lineapy"]
@@ -127,11 +127,10 @@ class LineaArtifact:
 
     def _get_storage_backend(self, storage_path) -> ARTIFACT_STORAGE_BACKEND:
         """
-        Get storage backend based on the storage path
-
+        Get storage backend based on the storage path.
         """
         if isinstance(storage_path, str) and storage_path.startswith("runs:"):
-            # MLflow log_model should return the model URI with prefix ``runs:``
+            # MLflow log_model should return the model URI with prefix `runs:`
             return ARTIFACT_STORAGE_BACKEND.mlflow
         else:
             return ARTIFACT_STORAGE_BACKEND.lineapy
@@ -139,15 +138,19 @@ class LineaArtifact:
     @lru_cache(maxsize=None)
     def get_metadata(self, lineapy_only: bool = False) -> ArtifactInfo:
         """
-        Get artifact backend storage metadata
+        Get artifact backend storage metadata.
 
-        :param lineapy_only: If ``False``, will include both LineaPy related
+        Parameters
+        ----------
+        lineapy_only: bool
+            If `False`, will include both LineaPy related
             metadata and metadata from storage backend(if it is not LineaPy).
-            If ``True``, will only return LineaPy related metadata no matter
+            If `True`, will only return LineaPy related metadata no matter
             which storage backend is using.
 
-        :return: Metadata for artifact backend storage.
-
+        Returns
+        -------
+            Metadata for artifact backend storage.
         """
 
         assert isinstance(self._artifact_id, int)
@@ -199,9 +202,11 @@ class LineaArtifact:
         """
         Return the slice subgraph for the artifact.
 
-        :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
-                Defaults to ``False``.
-
+        Parameters
+        ----------
+        keep_lineapy_save: bool
+            Whether to retain `lineapy.save()` in code slice.
+            Defaults to `False`.
         """
         session_graph = Graph.create_session_graph(self.db, self._session_id)
         return get_slice_graph(
@@ -225,15 +230,18 @@ class LineaArtifact:
         include_non_slice_as_comment: bool = False,
     ) -> str:
         """
-        Return the slices code for the artifact
+        Return the slices code for the artifact.
 
-        :param use_lineapy_serialization: If ``True``, will use the lineapy serialization to get the code.
-                We will hide the serialization and the value pickler irrespective of the value type.
-                If ``False``, will use remove all the lineapy references and instead use the underlying serializer directly.
-                Currently, we use the native ``pickle`` serializer.
-        :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
-                Defaults to ``False``.
-
+        Parameters
+        ----------
+        use_lineapy_serialization: bool
+            If `True`, will use the lineapy serialization to get the code.
+            We will hide the serialization and the value pickler irrespective of the value type.
+            If `False`, will use remove all the lineapy references and instead use the underlying serializer directly.
+            Currently, we use the native `pickle` serializer.
+        keep_lineapy_save: bool
+            Whether to retain `lineapy.save()` in code slice.
+            Defaults to `False`.
         """
         # FIXME: this seems a little heavy to just get the slice?
         track(
@@ -258,16 +266,18 @@ class LineaArtifact:
         return prettify(code)
 
     @lru_cache(maxsize=None)
-    def get_session_code(self, use_lineapy_serialization=True) -> str:
+    def get_session_code(self, use_lineapy_serialization: bool = True) -> str:
         """
         Return the raw session code for the artifact. This will include any
         comments and non-code lines.
 
-        :param use_lineapy_serialization: If ``True``, will use the lineapy serialization to get the code.
-                We will hide the serialization and the value pickler irrespective of the value type.
-                If ``False``, will use remove all the lineapy references and instead use the underlying serializer directly.
-                Currently, we use the native ``pickle`` serializer.
-
+        Parameters
+        ----------
+        use_lineapy_serialization: bool
+            If `True`, will use the lineapy serialization to get the code.
+            We will hide the serialization and the value pickler irrespective of the value type.
+            If `False`, will use remove all the lineapy references and instead use the underlying serializer directly.
+            Currently, we use the native `pickle` serializer.
         """
         # using this over get_source_code_from_graph because it will process the
         # graph code and not return the original code with comments etc.
@@ -287,7 +297,6 @@ class LineaArtifact:
     def visualize(self, path: Optional[str] = None) -> None:
         """
         Displays the graph for this artifact.
-
         If a path is provided, will save it to that file instead.
         """
         # adding this inside function to lazy import graphviz.
@@ -304,7 +313,6 @@ class LineaArtifact:
     def execute(self) -> object:
         """
         Executes the artifact graph.
-
         """
         slice_exec = Executor(self.db, globals())
         slice_exec.execute_graph(self._get_subgraph())
@@ -315,7 +323,7 @@ class LineaArtifact:
         db: RelationalLineaDB, artifactorm: ArtifactORM
     ) -> "LineaArtifact":
         """
-        Return LineaArtifact from artifactorm
+        Return LineaArtifact from artifactorm.
         """
         assert isinstance(artifactorm.name, str)
         return LineaArtifact(
@@ -336,7 +344,7 @@ class LineaArtifact:
         version: Optional[int] = None,
     ) -> "LineaArtifact":
         """
-        Return LineaArtifact from artifact name and version
+        Return LineaArtifact from artifact name and version.
         """
         return LineaArtifact.get_artifact_from_orm(
             db, db.get_artifactorm_by_name(artifact_name, version)
@@ -347,7 +355,7 @@ class LineaArtifact:
         db: RelationalLineaDB, artifactdef: LineaArtifactDef
     ) -> "LineaArtifact":
         """
-        Return LineaArtifact from LineaArtifactDef
+        Return LineaArtifact from `LineaArtifactDef`.
         """
         return LineaArtifact.get_artifact_from_name_and_version(
             db, **artifactdef

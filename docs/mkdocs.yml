@@ -1,0 +1,110 @@
+# Example mkdocs.yml here: https://github.com/squidfunk/mkdocs-material/blob/master/mkdocs.yml
+docs_dir: mkdocs
+site_name: LineaPy
+repo_name: LineaLabs/lineapy
+repo_url: https://github.com/LineaLabs/lineapy
+copyright: Copyright &copy; 2022 - 2023 Linea Labs
+
+theme:
+  name: material
+  custom_dir: overrides
+  logo: images/icon-lineapy-white.png
+  favicon: images/lineapy-square-light.png
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+    - header.autohide
+    - navigation.instant
+    - navigation.tabs
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true 
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+      - gen_ref_pages.py
+  - mkdocs-jupyter
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [..]
+          options:
+            docstring_style: numpy
+  - literate-nav:
+      nav_file: nav.md
+  - section-index
+  - mike:
+      canonical_version: latest
+
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/LineaLabs/lineapy
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/lineapy_oss
+  - icon: fontawesome/brands/slack
+    link: https://lineacommunity.slack.com/join/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q#/shared-invite/email
+  - icon: fontawesome/brands/linkedin
+    link: https://www.linkedin.com/company/lineapy/
+  version:
+    provider: mike
+  analytics:
+    provider: google
+    property: G-7CQ167DZNG
+
+nav:
+  - Home: index.md
+  - Concepts:
+    - Artifact: concepts/artifact.md
+    - Artifact Store: concepts/artifact-store.md
+    - Pipeline: concepts/pipeline.md
+  - Tutorials:
+    - Tutorials Overview: tutorials/README.md
+    - Getting Started with LineaPy: tutorials/00_lineapy_quickstart.ipynb
+    - Working with LineaPy Artifacts: tutorials/01_using_artifacts.ipynb
+    - Creating a Pipeline with LineaPy: tutorials/02_pipeline_building.ipynb
+  - Guides:
+    - Installation and Setup: guides/setup.md
+    - Configuration:
+      - Overview: guides/configuration/overview.md
+      - Storage Location: guides/configuration/storage-location.md
+      - Storage Backend: guides/configuration/storage-backend.md
+    - Usage:
+      - Code Cleanup: guides/usage/code-cleanup.md
+      - Package Annotation: guides/usage/package-annotation.md
+      - Reusing Past Work: guides/usage/artifact-reuse.md
+      - Pipeline Building: guides/usage/pipeline-building.md
+      - Pipeline Parametrization: guides/usage/pipeline-parametrization.md
+      - Reusing Pre-Computed Artifact Values: guides/usage/pipeline-reusing-precomputed.md
+      - Pipeline Testing: guides/usage/pipeline-testing.md
+    - Contributing:
+      - Contribution Process: guides/contributing/process.md
+      - Setup and Basics: guides/contributing/setup.md
+      - Recommended Practices: guides/contributing/tips.md
+      - Areas to Contribute:
+        - Documentation: guides/contributing/areas/update-docs.md
+        - Package Annotation: guides/contributing/areas/annotate-package.md
+        - Integrating Pipeline Frameworks: guides/contributing/areas/integrate-pipeline-framework.md
+    - Troubleshooting: guides/troubleshooting.md
+    - More Help: guides/support.md
+  - API Reference: reference/

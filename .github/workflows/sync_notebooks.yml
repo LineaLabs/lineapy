@@ -17,10 +17,10 @@ jobs:
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
 
       - name: "Copy demo & tutorial notebooks to top level .colab folder"
-        run: mkdir -p .colab/ && cp -R examples/use_cases/* .colab/ && cp -R examples/tutorials/* .colab/
+        run: rm -rf .colab/ && mkdir -p .colab/ && cp -R examples/use_cases/* .colab/ && cp -R examples/tutorials/* .colab/
 
       - name: "Copy tutorial notebooks to docs"
-        run: cp -R examples/tutorials/* docs/source/tutorials/
+        run: cp -R examples/tutorials/* docs/mkdocs/tutorials/
 
       - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
         run: |
@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
-          git add .
+          git add .colab/
           (git diff --quiet && git diff --staged --quiet) || git commit -m "Refresh demos folder and update docs"
       - name: push synced changes
         uses: ad-m/github-push-action@master

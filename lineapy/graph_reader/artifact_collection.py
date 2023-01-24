@@ -290,13 +290,15 @@ class ArtifactCollection:
         topologically sort a list of SessionArtifacts objects.
         Raise an exception if the graph contains a cycle.
 
-        NOTE: Current implementation of LineaPy demands it be able to
-        linearly order different sessions, which prohibits any
-        circular dependencies between sessions, e.g.,
-        Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1).
-        We need to implement inter-session graph merge if we want to
-        support such circular dependencies between sessions,
-        which is a future project.
+        ??? note
+
+            Current implementation of LineaPy demands it be able to
+            linearly order different sessions, which prohibits any
+            circular dependencies between sessions, e.g.,
+            Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1).
+            We need to implement inter-session graph merge if we want to
+            support such circular dependencies between sessions,
+            which is a future project.
         """
         # Sort the session_id
         session_id_sorted = self.inter_session_taskgraph.get_taskorder()

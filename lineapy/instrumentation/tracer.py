@@ -80,7 +80,7 @@ class Tracer:
     ):
         """
         Tracer is internal to Linea and it implements the "hidden APIs"
-          that are setup by the transformer.
+        that are setup by the transformer.
         It performs the following key functionalities:
         - Creates the graph nodes and inserts into the database.
         - Maintains data structures to help creating the graph IR
@@ -258,7 +258,7 @@ class Tracer:
 
         - user defined variable & function definitions
         - imported libs
-        - unknown runtime magic functions---special case to LookupNode
+        - unknown runtime magic functions &mdash; special case to LookupNode
 
           - builtin functions, e.g., min
           - custom runtime, e.g., get_ipython
@@ -321,15 +321,19 @@ class Tracer:
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
-        - `name`: the name of the module
-        - `alias`: the module could be aliased, e.g., import pandas as pd
-        - `attributes`: a list of functions imported from the library.
-           It keys the aliased name to the original name.
+        Parameters
+        ----------
+        name: str
+            the name of the module
+        alias: Optional[str]
+            the module could be aliased, e.g., import pandas as pd
+        attributes: Optional[Dict[str, str]]
+            a list of functions imported from the library.
+            It keys the aliased name to the original name.
 
-        NOTE
-        ----
-        - The input args would _either_ have alias or attributes, but not both
-        - Didn't call the function import because I think that's a protected name
+        ??? note
+            - The input args would _either_ have alias or attributes, but not both
+            - Didn't call the function import because I think that's a protected name
 
         note that version and path will be introspected at runtime
         """
@@ -435,29 +439,38 @@ class Tracer:
         **keyword_arguments: Node,
     ) -> CallNode:
         """
-        :param function_node: the function node to call/execute
-        :param source_location: the source info from user code
-        :param arguments: positional arguments. These are passed as either Nodes (named nodes, constants, etc)
-                            or tuples (starred, the node) where the starred is a boolean to indicate whether
-                            the argument is supposed to be splatted before passing to the function (This is
-                            the case where you might call a function like so ``foo(1, *[2, 3])`` ). The boolean is made
-                            optional simply to support the legacy way of calling this function and not having to pass
-                            the tuples for every single case from node_transformer
-        :param keyword_arguments: keyword arguments. These are passed as a dictionary of keyword arguments to the
-                                    function. Similar to ``*positional_arguments``, the keyword arguments can also be splatted
-                                    by naming the key as ``unpack_<index>`` where <index> is the index of the argument. In this
-                                    case, the dictionary will be unpacked and passed as keyword arguments to the function.
-                                    The keyword arguments are processed in order of passing so any keyword conflicts will
-                                    result in the last value accepted as the value for the keyword.
-        :return: a call node
+        Parameters
+        ----------
+        function_node: Node
+            the function node to call/execute
+        source_location: Optional[SourceLocation]
+            the source info from user code
+        arguments: Union[Node, Tuple[bool, Node]]
+            positional arguments. These are passed as either Nodes (named nodes, constants, etc)
+            or tuples (starred, the node) where the starred is a boolean to indicate whether
+            the argument is supposed to be splatted before passing to the function (This is
+            the case where you might call a function like so ``foo(1, *[2, 3])`` ). The boolean is made
+            optional simply to support the legacy way of calling this function and not having to pass
+            the tuples for every single case from node_transformer
+        keyword_arguments: Node
+            keyword arguments. These are passed as a dictionary of keyword arguments to the
+            function. Similar to ``*positional_arguments``, the keyword arguments can also be splatted
+            by naming the key as ``unpack_<index>`` where <index> is the index of the argument. In this
+            case, the dictionary will be unpacked and passed as keyword arguments to the function.
+            The keyword arguments are processed in order of passing so any keyword conflicts will
+            result in the last value accepted as the value for the keyword.
 
-        NOTE
-        ----
-        - It's important for the call to return the call node
-          so that we can programmatically chain the the nodes together,
-          e.g., for the assignment call to modify the previous call node.
-        - The call looks up if it's a locally defined function. We decided
-          that this is better for program slicing.
+        Returns
+        -------
+        CallNode
+            a call node
+
+        ??? note
+            - It's important for the call to return the call node
+            so that we can programmatically chain the the nodes together,
+            e.g., for the assignment call to modify the previous call node.
+            - The call looks up if it's a locally defined function. We decided
+            that this is better for program slicing.
         """
 
         node = CallNode(

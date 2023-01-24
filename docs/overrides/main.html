@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block announce %}
+<a href="https://lineacommunity.slack.com/join/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q#/shared-invite/email">
+    Have questions? Join our
+    <span class="twemoji slack">
+        {% include ".icons/fontawesome/brands/slack.svg" %}
+    </span>
+    <strong>Slack</strong> community and ask away!
+</a>
+{% endblock %}
+
+{% block outdated %}
+You are viewing an old version of the documentation.
+<a href="{{ '../' ~ base_url }}">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+{% endblock %}

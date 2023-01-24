@@ -30,7 +30,7 @@
 
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
-[![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/main/index.html)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/fd4d79de-24d6-4b5b-a525-8e9a48820261/deploy-status)](https://app.netlify.com/sites/lineapy-docs/deploys)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
 
@@ -83,7 +83,7 @@ Check this [section](#what-problems-can-lineapy-solve) for types of problems tha
 
 ### Prerequisites
 
-LineaPy runs on `Python>=3.7` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
+LineaPy runs on `Python>=3.7,<3.11` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
 so you will need to [install one](https://jupyter.org/install) for interactive computing.
 
 ### Installation
@@ -95,10 +95,10 @@ pip install lineapy
 ```
 
 If you want to run the latest version of LineaPy directly from the source, follow instructions
-[here](https://docs.lineapy.org/en/main/guides/contribute/setup.html#installation).
+[here](https://docs.lineapy.org/latest/guides/setup/#installing-lineapy).
 
 LineaPy offers several extras to extend its core capabilities, such as support for PostgreSQL or Amazon S3.
-Learn more about these and other installation options [here](https://docs.lineapy.org/en/main/guides/installation.html#extras).
+Learn more about these and other installation options [here](https://docs.lineapy.org/latest/guides/setup/#extras).
 
 ### Interfaces
 
@@ -193,7 +193,7 @@ mod.fit(
 )
 ```
 
-Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://docs.lineapy.org/en/main/concepts/artifact.html) with the following code:
+Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://docs.lineapy.org/latest/concepts/artifact/) with the following code:
 
 ```python
 # Save the model as an artifact
@@ -247,7 +247,7 @@ lineapy.to_pipeline(
 ```
 
 This command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
-[tutorial](https://docs.lineapy.org/en/main/tutorials/02_pipeline_building.html) for more details.)
+[tutorial](https://docs.lineapy.org/latest/tutorials/02_pipeline_building/) for more details.)
 
 In short, LineaPy automates time-consuming, manual steps in a data science workflow, helping us get
 our work to production more quickly and easily.
@@ -267,7 +267,7 @@ export LINEAPY_DO_NOT_TRACK=true
 
 ## What Next?
 
-To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/en/main/index.html)
+To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/)
 which contains many examples you can follow with. Some key resources include:
 
 | Resource            | Description                                                                              |
@@ -280,10 +280,10 @@ which contains many examples you can follow with. Some key resources include:
 | **[Contribute]**    | Want to contribute? These instructions will help you get set up!                         |
 | **[Slack]**         | Have questions or issues unresolved? Join our community and ask away!                    |
 
-[Docs]: https://docs.lineapy.org/en/main/index.html
-[Concepts]: https://docs.lineapy.org/en/main/concepts/artifact.html
+[Docs]: https://docs.lineapy.org/latest/
+[Concepts]: https://docs.lineapy.org/latest/concepts/artifact/
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
-[API Reference]: https://docs.lineapy.org/en/main/references/api_reference.html
-[Contribute]: https://docs.lineapy.org/en/main/guides/contribute/index.html
+[API Reference]: https://docs.lineapy.org/latest/reference/lineapy/
+[Contribute]: https://docs.lineapy.org/0.2/guides/contributing/process/
 [Slack]: https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q

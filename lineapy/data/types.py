@@ -86,16 +86,11 @@ class ValueType(Enum):
     """
     Lower case because the API with the frontend assume the characters "chart"
     exactly as is.
-
-    TODO
-    ----
-
-    rename (need coordination with linea-server)
-
-        - really `dataset` is a table
-        - `value` means its a literal  (e.g., int/str)
-
     """
+
+    # [TODO] Rename (need coordination with linea-server):
+    # - `dataset` really is a table
+    # - `value` means its a literal  (e.g., int/str)
 
     chart = 1
     array = 2
@@ -254,21 +249,33 @@ class SourceLocation(BaseModel):
 
 class BaseNode(BaseModel):
     """
-    - id: string version of UUID, which we chose because
-      we do not need to coordinate to make it unique
-    - lineno, col_offset, end_lino, end_col_offsets: these record the position
-      of the calls. They are optional because it's not required some nodes,
-      such as side-effects nodes, which do not correspond to a line of code.
-    - control_dependency: points to a ControlFlowNode which the generation of
-      the current node is dependent upon. For example, in the snippet
-      `if condition: l.append(0)`, the `append` instruction's execution depends
-      on the condition being true or not, hence the MutateNode corresponding to
-      the append instruction will have it's control_dependency field pointing
-      to the IfNode of the condition. Refer to tracer.py for usage.
+    Attributes
+    ----------
+    id: str
+        string version of UUID, which we chose because
+        we do not need to coordinate to make it unique
+    lineno: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    col_offset: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    end_lino: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    end_col_offsets: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    control_dependency: Optional[LineaID]
+        points to a ControlFlowNode which the generation of
+        the current node is dependent upon. For example, in the snippet
+        `if condition: l.append(0)`, the `append` instruction's execution depends
+        on the condition being true or not, hence the MutateNode corresponding to
+        the append instruction will have it's control_dependency field pointing
+        to the IfNode of the condition. Refer to tracer.py for usage.
 
-    - `class Config`'s orm_mode allows us to use from_orm to convert ORM
-      objects to pydantic objects
-
+    `class Config`'s orm_mode allows us to use from_orm to convert ORM
+    objects to pydantic objects
     """
 
     id: LineaID
@@ -315,11 +322,10 @@ class ImportNode(BaseNode):
 
     These are optional because the info is acquired at runtime.
 
-    .. note::
+    ??? note
 
         This node is not actually used for execution (using `l_import` CallNodes),
         but more a decoration for metadata retrieval.
-
     """
 
     node_type: NodeType = NodeType.ImportNode
@@ -342,12 +348,16 @@ class KeywordArgument(BaseModel):
 
 class CallNode(BaseNode):
     """
-    - `function_id`: node containing the value of the function call, which
-      could be from various places: (1) locally defined, (2) imported, and
-      (3) magically existing, e.g. from builtins (`min`), or environment
-      like `get_ipython`.
-    - `value`: value of the call result, filled at runtime. It may be cached
-      by the data asset manager
+    Attributes
+    ----------
+    function_id: LineaID
+        node containing the value of the function call, which
+        could be from various places: (1) locally defined, (2) imported, and
+        (3) magically existing, e.g. from builtins (`min`), or environment
+        like `get_ipython`.
+    value: Object
+        value of the call result, filled at runtime. It may be cached
+        by the data asset manager
     """
 
     node_type: NodeType = Field(NodeType.CallNode, repr=False)
@@ -504,13 +514,22 @@ class AssignedVariable:
 
 class PipelineType(Enum):
     """
-    Pipeline types allow the to_pipeline to know what to expect
-    - SCRIPT : the pipeline is wrapped as a python script
-    - AIRFLOW : the pipeline is wrapped as an airflow dag
-    - DVC : the pipeline is wrapped as a DVC
-    - ARGO: the pipeline is wrapped as an Argo workflow dag
-    - KUBEFLOW : the pipeline is defined using Kubeflow's python SDK
-    - RAY : the pipeline is wrapped as a Ray DAG
+    Pipeline types allow the `to_pipeline` to know what to expect
+
+    Attributes
+    ----------
+    SCRIPT: int
+        the pipeline is wrapped as a python script
+    AIRFLOW: int
+        the pipeline is wrapped as an airflow dag
+    DVC: int
+        the pipeline is wrapped as a DVC
+    ARGO: int
+        the pipeline is wrapped as an Argo workflow dag
+    KUBEFLOW: int
+        the pipeline is defined using Kubeflow's python SDK
+    RAY: int
+        the pipeline is wrapped as a Ray DAG
     """
 
     SCRIPT = 1
@@ -577,8 +596,13 @@ class MLflowArtifactInfo:
 class ArtifactInfo(TypedDict):
     """
     Artifact backend storage metadata
-    - lineapy : storage backend for LineaPy
-    - mlflow : storage backend metadata for MLflow (only exists when the
+
+    Attributes
+    ----------
+    lineapy: LineaArtifactInfo
+        storage backend for LineaPy
+    mlflow: NotRequired[MLflowArtifactInfo]
+        storage backend metadata for MLflow (only exists when the
         artifact is saved in MLflow)
     """
 

@@ -6,14 +6,23 @@ class InputVariable:
     """
     Class to generate code related input variable and it's default value
 
-    :param variable_name: variable name
-    :param value: variable value
-    :param value_type: variable objec type
-
-    Attributes:
-        default_args: ex: ``a = 1``
-        parser_body: ex: ``parser.add_arguemnt('--a', default=1, type=int)``
-        parser_args: ex: ``a = args.a``
+    Attributes
+    ----------
+    variable_name:
+        variable name
+    value:
+        variable value
+    value_type:
+        variable object type
+    default_args:
+        assignment of variable to a default value
+        ex: ``a = 1``
+    parser_body:
+        code block that uses python parser library to get a input variable from CLI.
+        ex: ``parser.add_argument('--a', default=1, type=int)``
+    parser_args:
+        code block that unpacks input variable from args.
+        ex: ``a = args.a``
 
     """
 

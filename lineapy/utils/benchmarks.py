@@ -72,10 +72,16 @@ def performance_change(
     If you do have multiple levels, simply use the mean of the lower levels as your data,
     like they do in the paper.
 
-    :param old_distribution: The old distribution
-    :param new_distribution: The new distribution
-    :param n:  The number of samples from each system (must be equal)
-    :param confidence_interval:  The confidence interval for the results.
+    Parameters
+    ----------
+    old_distribution: Distribution
+        The old distribution
+    new_distribution: Distribution
+        The new distribution
+    n: float
+        The number of samples from each system (must be equal)
+    confidence_interval: float
+        The confidence interval for the results.
     """
     yO, sO = old_distribution.mean, old_distribution.variance
     yN, sN = new_distribution.mean, new_distribution.variance
@@ -108,30 +114,37 @@ def distribution_change(
     Note: The measurements must have the same length. As fallback, you could use the minimum
     size of the two measurement sets.
 
-    :param old_measures: The list of timings from the old system
-    :param new_measures: The list of timings from the new system
-    :param confidence_interval:  The confidence interval for the results.
+    Parameters
+    ----------
+    old_measures: List[float]
+        The list of timings from the old system
+    new_measures: List[float]
+        The list of timings from the new system
+    confidence_interval: float
+        The confidence interval for the results.
         The default is a 95% confidence interval (95% of the time the true mean will be
         between the resulting mean +- the resulting CI)
 
-    # Test against the example in the paper, from Table V, on pages 18-19
+    Test against the example in the paper, from Table V, on pages 18-19
 
-    >>> res = distribution_change(
-    ...     old_measures=[
-    ...         round(mean([9, 11, 5, 6]), 1),
-    ...         round(mean([16, 13, 12, 8]), 1),
-    ...         round(mean([15, 7, 10, 14]), 1),
-    ...     ],
-    ...     new_measures=[
-    ...         round(mean([10, 12, 6, 7]), 1),
-    ...         round(mean([9, 1, 11, 4]), 1),
-    ...         round(mean([8, 5, 3, 2]), 1),
-    ...     ],
-    ...     confidence_interval=0.95
-    ... )
-    >>> from math import isclose
-    >>> assert isclose(res.mean, 68.3 / 74.5, rel_tol=0.05)
-    >>> assert isclose(res.confidence_interval, 60.2 / 74.5, rel_tol=0.05)
+    ```python
+    res = distribution_change(
+        old_measures=[
+            round(mean([9, 11, 5, 6]), 1),
+            round(mean([16, 13, 12, 8]), 1),
+            round(mean([15, 7, 10, 14]), 1),
+        ],
+        new_measures=[
+            round(mean([10, 12, 6, 7]), 1),
+            round(mean([9, 1, 11, 4]), 1),
+            round(mean([8, 5, 3, 2]), 1),
+        ],
+        confidence_interval=0.95
+    )
+    from math import isclose
+    assert isclose(res.mean, 68.3 / 74.5, rel_tol=0.05)
+    assert isclose(res.confidence_interval, 60.2 / 74.5, rel_tol=0.05)
+    ```
     """
     n = len(old_measures)
     if n != len(new_measures):

@@ -1,7 +1,6 @@
 """
 Logging util for outputting function calls as trees!
 
-
 This is currently exposed through the `--tree-log` pytest command, which will log each test case to stdout.
 
 We log every method of the CLASSES, so to change what is logged, modify that list.

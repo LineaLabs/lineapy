@@ -10,16 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class LineaArtifactStore:
-    """LineaArtifactStore
-
+    """
     A simple way to access meta data about artifacts in Linea.
-    """
-
-    """
-    .. note::
-
-        - The export is pretty limited right now and we should expand later.
-
     """
 
     def __init__(self, db):
@@ -60,7 +52,10 @@ class LineaArtifactStore:
     @property
     def export(self):
         """
-        :return: a dictionary of artifact information, which the user can then
+        Returns
+        -------
+        Dict
+            Dictionary of artifact information, which the user can then
             manipulate with their favorite dataframe tools, such as pandas,
             e.g., `cat_df = pd.DataFrame(artifact_store.export())`.
         """
