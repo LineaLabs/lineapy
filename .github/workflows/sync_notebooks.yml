@@ -20,7 +20,9 @@ jobs:
         run: rm -rf .colab/ && mkdir -p .colab/ && cp -R examples/use_cases/* .colab/ && cp -R examples/tutorials/* .colab/
 
       - name: "Copy tutorial notebooks to docs"
-        run: cp -R examples/tutorials/* docs/mkdocs/tutorials/
+        run: |
+          cp -R examples/tutorials/* docs/mkdocs/tutorials/
+          find docs/mkdocs/tutorials/* -type f -name "*.ipynb" -exec sed -i 's/(\#/[^ ])/\L\1/g' {} \;
 
       - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
         run: |
