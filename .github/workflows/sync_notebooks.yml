@@ -35,6 +35,7 @@ jobs:
         run: |
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
+          git add docs/mkdocs/tutorials/*
           git add .colab/
           (git diff --quiet && git diff --staged --quiet) || git commit -m "Refresh demos folder and update docs"
       - name: push synced changes
