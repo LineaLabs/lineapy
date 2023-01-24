@@ -220,7 +220,7 @@ def get_tmpdirpickle_setup_task_definition(pipeline_name):
         pipeline_name=pipeline_name
     )
     return TaskDefinition(
-        function_name="dag_setup",
+        function_name="setup",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
@@ -246,7 +246,7 @@ def get_tmpdir_teardown_task_definition(pipeline_name):
         pipeline_name=pipeline_name
     )
     return TaskDefinition(
-        function_name="dag_teardown",
+        function_name="teardown",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
@@ -266,7 +266,7 @@ def get_noop_setup_task_definition(pipeline_name):
     This task should be used at the beginning of a pipeline.
     """
     return TaskDefinition(
-        function_name="dag_setup",
+        function_name="setup",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
@@ -287,7 +287,7 @@ def get_noop_teardown_task_definition(pipeline_name):
 
     """
     return TaskDefinition(
-        function_name="dag_teardown",
+        function_name="teardown",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],

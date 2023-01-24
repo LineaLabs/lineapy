@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
@@ -9,7 +9,7 @@ from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
     TaskSerializer,
-    render_task_io_serialize_blocks,
+    render_task_definitions,
 )
 from lineapy.plugins.taskgen import (
     get_noop_setup_task_definition,
@@ -102,10 +102,8 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
-        (
-            rendered_task_defs,
-            task_loading_blocks,
-        ) = self.get_rendered_task_definitions(task_defs)
+        rendered_task_defs = self.get_rendered_task_definitions(task_defs)
+        task_loading_blocks = self.get_task_loading_blocks(task_defs)
 
         # Handle dependencies
         task_dependencies = reversed(
@@ -150,49 +148,37 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         return full_code
 
-    def get_rendered_task_definitions(
+    def get_task_loading_blocks(
         self,
         task_defs: Dict[str, TaskDefinition],
-    ) -> Tuple[List[str], Dict[str, str]]:
+    ) -> Dict[str, str]:
         """
-        Returns rendered tasks for the pipeline tasks along with a dictionary to lookup
-        previous task outputs.
+        Returns  a dictionary to lookup previous task outputs.
         The returned dictionary is used by the DAG to connect the right input files to
         output files for inter task communication.
         This method originates from:
         https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be47e3acc0342b4f/examples/k8s_sa.py#L12
         """
-        TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function.jinja"
-        )
-        rendered_task_defs: List[str] = []
         task_loading_blocks: Dict[str, str] = {}
 
-        for task_name, task_def in task_defs.items():
-            loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, TaskSerializer.TmpDirPickle
-            )
-
-            input_vars = task_def.user_input_variables
-
-            # this task will output variables to a file that other tasks can access
-
+        for _, task_def in task_defs.items():
             for return_variable in task_def.return_vars:
                 task_loading_blocks[return_variable] = return_variable
+        return task_loading_blocks
 
-            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-                MODULE_NAME=self.pipeline_name + "_module",
-                function_name=task_name,
-                user_input_variables=", ".join(input_vars),
-                typing_blocks=task_def.typing_blocks,
-                loading_blocks=loading_blocks,
-                pre_call_block=task_def.pre_call_block or "",
-                call_block=task_def.call_block,
-                post_call_block=task_def.post_call_block or "",
-                dumping_blocks=dumping_blocks,
-                include_imports_locally=True,
-                return_block="",
-            )
-            rendered_task_defs.append(task_def_rendered)
+    def get_rendered_task_definitions(
+        self,
+        task_defs: Dict[str, TaskDefinition],
+    ) -> List[str]:
+        """
+        Returns rendered tasks for the pipeline tasks
+        """
 
-        return rendered_task_defs, task_loading_blocks
+        rendered_task_defs: List[str] = render_task_definitions(
+            task_defs,
+            self.pipeline_name,
+            task_serialization=TaskSerializer.TmpDirPickle,
+            include_imports_locally=True,
+        )
+
+        return rendered_task_defs
