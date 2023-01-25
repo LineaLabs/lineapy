@@ -56,7 +56,7 @@ model development. To keep our results up-to-date, we might be expected to re-ex
 regular basis. Running notebooks manually is a brittle process that's prone to errors, so we may want to set
 up proper pipelines for production. If relevant engineering support is not available, we need to clean up and
 refactor our notebook code so that it can be used in orchestration systems or job schedulers, such as cron,
-Apache Airflow, or Prefect. Of course, this assumes that we already know how these tools work and how to use
+Apache Airflow, Argo, Kubeflow, DVC, or Ray. Of course, this assumes that we already know how these tools work and how to use
 them &mdash; If not, we need to spend time learning about them in the first place! All this operational work is
 time-consuming, and detracts from the time that we can spend on our core duties as a data scientist.
 
