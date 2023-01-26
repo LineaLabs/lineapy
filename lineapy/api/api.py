@@ -6,24 +6,21 @@ import logging
 import warnings
 from datetime import datetime
 from pathlib import Path
+from types import ModuleType
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 
 from lineapy.api.artifact_serializer import serialize_artifact
-from lineapy.api.models.linea_artifact import (
-    LineaArtifact,
-    get_lineaartifactdef,
-)
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
 from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, Artifact, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
-from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_pipeline_writer import get_base_pipeline_writer
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
@@ -520,22 +517,9 @@ def get_function(
         name in different notebooks and don't save same artifact multiple times
         within the same session.
     """
-    execution_context = get_context()
-    artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
-    ]
-    reuse_pre_computed_artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry)
-        for art_entry in reuse_pre_computed_artifacts
-    ]
-    art_collection = ArtifactCollection(
-        execution_context.executor.db,
-        artifact_defs,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+    module = get_module(
+        artifacts, input_parameters, reuse_pre_computed_artifacts
     )
-    writer = BasePipelineWriter(art_collection)
-    module = load_as_module(writer)
     return module.run_all_sessions
 
 
@@ -544,6 +528,34 @@ def get_module_definition(
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
 ) -> str:
+    """
+    Get the python module definition for [`get_module()`][lineapy.api.api.get_module].
+
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+    input_parameters: List[str]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+
+    Returns
+    -------
+    str
+        Module definition of [`get_module()`][lineapy.api.api.get_module].
+    """
+    writer = get_base_pipeline_writer(
+        artifacts, input_parameters, reuse_pre_computed_artifacts
+    )
+    return writer._compose_module()
+
+
+def get_module(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> ModuleType:
     """
     Create a python module that includes the definition of [`get_function()`][lineapy.api.api.get_function].
 
@@ -562,19 +574,8 @@ def get_module_definition(
         A python module that includes the definition of [`get_function()`][lineapy.api.api.get_function]
         as `run_all_sessions`.
     """
-    execution_context = get_context()
-    artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
-    ]
-    reuse_pre_computed_artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry)
-        for art_entry in reuse_pre_computed_artifacts
-    ]
-    art_collection = ArtifactCollection(
-        execution_context.executor.db,
-        artifact_defs,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+    writer = get_base_pipeline_writer(
+        artifacts, input_parameters, reuse_pre_computed_artifacts
     )
-    writer = BasePipelineWriter(art_collection)
-    return writer._compose_module()
+    module = load_as_module(writer)
+    return module
