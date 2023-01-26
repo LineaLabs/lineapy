@@ -404,7 +404,7 @@ class BasePipelineWriter:
         return pipeline_args
 
 
-def get_basepipelinewriter(
+def get_base_pipeline_writer(
     artifacts: List[Union[str, Tuple[str, int]]],
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],

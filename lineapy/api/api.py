@@ -20,7 +20,7 @@ from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.base_pipeline_writer import get_basepipelinewriter
+from lineapy.plugins.base_pipeline_writer import get_base_pipeline_writer
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
@@ -545,7 +545,7 @@ def get_module_definition(
     str
         Module definition of [`get_module()`][lineapy.api.api.get_module].
     """
-    writer = get_basepipelinewriter(
+    writer = get_base_pipeline_writer(
         artifacts, input_parameters, reuse_pre_computed_artifacts
     )
     return writer._compose_module()
@@ -574,7 +574,7 @@ def get_module(
         A python module that includes the definition of [`get_function()`][lineapy.api.api.get_function]
         as `run_all_sessions`.
     """
-    writer = get_basepipelinewriter(
+    writer = get_base_pipeline_writer(
         artifacts, input_parameters, reuse_pre_computed_artifacts
     )
     module = load_as_module(writer)
