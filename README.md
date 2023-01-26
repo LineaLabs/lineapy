@@ -285,5 +285,5 @@ which contains many examples you can follow with. Some key resources include:
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
 [API Reference]: https://docs.lineapy.org/latest/reference/lineapy/
-[Contribute]: https://docs.lineapy.org/0.2/guides/contributing/process/
+[Contribute]: https://docs.lineapy.org/latest/guides/contributing/process/
 [Slack]: https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q
