@@ -7,7 +7,7 @@
   with just two lines of code.</h3>
   <p>
     <a href="https://twitter.com/lineapy_oss">
-      <img alt="Follow LineaPy on Twitter!" src="https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter">
+      <img alt="Follow LineaPy on Twitter!" src="https://img.shields.io/badge/follow-%40lineapy_oss-1DA1F2?logo=twitter">
     </a>
     <a href="https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q">
       <img alt="Join the LineaPy Slack!" src="https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40">
