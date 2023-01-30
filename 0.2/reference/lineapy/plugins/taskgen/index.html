@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -2173,20 +2201,6 @@ You are viewing an old version of the documentation.
 </li>
       
         <li class="md-nav__item">
-  <a href="#lineapy.plugins.taskgen.get_localpickle_setup_task_definition" class="md-nav__link">
-    get_localpickle_setup_task_definition()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lineapy.plugins.taskgen.get_localpickle_teardown_task_definition" class="md-nav__link">
-    get_localpickle_teardown_task_definition()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#lineapy.plugins.taskgen.get_noop_setup_task_definition" class="md-nav__link">
     get_noop_setup_task_definition()
   </a>
@@ -2210,6 +2224,20 @@ You are viewing an old version of the documentation.
         <li class="md-nav__item">
   <a href="#lineapy.plugins.taskgen.get_task_graph" class="md-nav__link">
     get_task_graph()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lineapy.plugins.taskgen.get_tmpdir_teardown_task_definition" class="md-nav__link">
+    get_tmpdir_teardown_task_definition()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lineapy.plugins.taskgen.get_tmpdirpickle_setup_task_definition" class="md-nav__link">
+    get_tmpdirpickle_setup_task_definition()
   </a>
   
 </li>
@@ -3002,20 +3030,6 @@ You are viewing an old version of the documentation.
 </li>
       
         <li class="md-nav__item">
-  <a href="#lineapy.plugins.taskgen.get_localpickle_setup_task_definition" class="md-nav__link">
-    get_localpickle_setup_task_definition()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lineapy.plugins.taskgen.get_localpickle_teardown_task_definition" class="md-nav__link">
-    get_localpickle_teardown_task_definition()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#lineapy.plugins.taskgen.get_noop_setup_task_definition" class="md-nav__link">
     get_noop_setup_task_definition()
   </a>
@@ -3039,6 +3053,20 @@ You are viewing an old version of the documentation.
         <li class="md-nav__item">
   <a href="#lineapy.plugins.taskgen.get_task_graph" class="md-nav__link">
     get_task_graph()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lineapy.plugins.taskgen.get_tmpdir_teardown_task_definition" class="md-nav__link">
+    get_tmpdir_teardown_task_definition()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lineapy.plugins.taskgen.get_tmpdirpickle_setup_task_definition" class="md-nav__link">
+    get_tmpdirpickle_setup_task_definition()
   </a>
   
 </li>
@@ -3289,150 +3317,6 @@ This may include tasks that produce common variables that were not initially def
 
 
 
-<h2 id="lineapy.plugins.taskgen.get_localpickle_setup_task_definition" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_localpickle_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span></code>
-
-<a href="#lineapy.plugins.taskgen.get_localpickle_setup_task_definition" class="headerlink" title="Permanent link">&para;</a></h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Returns a TaskDefinition that is used to set up pipeline that uses local pickle type
-serialization for inter task communication.</p>
-<p>This task should be used at the beginning of a pipeline.</p>
-
-      <details class="quote">
-        <summary>Source code in <code>lineapy/plugins/taskgen.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span>
-<span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_localpickle_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a TaskDefinition that is used to set up pipeline that uses local pickle type</span>
-<span class="sd">    serialization for inter task communication.</span>
-
-<span class="sd">    This task should be used at the beginning of a pipeline.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">TASK_LOCALPICKLE_SETUP_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-        <span class="s2">&quot;task/localpickle/task_local_pickle_setup.jinja&quot;</span>
-    <span class="p">)</span>
-    <span class="n">call_block</span> <span class="o">=</span> <span class="n">TASK_LOCALPICKLE_SETUP_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">TaskDefinition</span><span class="p">(</span>
-        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;dag_setup&quot;</span><span class="p">,</span>
-        <span class="n">user_input_variables</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">loaded_input_variables</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">typing_blocks</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">pre_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">call_block</span><span class="o">=</span><span class="n">call_block</span><span class="p">,</span>
-        <span class="n">post_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">return_vars</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span><span class="p">,</span>
-    <span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h2 id="lineapy.plugins.taskgen.get_localpickle_teardown_task_definition" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_localpickle_teardown_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span></code>
-
-<a href="#lineapy.plugins.taskgen.get_localpickle_teardown_task_definition" class="headerlink" title="Permanent link">&para;</a></h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Returns a TaskDefinition that is used to teardown a pipeline that uses local pickle type
-serialization for inter task communication.</p>
-<p>This task should be used at the end of a pipeline.</p>
-
-      <details class="quote">
-        <summary>Source code in <code>lineapy/plugins/taskgen.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
-<span class="normal">258</span>
-<span class="normal">259</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_localpickle_teardown_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a TaskDefinition that is used to teardown a pipeline that uses local pickle type</span>
-<span class="sd">    serialization for inter task communication.</span>
-
-<span class="sd">    This task should be used at the end of a pipeline.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">TASK_LOCALPICKLE_TEARDOWN_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-        <span class="s2">&quot;task/localpickle/task_local_pickle_teardown.jinja&quot;</span>
-    <span class="p">)</span>
-    <span class="n">call_block</span> <span class="o">=</span> <span class="n">TASK_LOCALPICKLE_TEARDOWN_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">TaskDefinition</span><span class="p">(</span>
-        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;dag_teardown&quot;</span><span class="p">,</span>
-        <span class="n">user_input_variables</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">loaded_input_variables</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">typing_blocks</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">pre_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">call_block</span><span class="o">=</span><span class="n">call_block</span><span class="p">,</span>
-        <span class="n">post_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">return_vars</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span><span class="p">,</span>
-    <span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h2 id="lineapy.plugins.taskgen.get_noop_setup_task_definition" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_noop_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span></code>
 
@@ -3447,7 +3331,8 @@ their own setup tasks by replacing the setup call block.</p>
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/taskgen.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">262</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">261</span>
+<span class="normal">262</span>
 <span class="normal">263</span>
 <span class="normal">264</span>
 <span class="normal">265</span>
@@ -3463,8 +3348,7 @@ their own setup tasks by replacing the setup call block.</p>
 <span class="normal">275</span>
 <span class="normal">276</span>
 <span class="normal">277</span>
-<span class="normal">278</span>
-<span class="normal">279</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_noop_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
+<span class="normal">278</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_noop_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a TaskDefinition that no-ops so that users can write</span>
 <span class="sd">    their own setup tasks by replacing the setup call block.</span>
@@ -3472,7 +3356,7 @@ their own setup tasks by replacing the setup call block.</p>
 <span class="sd">    This task should be used at the beginning of a pipeline.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">TaskDefinition</span><span class="p">(</span>
-        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;dag_setup&quot;</span><span class="p">,</span>
+        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;setup&quot;</span><span class="p">,</span>
         <span class="n">user_input_variables</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">loaded_input_variables</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">typing_blocks</span><span class="o">=</span><span class="p">[],</span>
@@ -3506,7 +3390,8 @@ their own teardown tasks by replacing the teardown call block.</p>
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/taskgen.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">282</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">281</span>
+<span class="normal">282</span>
 <span class="normal">283</span>
 <span class="normal">284</span>
 <span class="normal">285</span>
@@ -3523,8 +3408,7 @@ their own teardown tasks by replacing the teardown call block.</p>
 <span class="normal">296</span>
 <span class="normal">297</span>
 <span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_noop_teardown_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
+<span class="normal">299</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_noop_teardown_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a TaskDefinition that no-ops so that users can write</span>
 <span class="sd">    their own teardown tasks by replacing the teardown call block.</span>
@@ -3533,7 +3417,7 @@ their own teardown tasks by replacing the teardown call block.</p>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">TaskDefinition</span><span class="p">(</span>
-        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;dag_teardown&quot;</span><span class="p">,</span>
+        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;teardown&quot;</span><span class="p">,</span>
         <span class="n">user_input_variables</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">loaded_input_variables</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">typing_blocks</span><span class="o">=</span><span class="p">[],</span>
@@ -3824,6 +3708,148 @@ expected by that framework.</p>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Task breakdown granularity </span><span class="si">{</span><span class="n">task_breakdown</span><span class="si">}</span><span class="s2"> is not currently supported.&quot;</span>
         <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="lineapy.plugins.taskgen.get_tmpdir_teardown_task_definition" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_tmpdir_teardown_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span></code>
+
+<a href="#lineapy.plugins.taskgen.get_tmpdir_teardown_task_definition" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a TaskDefinition that is used to teardown a pipeline that uses pickle
+serialization to a temporary directory for inter task communication.</p>
+<p>This task should be used at the end of a pipeline.</p>
+
+      <details class="quote">
+        <summary>Source code in <code>lineapy/plugins/taskgen.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_tmpdir_teardown_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a TaskDefinition that is used to teardown a pipeline that uses pickle</span>
+<span class="sd">    serialization to a temporary directory for inter task communication.</span>
+
+<span class="sd">    This task should be used at the end of a pipeline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
+        <span class="s2">&quot;task/tmpdirpickle/task_teardown.jinja&quot;</span>
+    <span class="p">)</span>
+    <span class="n">call_block</span> <span class="o">=</span> <span class="n">TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">TaskDefinition</span><span class="p">(</span>
+        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;teardown&quot;</span><span class="p">,</span>
+        <span class="n">user_input_variables</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">loaded_input_variables</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">typing_blocks</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">pre_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">call_block</span><span class="o">=</span><span class="n">call_block</span><span class="p">,</span>
+        <span class="n">post_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">return_vars</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="lineapy.plugins.taskgen.get_tmpdirpickle_setup_task_definition" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_tmpdirpickle_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">)</span></code>
+
+<a href="#lineapy.plugins.taskgen.get_tmpdirpickle_setup_task_definition" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a TaskDefinition that is used to set up pipeline that uses pickle
+serialization to a temporary directory for inter task communication.</p>
+<p>This task should be used at the beginning of a pipeline.</p>
+
+      <details class="quote">
+        <summary>Source code in <code>lineapy/plugins/taskgen.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_tmpdirpickle_setup_task_definition</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a TaskDefinition that is used to set up pipeline that uses pickle</span>
+<span class="sd">    serialization to a temporary directory for inter task communication.</span>
+
+<span class="sd">    This task should be used at the beginning of a pipeline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TASK_TMPDIRPICKLE_SETUP_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
+        <span class="s2">&quot;task/tmpdirpickle/task_setup.jinja&quot;</span>
+    <span class="p">)</span>
+    <span class="n">call_block</span> <span class="o">=</span> <span class="n">TASK_TMPDIRPICKLE_SETUP_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">TaskDefinition</span><span class="p">(</span>
+        <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;setup&quot;</span><span class="p">,</span>
+        <span class="n">user_input_variables</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">loaded_input_variables</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">typing_blocks</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">pre_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">call_block</span><span class="o">=</span><span class="n">call_block</span><span class="p">,</span>
+        <span class="n">post_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">return_vars</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">pipeline_name</span><span class="o">=</span><span class="n">pipeline_name</span><span class="p">,</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>

@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3044,117 +3072,94 @@ use this one, otherwise look for home directory) if available. Then,
 replace with values in environmental variables if possible. Finally, it sets
 all values in environmental variables.</p>
 
-  <p><strong>Parameters:</strong></p>
+  <p><strong>Attributes:</strong></p>
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Type</th>
         <th>Description</th>
-        <th>Default</th>
       </tr>
     </thead>
     <tbody>
         <tr>
           <td><code>home_dir</code></td>
           <td>
+                <code><span title="pathlib.Path">Path</span></code>
           </td>
           <td><p>Home directory of LineaPy (must be local)</p></td>
-          <td>
-                <code>f&#39;{Path(os.environ.get(HOME, ~)).expanduser().resolve()}/{LINEAPY_FOLDER_NAME}&#39;</code>
-          </td>
         </tr>
         <tr>
           <td><code>database_url</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>Database connection string for LineaPy database</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>artifact_storage_dir</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="lineapy.data.types.FilePath">FilePath</span>]</code>
           </td>
           <td><p>Directory for storing artifacts</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>customized_annotation_folder</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="lineapy.data.types.FilePath">FilePath</span>]</code>
           </td>
           <td><p>Directory for storing customized annotations</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>do_not_track</code></td>
           <td>
+                <code>bool</code>
           </td>
           <td><p>Opt out or user analytics</p></td>
-          <td>
-                <code>False</code>
-          </td>
         </tr>
         <tr>
           <td><code>logging_level</code></td>
           <td>
+                <code>str</code>
           </td>
           <td><p>Logging level</p></td>
-          <td>
-                <code>&#39;INFO&#39;</code>
-          </td>
         </tr>
         <tr>
           <td><code>logging_file</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
           </td>
           <td><p>Logging file location (only support local for at this time)</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>storage_options</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
           <td><p>Dictionary for artifact storage configuration
 (same as storage_options in pandas, Dask and fsspec)</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>mlflow_registry_uri</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>URI for MLflow registry</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>mlflow_tracking_uri</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>URI for MLflow tracking</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
         <tr>
           <td><code>default_ml_models_storage_backend</code></td>
           <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="lineapy.data.types.ARTIFACT_STORAGE_BACKEND" href="../../data/types/#lineapy.data.types.ARTIFACT_STORAGE_BACKEND">ARTIFACT_STORAGE_BACKEND</a>]</code>
           </td>
           <td><p>Default storage backend if at least one of mlflow_tracking_uri
 or mlflow_registry_uri is not empty</p></td>
-          <td>
-                <code>None</code>
-          </td>
         </tr>
     </tbody>
   </table>
@@ -3462,7 +3467,7 @@ or mlflow_registry_uri is not empty</p></td>
 <span class="sd">    replace with values in environmental variables if possible. Finally, it sets</span>
 <span class="sd">    all values in environmental variables.</span>
 
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    home_dir: Path</span>
 <span class="sd">        Home directory of LineaPy (must be local)</span>

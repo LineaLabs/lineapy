@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3184,12 +3212,15 @@ callables as instance methods.</p>
   <div class="doc doc-contents ">
   
       <p>Get source code segment of the <em>source</em> that generated <em>node</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <p>This is a polyfill for the ast.get_source_segment function
 that was introduced in python 3.8.</p>
 <p>If some location information (<code>lineno</code>, <code>end_lineno</code>, <code>col_offset</code>,
 or <code>end_col_offset</code>) is missing, return None.</p>
 <p>If <em>padded</em> is <code>True</code>, the first line of a multi-line statement will
 be padded with spaces to match its original position.</p>
+</div>
 
       <details class="quote">
         <summary>Source code in <code>lineapy/utils/deprecation_utils.py</code></summary>
@@ -3231,18 +3262,20 @@ be padded with spaces to match its original position.</p>
 <span class="normal">119</span>
 <span class="normal">120</span>
 <span class="normal">121</span>
-<span class="normal">122</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">padded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="normal">122</span>
+<span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">padded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get source code segment of the *source* that generated *node*.</span>
 
-<span class="sd">    This is a polyfill for the ast.get_source_segment function</span>
-<span class="sd">    that was introduced in python 3.8.</span>
+<span class="sd">    !!! note</span>
+<span class="sd">        This is a polyfill for the ast.get_source_segment function</span>
+<span class="sd">        that was introduced in python 3.8.</span>
 
-<span class="sd">    If some location information (`lineno`, `end_lineno`, `col_offset`,</span>
-<span class="sd">    or `end_col_offset`) is missing, return None.</span>
+<span class="sd">        If some location information (`lineno`, `end_lineno`, `col_offset`,</span>
+<span class="sd">        or `end_col_offset`) is missing, return None.</span>
 
-<span class="sd">    If *padded* is `True`, the first line of a multi-line statement will</span>
-<span class="sd">    be padded with spaces to match its original position.</span>
+<span class="sd">        If *padded* is `True`, the first line of a multi-line statement will</span>
+<span class="sd">        be padded with spaces to match its original position.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">end_lineno</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">node</span><span class="o">.</span><span class="n">end_col_offset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -708,6 +722,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3021,12 +3049,17 @@ You are viewing an old version of the documentation.
                 
                   
 
+  <a href="https://github.com/LineaLabs/lineapy/edit/master/docs/guides/contributing/areas/integrate-pipeline-framework.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
 
 <h1 id="integrate-a-new-pipeline-framework">Integrate a New Pipeline Framework<a class="headerlink" href="#integrate-a-new-pipeline-framework" title="Permanent link">&para;</a></h1>
 <p>One major feature of LineaPy is the ability to create pipelines that run various pipeline orchestration frameworks.
 We believe that supporting pipeline frameworks to meet data engineers where they are with their current stacks provides the best user experience for reducing manual work of pipeline writing.</p>
 <p>In this guide, we will go through how to write an new pipeline integration. We will first go through important concepts before diving into concrete steps. If you want to dive right into the concrete steps, skip ahead to the <a href="#checklist-for-writing-a-new-integration">checklist</a>.</p>
-<p>We will use Airflow as an illustrative example, but there may not be a one-size-fits-all approach for all integrations so please adapt the content in this guide to suite your individual needs.</p>
+<p>We will use Airflow as an illustrative example, but there may not be a one-size-fits-all approach for all integrations so please adapt the content in this guide to suit your individual needs.</p>
 <h2 id="the-module-file">The Module File<a class="headerlink" href="#the-module-file" title="Permanent link">&para;</a></h2>
 <p>The module file contains all the user code from the original notebook needed to run a pipeline. The module file is one of a few files that LineaPy generates to create pipelines, an overview of which can be found <a href="../../../usage/pipeline-building/#airflow-example">here</a>.</p>
 <p>The module file contains code that is already cleaned and refactored based on parameters passed to a <a class="autorefs autorefs-internal" href="../../../../reference/lineapy/api/api/#lineapy.api.api.to_pipeline"><code>lineapy.to_pipeline()</code></a> call and is presented as a Python module file. </p>

@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3809,14 +3837,13 @@ to the Session.</p>
 
   
 
-  <p><strong>Parameters:</strong></p>
+  <p><strong>Attributes:</strong></p>
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Type</th>
         <th>Description</th>
-        <th>Default</th>
       </tr>
     </thead>
     <tbody>
@@ -3826,9 +3853,6 @@ to the Session.</p>
                 <code><span title="typing.Set">Set</span>[str]</code>
           </td>
           <td><p>variables assigned at this node</p></td>
-          <td>
-                <code>field(default_factory=set)</code>
-          </td>
         </tr>
         <tr>
           <td><code>assigned_artifact</code></td>
@@ -3836,9 +3860,6 @@ to the Session.</p>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>this node is pointing to some artifact</p></td>
-          <td>
-                <code>field(default=None)</code>
-          </td>
         </tr>
         <tr>
           <td><code>dependent_variables</code></td>
@@ -3847,9 +3868,6 @@ to the Session.</p>
           </td>
           <td><p>union of if any variable is assigned at predecessor node,
 use the assigned variables. otherwise, use the dependent_variables</p></td>
-          <td>
-                <code>field(default_factory=set)</code>
-          </td>
         </tr>
         <tr>
           <td><code>tracked_variables</code></td>
@@ -3857,9 +3875,6 @@ use the assigned variables. otherwise, use the dependent_variables</p></td>
                 <code><span title="typing.Set">Set</span>[str]</code>
           </td>
           <td><p>variables that this node is pointing to</p></td>
-          <td>
-                <code>field(default_factory=set)</code>
-          </td>
         </tr>
         <tr>
           <td><code>predecessors</code></td>
@@ -3867,9 +3882,6 @@ use the assigned variables. otherwise, use the dependent_variables</p></td>
                 <code><span title="typing.Set">Set</span>[<span title="lineapy.data.types.LineaID">LineaID</span>]</code>
           </td>
           <td><p>predecessors of the node</p></td>
-          <td>
-                <code>field(default_factory=set)</code>
-          </td>
         </tr>
         <tr>
           <td><code>module_import</code></td>
@@ -3877,9 +3889,6 @@ use the assigned variables. otherwise, use the dependent_variables</p></td>
                 <code><span title="typing.Set">Set</span>[str]</code>
           </td>
           <td><p>module name/alias that this node is point to</p></td>
-          <td>
-                <code>field(default_factory=set)</code>
-          </td>
         </tr>
         <tr>
           <td><code>artifact_name</code></td>
@@ -3887,9 +3896,6 @@ use the assigned variables. otherwise, use the dependent_variables</p></td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>this node belong to which artifact calculating block</p></td>
-          <td>
-                <code>field(default=None)</code>
-          </td>
         </tr>
     </tbody>
   </table>
@@ -3928,7 +3934,7 @@ use the assigned variables. otherwise, use the dependent_variables</p></td>
 <span class="normal">265</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">NodeInfo</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    assigned_variables: Set[str]</span>
 <span class="sd">        variables assigned at this node</span>

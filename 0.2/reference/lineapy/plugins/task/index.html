@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -2193,6 +2221,13 @@ You are viewing an old version of the documentation.
 </li>
       
         <li class="md-nav__item">
+  <a href="#lineapy.plugins.task.render_task_definitions" class="md-nav__link">
+    render_task_definitions()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#lineapy.plugins.task.render_task_io_serialize_blocks" class="md-nav__link">
     render_task_io_serialize_blocks()
   </a>
@@ -3035,6 +3070,13 @@ You are viewing an old version of the documentation.
 </li>
       
         <li class="md-nav__item">
+  <a href="#lineapy.plugins.task.render_task_definitions" class="md-nav__link">
+    render_task_definitions()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#lineapy.plugins.task.render_task_io_serialize_blocks" class="md-nav__link">
     render_task_io_serialize_blocks()
   </a>
@@ -3155,14 +3197,13 @@ You are viewing an old version of the documentation.
       <p>Definition of an artifact, can extend new keys(user, project, ...)
 in the future.</p>
 
-  <p><strong>Parameters:</strong></p>
+  <p><strong>Attributes:</strong></p>
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Type</th>
         <th>Description</th>
-        <th>Default</th>
       </tr>
     </thead>
     <tbody>
@@ -3172,9 +3213,6 @@ in the future.</p>
                 <code>str</code>
           </td>
           <td><p>suggested function name this task that wont conflict with other linea generated tasks</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>user_input_variables</code></td>
@@ -3182,9 +3220,6 @@ in the future.</p>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
           <td><p>arguments that must be provided through the framework</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>loaded_input_variables</code></td>
@@ -3192,9 +3227,6 @@ in the future.</p>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
           <td><p>arguments that are provided by other tasks and must be loaded through inter task communication</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>typing_blocks</code></td>
@@ -3202,9 +3234,6 @@ in the future.</p>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
           <td><p>for user_input_variables, casts the input variables to the correct type</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>call_block</code></td>
@@ -3212,9 +3241,6 @@ in the future.</p>
                 <code>str</code>
           </td>
           <td><p>line of code to call the function in module file</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>return_vars</code></td>
@@ -3222,9 +3248,6 @@ in the future.</p>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
           <td><p>outputs that need to be serialized to be used</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>pipeline_name</code></td>
@@ -3232,9 +3255,6 @@ in the future.</p>
                 <code>str</code>
           </td>
           <td><p>overall pipeline name</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
     </tbody>
   </table>
@@ -3281,7 +3301,7 @@ in the future.</p>
 <span class="sd">    Definition of an artifact, can extend new keys(user, project, ...)</span>
 <span class="sd">    in the future.</span>
 
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    function_name: str</span>
 <span class="sd">        suggested function name this task that wont conflict with other linea generated tasks</span>
@@ -3351,14 +3371,13 @@ in the future.</p>
       <p>Graph represents for task dependency
 It is constructed based on the "edges" variable</p>
 
-  <p><strong>Parameters:</strong></p>
+  <p><strong>Attributes:</strong></p>
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Type</th>
         <th>Description</th>
-        <th>Default</th>
       </tr>
     </thead>
     <tbody>
@@ -3378,9 +3397,6 @@ prerequisites for C. Both examples give us following task dependency::</p>
 /
 B ---/</p>
 </blockquote></td>
-          <td>
-                <code>{}</code>
-          </td>
         </tr>
     </tbody>
   </table>
@@ -3513,7 +3529,7 @@ B ---/</p>
 <span class="sd">    Graph represents for task dependency</span>
 <span class="sd">    It is constructed based on the &quot;edges&quot; variable</span>
 
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    edges: TaskGraphEdge</span>
 <span class="sd">        Dictionary with task name as key and set of prerequisite </span>
@@ -3752,13 +3768,19 @@ B ---/</p>
 <span class="normal">192</span>
 <span class="normal">193</span>
 <span class="normal">194</span>
-<span class="normal">195</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">TaskSerializer</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">TaskSerializer</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Enum to define what type of object serialization to use for inter task communication.&quot;&quot;&quot;</span>
 
     <span class="c1"># Write to local pickle directory under /tmp/</span>
-    <span class="n">LocalPickle</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">TmpDirPickle</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="c1"># Write to a pickle directory that can be parametrized</span>
     <span class="n">ParametrizedPickle</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="c1"># Write pickle to same directory as pipeline files</span>
+    <span class="c1"># (Current Working Directory)</span>
+    <span class="n">CWDPickle</span> <span class="o">=</span> <span class="mi">3</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -3787,25 +3809,19 @@ B ---/</p>
 
 
 
-<h2 id="lineapy.plugins.task.render_task_io_serialize_blocks" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">render_task_io_serialize_blocks</span><span class="p">(</span><span class="n">taskdef</span><span class="p">,</span> <span class="n">task_serialization</span><span class="p">)</span></code>
+<h2 id="lineapy.plugins.task.render_task_definitions" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">render_task_definitions</span><span class="p">(</span><span class="n">task_defs</span><span class="p">,</span> <span class="n">pipeline_name</span><span class="p">,</span> <span class="n">task_serialization</span><span class="p">,</span> <span class="n">task_name_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">function_name</span><span class="p">,</span> <span class="n">function_decorator_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">user_input_variables_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span><span class="p">),</span> <span class="n">typing_blocks_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span> <span class="n">pre_call_block_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">pre_call_block</span><span class="p">,</span> <span class="n">call_block_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span> <span class="n">post_call_block_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span><span class="p">,</span> <span class="n">return_block_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">include_imports_locally</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
-<a href="#lineapy.plugins.task.render_task_io_serialize_blocks" class="headerlink" title="Permanent link">&para;</a></h2>
+<a href="#lineapy.plugins.task.render_task_definitions" class="headerlink" title="Permanent link">&para;</a></h2>
 
 
   <div class="doc doc-contents ">
   
-      <p>render_task_io_serialize_blocks renders object ser and deser code blocks.</p>
-<p>These code blocks can be used for inter task communication.
-This function returns the task deserialization block first,
-since this block should be included first in the function to load the variables.</p>
+      <p>Returns rendered tasks for the pipeline tasks.</p>
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/task.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span>
-<span class="normal">202</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
 <span class="normal">205</span>
@@ -3846,7 +3862,134 @@ since this block should be included first in the function to load the variables.
 <span class="normal">240</span>
 <span class="normal">241</span>
 <span class="normal">242</span>
-<span class="normal">243</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">render_task_io_serialize_blocks</span><span class="p">(</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">render_task_definitions</span><span class="p">(</span>
+    <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
+    <span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">task_serialization</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TaskSerializer</span><span class="p">],</span>
+    <span class="n">task_name_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">function_name</span><span class="p">,</span>
+    <span class="n">function_decorator_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">user_input_variables_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span>
+    <span class="p">),</span>
+    <span class="n">typing_blocks_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
+    <span class="n">pre_call_block_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">pre_call_block</span><span class="p">,</span>
+    <span class="n">call_block_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
+    <span class="n">post_call_block_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span><span class="p">,</span>
+    <span class="n">return_block_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task_def</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">include_imports_locally</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns rendered tasks for the pipeline tasks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span><span class="s2">&quot;task/task_function.jinja&quot;</span><span class="p">)</span>
+    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">task_serialization</span><span class="p">:</span>
+            <span class="n">loading_blocks</span><span class="p">,</span> <span class="n">dumping_blocks</span> <span class="o">=</span> <span class="n">render_task_io_serialize_blocks</span><span class="p">(</span>
+                <span class="n">task_def</span><span class="p">,</span> <span class="n">task_serialization</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loading_blocks</span><span class="p">,</span> <span class="n">dumping_blocks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+            <span class="n">MODULE_NAME</span><span class="o">=</span><span class="n">pipeline_name</span> <span class="o">+</span> <span class="s2">&quot;_module&quot;</span><span class="p">,</span>
+            <span class="n">function_name</span><span class="o">=</span><span class="n">task_name_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">function_decorator</span><span class="o">=</span><span class="n">function_decorator_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">user_input_variables</span><span class="o">=</span><span class="n">user_input_variables_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">typing_blocks</span><span class="o">=</span><span class="n">typing_blocks_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">loading_blocks</span><span class="o">=</span><span class="n">loading_blocks</span><span class="p">,</span>
+            <span class="n">pre_call_block</span><span class="o">=</span><span class="n">pre_call_block_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">call_block</span><span class="o">=</span><span class="n">call_block_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">post_call_block</span><span class="o">=</span><span class="n">post_call_block_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">dumping_blocks</span><span class="o">=</span><span class="n">dumping_blocks</span><span class="p">,</span>
+            <span class="n">return_block</span><span class="o">=</span><span class="n">return_block_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">),</span>
+            <span class="n">include_imports_locally</span><span class="o">=</span><span class="n">include_imports_locally</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rendered_task_defs</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="lineapy.plugins.task.render_task_io_serialize_blocks" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">render_task_io_serialize_blocks</span><span class="p">(</span><span class="n">taskdef</span><span class="p">,</span> <span class="n">task_serialization</span><span class="p">)</span></code>
+
+<a href="#lineapy.plugins.task.render_task_io_serialize_blocks" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>render_task_io_serialize_blocks renders object ser and deser code blocks.</p>
+<p>These code blocks can be used for inter task communication.
+This function returns the task deserialization block first,
+since this block should be included first in the function to load the variables.</p>
+
+      <details class="quote">
+        <summary>Source code in <code>lineapy/plugins/task.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">render_task_io_serialize_blocks</span><span class="p">(</span>
     <span class="n">taskdef</span><span class="p">:</span> <span class="n">TaskDefinition</span><span class="p">,</span> <span class="n">task_serialization</span><span class="p">:</span> <span class="n">TaskSerializer</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -3859,20 +4002,28 @@ since this block should be included first in the function to load the variables.
     <span class="n">task_serialization_blocks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">task_deserialization_block</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">if</span> <span class="n">task_serialization</span> <span class="o">==</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">LocalPickle</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">task_serialization</span> <span class="o">==</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">TmpDirPickle</span><span class="p">:</span>
         <span class="n">SERIALIZER_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/localpickle/task_local_pickle_ser.jinja&quot;</span>
+            <span class="s2">&quot;task/tmpdirpickle/task_ser.jinja&quot;</span>
         <span class="p">)</span>
         <span class="n">DESERIALIZER_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/localpickle/task_local_pickle_deser.jinja&quot;</span>
+            <span class="s2">&quot;task/tmpdirpickle/task_deser.jinja&quot;</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">task_serialization</span> <span class="o">==</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">ParametrizedPickle</span><span class="p">:</span>
         <span class="n">SERIALIZER_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/parameterizedpickle/task_parameterized_ser.jinja&quot;</span>
+            <span class="s2">&quot;task/parameterizedpickle/task_ser.jinja&quot;</span>
         <span class="p">)</span>
         <span class="n">DESERIALIZER_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/parameterizedpickle/task_parameterized_deser.jinja&quot;</span>
+            <span class="s2">&quot;task/parameterizedpickle/task_deser.jinja&quot;</span>
         <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">task_serialization</span> <span class="o">==</span> <span class="n">TaskSerializer</span><span class="o">.</span><span class="n">CWDPickle</span><span class="p">:</span>
+        <span class="n">SERIALIZER_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
+            <span class="s2">&quot;task/cwdpickle/task_ser.jinja&quot;</span>
+        <span class="p">)</span>
+        <span class="n">DESERIALIZER_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
+            <span class="s2">&quot;task/cwdpickle/task_deser.jinja&quot;</span>
+        <span class="p">)</span>
+
     <span class="c1"># Add more renderable task serializers here</span>
 
     <span class="k">for</span> <span class="n">loaded_input_variable</span> <span class="ow">in</span> <span class="n">taskdef</span><span class="o">.</span><span class="n">loaded_input_variables</span><span class="p">:</span>

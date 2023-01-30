@@ -250,7 +250,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -532,6 +532,20 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-nav__item">
+      <a href="tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="tutorials/00_lineapy_quickstart/" class="md-nav__link">
         Getting Started with LineaPy
       </a>
@@ -781,6 +795,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3013,6 +3041,11 @@ You are viewing an old version of the documentation.
                 
                   
 
+  <a href="https://github.com/LineaLabs/lineapy/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
 
 <h1 id="welcome-to-lineapy">Welcome to LineaPy!<a class="headerlink" href="#welcome-to-lineapy" title="Permanent link">&para;</a></h1>
 <h2 id="what-is-lineapy">What is LineaPy?<a class="headerlink" href="#what-is-lineapy" title="Permanent link">&para;</a></h2>
@@ -3061,7 +3094,7 @@ model development. To keep our results up-to-date, we might be expected to re-ex
 regular basis. Running notebooks manually is a brittle process that's prone to errors, so we may want to set
 up proper pipelines for production. If relevant engineering support is not available, we need to clean up and
 refactor our notebook code so that it can be used in orchestration systems or job schedulers, such as cron,
-Apache Airflow, or Prefect. Of course, this assumes that we already know how these tools work and how to use
+Apache Airflow, Argo, Kubeflow, DVC, or Ray. Of course, this assumes that we already know how these tools work and how to use
 them &mdash; If not, we need to spend time learning about them in the first place! All this operational work is
 time-consuming, and detracts from the time that we can spend on our core duties as a data scientist.</p>
 <div class="admonition example">

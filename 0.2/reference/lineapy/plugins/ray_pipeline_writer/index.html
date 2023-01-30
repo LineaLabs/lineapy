@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3024,11 +3052,7 @@ You are viewing an old version of the documentation.
 
         <details class="quote">
           <summary>Source code in <code>lineapy/plugins/ray_pipeline_writer.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 35</span>
-<span class="normal"> 36</span>
-<span class="normal"> 37</span>
-<span class="normal"> 38</span>
-<span class="normal"> 39</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 39</span>
 <span class="normal"> 40</span>
 <span class="normal"> 41</span>
 <span class="normal"> 42</span>
@@ -3153,7 +3177,16 @@ You are viewing an old version of the documentation.
 <span class="normal">161</span>
 <span class="normal">162</span>
 <span class="normal">163</span>
-<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">RayPipelineWriter</span><span class="p">(</span><span class="n">BasePipelineWriter</span><span class="p">):</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">RayPipelineWriter</span><span class="p">(</span><span class="n">BasePipelineWriter</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">_write_dag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Check if the given DAG flavor is a supported/valid one</span>
         <span class="k">try</span><span class="p">:</span>
@@ -3180,9 +3213,9 @@ You are viewing an old version of the documentation.
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_workflows&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
-            <span class="n">DAG_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span><span class="s2">&quot;ray_dag_workflow.jinja&quot;</span><span class="p">)</span>
+            <span class="n">DAG_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span><span class="s2">&quot;ray/ray_dag_workflow.jinja&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">DAG_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span><span class="s2">&quot;ray_dag_remote.jinja&quot;</span><span class="p">)</span>
+            <span class="n">DAG_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span><span class="s2">&quot;ray/ray_dag_remote.jinja&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dag_flavor</span> <span class="o">==</span> <span class="n">RayDagFlavor</span><span class="o">.</span><span class="n">TaskPerSession</span><span class="p">:</span>
             <span class="n">task_breakdown</span> <span class="o">=</span> <span class="n">DagTaskBreakdown</span><span class="o">.</span><span class="n">TaskPerSession</span>
@@ -3233,7 +3266,15 @@ You are viewing an old version of the documentation.
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">docker_template_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;ray_dockerfile.jinja&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;ray/ray_dockerfile.jinja&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">libraries</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get_requirements</span><span class="p">()</span>
+        <span class="c1"># add packaging library which is required for the DAG to check ray version</span>
+        <span class="c1"># this library is not used by any task and must be added in post</span>
+        <span class="k">if</span> <span class="s2">&quot;packaging&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">libraries</span><span class="p">:</span>
+            <span class="n">libraries</span><span class="p">[</span><span class="s2">&quot;packaging&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;21.3&quot;</span>
+        <span class="k">return</span> <span class="n">libraries</span>
 
     <span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3247,17 +3288,13 @@ You are viewing an old version of the documentation.
 <span class="sd">        output files for inter task communication.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-            <span class="s2">&quot;task/task_function.jinja&quot;</span>
-        <span class="p">)</span>
-        <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
+        <span class="k">def</span> <span class="nf">user_input_variables_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
             <span class="n">input_vars</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span> <span class="o">+</span> <span class="n">task_def</span><span class="o">.</span><span class="n">loaded_input_variables</span>
             <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_vars</span><span class="p">)</span>
 
+        <span class="k">def</span> <span class="nf">function_decorator_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
             <span class="c1"># only specify num returns in function decorator for worflow</span>
             <span class="n">function_decorator</span> <span class="o">=</span> <span class="s2">&quot;@ray.remote&quot;</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_workflows&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
@@ -3266,21 +3303,22 @@ You are viewing an old version of the documentation.
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Ray workflows do not currently support tasks with multiple returns. Task </span><span class="si">{</span><span class="n">task_name</span><span class="si">}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2"> returns.</span><span class="se">\n\</span>
+                    <span class="sa">f</span><span class="s2">&quot;Ray workflows do not currently support tasks with multiple returns. Task </span><span class="si">{</span><span class="n">task_def</span><span class="o">.</span><span class="n">function_name</span><span class="si">}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2"> returns.</span><span class="se">\n\</span>
 <span class="s2">                    Consider use use_workflows=False to disable using Ray Workflows API.&quot;</span>
                 <span class="p">)</span>
+            <span class="k">return</span> <span class="n">function_decorator</span>
 
-            <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-                <span class="n">function_decorator</span><span class="o">=</span><span class="n">function_decorator</span><span class="p">,</span>
-                <span class="n">function_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
-                <span class="n">user_input_variables</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_vars</span><span class="p">),</span>
-                <span class="n">typing_blocks</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
-                <span class="n">pre_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-                <span class="n">call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
-                <span class="n">post_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span><span class="p">,</span>
-                <span class="n">return_block</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;return </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">return_block_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;return </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_task_definitions</span><span class="p">(</span>
+            <span class="n">task_defs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span><span class="p">,</span>
+            <span class="n">task_serialization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">function_decorator_fn</span><span class="o">=</span><span class="n">function_decorator_fn</span><span class="p">,</span>
+            <span class="n">user_input_variables_fn</span><span class="o">=</span><span class="n">user_input_variables_fn</span><span class="p">,</span>
+            <span class="n">return_block_fn</span><span class="o">=</span><span class="n">return_block_fn</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">rendered_task_defs</span>
 </code></pre></div></td></tr></table></div>
@@ -3317,19 +3355,7 @@ output files for inter task communication.</p>
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/ray_pipeline_writer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">129</span>
 <span class="normal">130</span>
 <span class="normal">131</span>
 <span class="normal">132</span>
@@ -3364,7 +3390,16 @@ output files for inter task communication.</p>
 <span class="normal">161</span>
 <span class="normal">162</span>
 <span class="normal">163</span>
-<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rendered_task_definitions</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">task_defs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskDefinition</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -3376,17 +3411,13 @@ output files for inter task communication.</p>
 <span class="sd">    output files for inter task communication.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">TASK_FUNCTION_TEMPLATE</span> <span class="o">=</span> <span class="n">load_plugin_template</span><span class="p">(</span>
-        <span class="s2">&quot;task/task_function.jinja&quot;</span>
-    <span class="p">)</span>
-    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">for</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_def</span> <span class="ow">in</span> <span class="n">task_defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
+    <span class="k">def</span> <span class="nf">user_input_variables_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">input_vars</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">task_def</span><span class="o">.</span><span class="n">user_input_variables</span> <span class="o">+</span> <span class="n">task_def</span><span class="o">.</span><span class="n">loaded_input_variables</span>
         <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_vars</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">function_decorator_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="c1"># only specify num returns in function decorator for worflow</span>
         <span class="n">function_decorator</span> <span class="o">=</span> <span class="s2">&quot;@ray.remote&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_workflows&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
@@ -3395,21 +3426,22 @@ output files for inter task communication.</p>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Ray workflows do not currently support tasks with multiple returns. Task </span><span class="si">{</span><span class="n">task_name</span><span class="si">}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2"> returns.</span><span class="se">\n\</span>
+                <span class="sa">f</span><span class="s2">&quot;Ray workflows do not currently support tasks with multiple returns. Task </span><span class="si">{</span><span class="n">task_def</span><span class="o">.</span><span class="n">function_name</span><span class="si">}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2"> returns.</span><span class="se">\n\</span>
 <span class="s2">                Consider use use_workflows=False to disable using Ray Workflows API.&quot;</span>
             <span class="p">)</span>
+        <span class="k">return</span> <span class="n">function_decorator</span>
 
-        <span class="n">task_def_rendered</span> <span class="o">=</span> <span class="n">TASK_FUNCTION_TEMPLATE</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
-            <span class="n">function_decorator</span><span class="o">=</span><span class="n">function_decorator</span><span class="p">,</span>
-            <span class="n">function_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
-            <span class="n">user_input_variables</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_vars</span><span class="p">),</span>
-            <span class="n">typing_blocks</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">typing_blocks</span><span class="p">,</span>
-            <span class="n">pre_call_block</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">call_block</span><span class="p">,</span>
-            <span class="n">post_call_block</span><span class="o">=</span><span class="n">task_def</span><span class="o">.</span><span class="n">post_call_block</span><span class="p">,</span>
-            <span class="n">return_block</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;return </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">rendered_task_defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_def_rendered</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">return_block_fn</span><span class="p">(</span><span class="n">task_def</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;return </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_def</span><span class="o">.</span><span class="n">return_vars</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">rendered_task_defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_task_definitions</span><span class="p">(</span>
+        <span class="n">task_defs</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_name</span><span class="p">,</span>
+        <span class="n">task_serialization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">function_decorator_fn</span><span class="o">=</span><span class="n">function_decorator_fn</span><span class="p">,</span>
+        <span class="n">user_input_variables_fn</span><span class="o">=</span><span class="n">user_input_variables_fn</span><span class="p">,</span>
+        <span class="n">return_block_fn</span><span class="o">=</span><span class="n">return_block_fn</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">rendered_task_defs</span>
 </code></pre></div></td></tr></table></div>

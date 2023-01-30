@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -3413,7 +3441,11 @@ DAG script, and infra files (e.g., Dockerfile).</p>
 <span class="normal">395</span>
 <span class="normal">396</span>
 <span class="normal">397</span>
-<span class="normal">398</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BasePipelineWriter</span><span class="p">:</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BasePipelineWriter</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pipeline writer uses modularized artifact code to generate</span>
 <span class="sd">    and write out standard pipeline files, including Python modules,</span>
@@ -3582,10 +3614,7 @@ DAG script, and infra files (e.g., Dockerfile).</p>
 
         <span class="k">return</span> <span class="n">prettify</span><span class="p">(</span><span class="n">module_text</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_write_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write out requirements file.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_get_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="n">libraries</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">session_artifacts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_artifacts_sorted</span><span class="p">:</span>
             <span class="n">session_artifact_libs</span> <span class="o">=</span> <span class="n">session_artifacts</span><span class="o">.</span><span class="n">get_libraries</span><span class="p">()</span>
@@ -3595,6 +3624,13 @@ DAG script, and infra files (e.g., Dockerfile).</p>
                         <span class="n">lib</span><span class="o">.</span><span class="n">package_name</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">package_name</span>
                     <span class="p">)</span>
                     <span class="n">libraries</span><span class="p">[</span><span class="n">lib_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">version</span>
+        <span class="k">return</span> <span class="n">libraries</span>
+
+    <span class="k">def</span> <span class="nf">_write_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write out requirements file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">libraries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_requirements</span><span class="p">()</span>
         <span class="n">lib_names_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">lib</span> <span class="k">if</span> <span class="n">lib</span> <span class="o">==</span> <span class="s2">&quot;lineapy&quot;</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">==</span><span class="si">{</span><span class="n">ver</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -3821,11 +3857,7 @@ objects to match the format for pipeline arguments that is expected by that fram
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/base_pipeline_writer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">384</span>
-<span class="normal">385</span>
-<span class="normal">386</span>
-<span class="normal">387</span>
-<span class="normal">388</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">388</span>
 <span class="normal">389</span>
 <span class="normal">390</span>
 <span class="normal">391</span>
@@ -3835,7 +3867,11 @@ objects to match the format for pipeline arguments that is expected by that fram
 <span class="normal">395</span>
 <span class="normal">396</span>
 <span class="normal">397</span>
-<span class="normal">398</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_pipeline_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">InputVariable</span><span class="p">]:</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_pipeline_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">InputVariable</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get_pipeline_args returns the arguments that are required as inputs to the whole pipeline.</span>
 
@@ -3872,15 +3908,15 @@ objects to match the format for pipeline arguments that is expected by that fram
 
       <details class="quote">
         <summary>Source code in <code>lineapy/plugins/base_pipeline_writer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">374</span>
-<span class="normal">375</span>
-<span class="normal">376</span>
-<span class="normal">377</span>
-<span class="normal">378</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">378</span>
 <span class="normal">379</span>
 <span class="normal">380</span>
 <span class="normal">381</span>
-<span class="normal">382</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">write_pipeline_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">write_pipeline_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write out pipeline files.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

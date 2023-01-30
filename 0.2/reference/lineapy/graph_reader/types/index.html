@@ -248,7 +248,7 @@ You are viewing an old version of the documentation.
   
   
     <li class="md-tabs__item">
-      <a href="../../../../tutorials/00_lineapy_quickstart/" class="md-tabs__link">
+      <a href="../../../../tutorials/" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -450,6 +450,20 @@ You are viewing an old version of the documentation.
           Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorials/" class="md-nav__link">
+        Tutorials Overview
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -706,6 +720,20 @@ You are viewing an old version of the documentation.
     <li class="md-nav__item">
       <a href="../../../../guides/usage/pipeline-parametrization/" class="md-nav__link">
         Pipeline Parametrization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../guides/usage/pipeline-reusing-precomputed/" class="md-nav__link">
+        Reusing Pre-Computed Artifact Values
       </a>
     </li>
   
@@ -2999,14 +3027,13 @@ You are viewing an old version of the documentation.
   
       <p>Class to generate code related input variable and it's default value</p>
 
-  <p><strong>Parameters:</strong></p>
+  <p><strong>Attributes:</strong></p>
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Type</th>
         <th>Description</th>
-        <th>Default</th>
       </tr>
     </thead>
     <tbody>
@@ -3015,34 +3042,42 @@ You are viewing an old version of the documentation.
           <td>
           </td>
           <td><p>variable name</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>value</code></td>
           <td>
           </td>
           <td><p>variable value</p></td>
-          <td>
-              <em>required</em>
-          </td>
         </tr>
         <tr>
           <td><code>value_type</code></td>
           <td>
           </td>
           <td><p>variable object type</p></td>
+        </tr>
+        <tr>
+          <td><code>default_args</code></td>
           <td>
-              <em>required</em>
           </td>
+          <td><p>assignment of variable to a default value
+ex: <code>a = 1</code></p></td>
+        </tr>
+        <tr>
+          <td><code>parser_body</code></td>
+          <td>
+          </td>
+          <td><p>code block that uses python parser library to get a input variable from CLI.
+ex: <code>parser.add_argument('--a', default=1, type=int)</code></p></td>
+        </tr>
+        <tr>
+          <td><code>parser_args</code></td>
+          <td>
+          </td>
+          <td><p>code block that unpacks input variable from args.
+ex: <code>a = args.a</code></p></td>
         </tr>
     </tbody>
   </table>
-      <p>Attributes:
-    default_args: ex: <code>a = 1</code>
-    parser_body: ex: <code>parser.add_argument('--a', default=1, type=int)</code>
-    parser_args: ex: <code>a = args.a</code></p>
 
 
         <details class="quote">
@@ -3074,12 +3109,16 @@ You are viewing an old version of the documentation.
 <span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span>
-<span class="normal">31</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">InputVariable</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to generate code related input variable and it&#39;s default value</span>
 
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    variable_name:</span>
 <span class="sd">        variable name</span>
@@ -3087,11 +3126,15 @@ You are viewing an old version of the documentation.
 <span class="sd">        variable value</span>
 <span class="sd">    value_type:</span>
 <span class="sd">        variable object type</span>
-
-<span class="sd">    Attributes:</span>
-<span class="sd">        default_args: ex: ``a = 1``</span>
-<span class="sd">        parser_body: ex: ``parser.add_argument(&#39;--a&#39;, default=1, type=int)``</span>
-<span class="sd">        parser_args: ex: ``a = args.a``</span>
+<span class="sd">    default_args:</span>
+<span class="sd">        assignment of variable to a default value</span>
+<span class="sd">        ex: ``a = 1``</span>
+<span class="sd">    parser_body:</span>
+<span class="sd">        code block that uses python parser library to get a input variable from CLI.</span>
+<span class="sd">        ex: ``parser.add_argument(&#39;--a&#39;, default=1, type=int)``</span>
+<span class="sd">    parser_args:</span>
+<span class="sd">        code block that unpacks input variable from args.</span>
+<span class="sd">        ex: ``a = args.a``</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
