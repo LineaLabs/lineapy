@@ -6539,7 +6539,7 @@ os.listdir("./pipeline_example_script/")</div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>We can see that LineaPy used artifacts to automatically 1) clean up their code to retain only essential operations and 2) package the cleaned-up code into importable functions. For instance, we see that <code>get_iris_preprocessed()</code> can re-calculate the <code>iris_preprocessed</code> artifact, but in a more succinct way (e.g., irrelevant plotting code is now gone).</p>
-<p>Note that some function signatures have parameters (e.g., <code>def get_iris_preprocessed(url)</code>), and this is to support the pipeline parametrization we requested during our pipeline API call earlier.</p>
+<p>Note that some function signatures have parameters (e.g., <code>def get_iris_preprocessed(url)</code>), and this is to support the <a href="https://docs.lineapy.org/latest/guides/usage/pipeline-parametrization">pipeline parametrization</a> we requested during our pipeline API call earlier.</p>
 <p>Note also that LineaPy has smartly identified the "common" computation between <code>iris_model</code> and <code>iris_model_evaluation</code> artifacts, which has been automatically factored out into its own function, i.e., <code>get_split_samples_for_artifact_iris_model_and_downstream()</code>; if this were a step involving a heavy computation, the current modularization would have saved much time and resource. This way, LineaPy minimizes duplicate processes in a pipeline, making it more efficient to run.</p>
 
 </div>
@@ -7469,7 +7469,7 @@ kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflo
 <div class="highlight"><pre><span></span>kubectl -n argo port-forward deployment/argo-server <span class="m">2746</span>:2746
 </pre></div>
 <p>After following these steps, the argo UI should be visible on <code>localhost:2746</code>.</p>
-<p>To submit the pipeline, make sure to build the dockerfile first. Then simply run the dag file using</p>
+<p>To submit the pipeline, make sure to build the dockerfile using the instructions in the Dockerfile. Then simply run the dag file using</p>
 <div class="highlight"><pre><span></span>python ./pipeline_example_argo/iris_pipeline_dag.py
 </pre></div>
 
@@ -7903,7 +7903,7 @@ kubectl apply -n kubeflow -k <span class="s2">&quot;github.com/kubeflow/pipeline
 <div class="highlight"><pre><span></span>kubectl port-forward -n kubeflow svc/ml-pipeline-ui <span class="m">3000</span>:80
 </pre></div>
 <p>After following these steps, the kubeflow UI should be visible on <code>localhost:3000</code>.</p>
-<p>To submit the pipeline, make sure to build the dockerfile first. Then simply run the dag file using</p>
+<p>To submit the pipeline, make sure to build the dockerfile using the instructions in the Dockerfile. Then simply run the dag file using</p>
 <div class="highlight"><pre><span></span>python ./pipeline_example_kubeflow/iris_pipeline_dag.py
 </pre></div>
 
@@ -8512,7 +8512,7 @@ Generated Docker file: pipeline_example_dvc/iris_pipeline_Dockerfile
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>The dag file generated in DVC is a yaml file that must be named <code>dvc.yaml</code>.</p>
-<p>Unlike other frameworks, DVC works best when each stage is defined seperately in its own file. The main <code>dvc.yaml</code> file defines the stages and which file should be run for each stage along with input and output dependencies.</p>
+<p>Unlike other frameworks, DVC works best when each stage is defined separately in its own file. The main <code>dvc.yaml</code> file defines the stages and which file should be run for each stage along with input and output dependencies.</p>
 
 </div>
 </div>
