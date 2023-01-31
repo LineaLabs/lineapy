@@ -20,12 +20,18 @@ class Graph(object):
         dependencies. This is the common IR upon which all LineaPy applications,
         such as code cleanup and DAG generation, are built.
 
-        :param nodes: a list of LineaPy Nodes that make up the graph.
-        :param session_context: the session context associated with the graph
+        Parameters
+        ----------
+        nodes: List[Node]
+            list of LineaPy Nodes that make up the graph.
+        session_context: SessionContext
+            the session context associated with the graph
 
-        NOTE: The information in session_context is semantically important to
-        the notion of a Graph. Concretely, we are starting to also use the code
-        entry from the session_context.
+        ??? note
+
+            The information in `session_context` is semantically important to
+            the notion of a Graph. Concretely, we are starting to also use the code
+            entry from the session_context.
         """
         self.nodes: List[Node] = nodes
         self.ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
@@ -193,9 +199,16 @@ class Graph(object):
         """
         Get a subgraph of the current graph induced by the input nodes.
 
-        :param nodes: The nodes in the subgraph
-        :return: A new `Graph` that contains `nodes` and the edges between
-        `nodes` in the current Graph and has the same session_context.
+        Parameters
+        ----------
+        nodes: List[Node]
+            The nodes in the subgraph
+
+        Returns
+        -------
+        Graph
+            A new `Graph` that contains `nodes` and the edges between
+            `nodes` in the current Graph and has the same session_context.
         """
         return Graph(nodes, self.session_context)
 

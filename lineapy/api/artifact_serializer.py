@@ -29,12 +29,13 @@ def serialize_artifact(
     Serialize artifact using various backend.
 
     Currently, most objects are using lineapy as the backend for serialization.
-    The only exception is mlflow supported model flavors. In order to use
-    mlflow for ml model serialization, following conditions need to be
-    satisified:
-    1. the artifact(ML model) should be a mlflow supported flavor
-    2. mlflow is installed
-    3. storage_backend should be mlflow or storage_backend is None and
+    The only exception is MLflow-supported model flavors. In order to use
+    MLflow for ml model serialization, following conditions need to be
+    satisfied:
+
+    1. The artifact(ML model) should be a MLflow-supported flavor
+    2. MLflow is installed
+    3. `storage_backend` should be `mlflow` or `storage_backend` is `None` and
     `options.get("default_ARTIFACT_STORAGE_BACKEND")=='mlflow'`
 
     Parameters
@@ -44,20 +45,21 @@ def serialize_artifact(
     execution_id: LineaID
         Execution id
     reference: Union[object, ExternalState]
-        Same as reference in :func:`lineapy.api.save`
+        Same as reference in [`lineapy.save()`][lineapy.api.api.save]
     name: str
-        Same as reference in :func:`lineapy.api.save`
+        Same as reference in [`lineapy.save()`][lineapy.api.api.save]
     storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
-        Same as reference in :func:`lineapy.api.save`
+        Same as reference in [`lineapy.save()`][lineapy.api.api.save]
     **kwargs:
-        Same as reference in :func:`lineapy.api.save`
+        Same as reference in [`lineapy.save()`][lineapy.api.api.save]
 
     Returns
     -------
     Dict
-        returned a dictionary with following key-value pair
-        backend: storage backend used to save the artifact
-        metadata: metadata of the storage backed
+        Dictionary with following key-value pair:
+
+        - backend: storage backend used to save the artifact
+        - metadata: metadata of the storage backed
     """
     if _able_to_use_mlflow(storage_backend):
         model_info = try_write_to_mlflow(reference, name, **kwargs)
@@ -77,9 +79,10 @@ def serialize_artifact(
 
 def _able_to_use_mlflow(storage_backend) -> bool:
     """
-    Determine whether to use MLflow to serialize ML models
+    Determine whether to use MLflow to serialize ML models.
 
     Use MLflow if
+
     1. config `mlflow_tracking_uri` is not empty
     2. `storage_backend=='mlflow'` or (`storage_backend is None` and
         `default_ml_models_storage_backend` is mlflow)
@@ -87,12 +90,11 @@ def _able_to_use_mlflow(storage_backend) -> bool:
     Parameters
     ----------
     storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
-        Same as reference in :func:`lineapy.api.save`
+        Same as reference in [`lineapy.save()`][lineapy.api.api.save]
 
     Returns
     -------
     bool
-
     """
     if options.get("mlflow_tracking_uri") is not None:
         if storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow or (
@@ -114,10 +116,15 @@ def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
 
 def _try_write_to_pickle(value: object, filename: str) -> None:
     """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+    Saves the value to a random file inside linea folder.
+    This file path is returned and eventually saved to the db.
 
-    :param value: data to pickle
-    :param filename: name of pickle file
+    Parameters
+    ----------
+    value: object
+        Data to pickle
+    filename: str
+        Name of pickle file
     """
     if isinstance(value, types.ModuleType):
         track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))

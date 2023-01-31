@@ -1,29 +1,26 @@
 """
-User facing APIs.
+User-facing APIs.
 """
 
 import logging
 import warnings
 from datetime import datetime
 from pathlib import Path
+from types import ModuleType
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 
 from lineapy.api.artifact_serializer import serialize_artifact
-from lineapy.api.models.linea_artifact import (
-    LineaArtifact,
-    get_lineaartifactdef,
-)
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
 from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, Artifact, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
-from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_pipeline_writer import get_base_pipeline_writer
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
@@ -57,21 +54,21 @@ def save(
     **kwargs,
 ) -> LineaArtifact:
     """
-    Publishes the object to the Linea DB.
+    Publishes the object to the LineaPy DB.
 
     Parameters
     ----------
     reference: Union[object, ExternalState]
-        The reference could be a variable name, in which case Linea will save
+        The reference could be a variable name, in which case LineaPy will save
         the value of the variable, with out default serialization mechanism.
-        Alternatively, it could be a "side effect" reference, which currently includes either :class:`lineapy.file_system` or :class:`lineapy.db`.
-        Linea will save the associated process that creates the final side effects.
+        Alternatively, it could be a "side effect" reference, which currently includes either `lineapy.file_system` or `lineapy.db`.
+        LineaPy will save the associated process that creates the final side effects.
         We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
     storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
         The storage backend used to save the artifact. Currently support
-        lineapy and mlflow(for mlflow supported model flavors). In case of
+        lineapy and mlflow (for mlflow supported model flavors). In case of
         mlflow, lineapy will use `mlflow.sklearn.log_model` or other supported
         flavors equivalent to save artifacts into mlflow.
     **kwargs:
@@ -83,8 +80,9 @@ def save(
     Returns
     -------
     LineaArtifact
-        returned value offers methods to access
-        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_pipeline`.
+        Returned value offers methods to access
+        information we have stored about the artifact (value, version),
+        and other automation capabilities, such as [`to_pipeline()`][lineapy.api.api.to_pipeline].
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -194,10 +192,17 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     refer to the value, the value is also deleted from both the
     value node store and the pickle store.
 
-    :param artifact_name: Key used to while saving the artifact
-    :param version: version number or 'latest' or 'all'
+    Parameters
+    ----------
+    artifact_name: str
+        Key used to while saving the artifact.
+    version: Union[int, str]
+        Version number or "latest" or "all".
 
-    :raises ValueError: if arifact not found or version invalid
+    Raises
+    ------
+    ValueError
+        If artifact not found or version invalid.
     """
     version = parse_artifact_version(version)
 
@@ -257,16 +262,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     Parameters
     ----------
     artifact_name: str
-        name of the artifact. Note that if you do not remember the artifact,
-        you can use the artifact_store to browse the options
+        Name of the artifact. Note that if you do not remember the artifact,
+        you can use the artifact_store to browse the options.
     version: Optional[str]
-        version of the artifact. If None, the latest version will be returned.
+        Version of the artifact. If `None`, the latest version will be returned.
 
     Returns
     -------
     LineaArtifact
-        returned value offers methods to access
-        information we have stored about the artifact
+        Returned value offers methods to access
+        information we have stored about the artifact.
     """
     validated_version = parse_artifact_version(
         "latest" if version is None else version
@@ -344,10 +349,10 @@ def reload() -> None:
     """
     Reloads lineapy context.
 
-    .. note::
+    !!! note
 
-        Currently only reloads annotations but in the future can be a container for other items like configs etc.
-
+        Currently only reloads annotations but in the future can be a container
+        for other items like configs, etc.
     """
     execution_context = get_context()
     execution_context.executor.reload_annotations()
@@ -387,13 +392,12 @@ def to_pipeline(
     ----------
     artifacts: List[str]
         Names of artifacts to be included in the pipeline.
-
     framework: str
-        "AIRFLOW" or "SCRIPT". Defaults to "SCRIPT" if not specified.
-
+        Name of the framework to be used.
+        Defined by enum PipelineTypes in lineapy/data/types.py.
+        Defaults to "SCRIPT" if not specified.
     pipeline_name: Optional[str]
         Name of the pipeline.
-
     dependencies: TaskGraphEdge
         Task dependencies in graphlib format, e.g., ``{"B": {"A", "C"}}``
         means task A and C are prerequisites for task B.
@@ -401,10 +405,8 @@ def to_pipeline(
         the same session, so there is no need to specify this type of dependency
         information; instead, the user is expected to provide dependency information
         among artifacts across different sessions.
-
     output_dir: str
         Directory path to save DAG and other pipeline files.
-
     input_parameters: List[str]
         Names of variables to be used as parameters in the pipeline.
         Currently, it only accepts variables from literal assignment
@@ -415,11 +417,9 @@ def to_pipeline(
         we cannot make ``a`` an input parameter since its reference is
         ambiguous, i.e., we are not sure which literal assignment ``a``
         refers to.
-
     reuse_pre_computed_artifacts: List[str]
         Names of artifacts in the pipeline for which pre-computed value
         is to be used (rather than recomputing the value).
-
     generate_test: bool
         Whether to generate scaffold/template for pipeline testing.
         Defaults to ``False``. The scaffold contains placeholders for testing
@@ -427,12 +427,12 @@ def to_pipeline(
         out by the user to suit their needs. When run out of the box, it performs
         a naive form of equality evaluation for each function's output,
         which demands validation and customization by the user.
-
     pipeline_dag_config: Optional[AirflowDagConfig]
         A dictionary of parameters to configure DAG file to be generated.
         Not applicable for "SCRIPT" framework as it does not generate a separate
         DAG file. For "AIRFLOW" framework, Airflow-native config params such as
-        "retries" and "schedule_interval" can be passed in.
+        "retries" and "schedule_interval" can be passed in. For "ARGO" framework,
+        Argo-native config params such as "namespace" and "service_account_name".
 
     Returns
     -------
@@ -484,9 +484,8 @@ def get_function(
     Parameters
     ----------
     artifacts: List[Union[str, Tuple[str, int]]]
-        List of artifact names(with optional version) to be included in the
+        List of artifact names (with optional version) to be included in the
         function return.
-
     input_parameters: List[str]
         List of variable names to be used in the function arguments. Currently,
         only accept variable from literal assignment; such as a='123'. There
@@ -494,7 +493,6 @@ def get_function(
         artifact calculation code. For instance, if both a='123' and a='abc'
         are existing in the code, we cannot specify a as input variables since
         it is confusing to specify which literal assignment we want to replace.
-
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
         List of artifacts(name with optional version) for which we will use
         pre-computed values from the artifact store instead of recomputing from
@@ -507,7 +505,8 @@ def get_function(
         dictionary with each artifact name as the dictionary key and artifact
         value as the value.
 
-    Note that,
+    Note that:
+
     1. If an input parameter is only used to calculate artifacts in the
         `reuse_pre_computed_artifacts` list, that input parameter will be
         passed around as a dummy variable. LineaPy will create a warning.
@@ -518,22 +517,9 @@ def get_function(
         name in different notebooks and don't save same artifact multiple times
         within the same session.
     """
-    execution_context = get_context()
-    artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
-    ]
-    reuse_pre_computed_artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry)
-        for art_entry in reuse_pre_computed_artifacts
-    ]
-    art_collection = ArtifactCollection(
-        execution_context.executor.db,
-        artifact_defs,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+    module = get_module(
+        artifacts, input_parameters, reuse_pre_computed_artifacts
     )
-    writer = BasePipelineWriter(art_collection)
-    module = load_as_module(writer)
     return module.run_all_sessions
 
 
@@ -543,38 +529,53 @@ def get_module_definition(
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
 ) -> str:
     """
-    Create a python module that includes the definition of :func::`get_function`.
+    Get the python module definition for [`get_module()`][lineapy.api.api.get_module].
 
     Parameters
     ----------
     artifacts: List[Union[str, Tuple[str, int]]]
-        same as :func:`get_function`
-
+        Same as in [`get_function()`][lineapy.api.api.get_function].
     input_parameters: List[str]
-        same as :func:`get_function`
-
+        Same as in [`get_function()`][lineapy.api.api.get_function].
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
-        same as :func:`get_function`
+        Same as in [`get_function()`][lineapy.api.api.get_function].
 
     Returns
     -------
     str
-        A python module that includes the definition of :func::`get_function`
+        Module definition of [`get_module()`][lineapy.api.api.get_module].
+    """
+    writer = get_base_pipeline_writer(
+        artifacts, input_parameters, reuse_pre_computed_artifacts
+    )
+    return writer._compose_module()
+
+
+def get_module(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> ModuleType:
+    """
+    Create a python module that includes the definition of [`get_function()`][lineapy.api.api.get_function].
+
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+    input_parameters: List[str]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+
+    Returns
+    -------
+    str
+        A python module that includes the definition of [`get_function()`][lineapy.api.api.get_function]
         as `run_all_sessions`.
     """
-    execution_context = get_context()
-    artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
-    ]
-    reuse_pre_computed_artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry)
-        for art_entry in reuse_pre_computed_artifacts
-    ]
-    art_collection = ArtifactCollection(
-        execution_context.executor.db,
-        artifact_defs,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+    writer = get_base_pipeline_writer(
+        artifacts, input_parameters, reuse_pre_computed_artifacts
     )
-    writer = BasePipelineWriter(art_collection)
-    return writer._compose_module()
+    module = load_as_module(writer)
+    return module

@@ -50,11 +50,11 @@ bash-airflow:
 	docker-compose run --rm ${service_name}-airflow /bin/bash
 
 build-docs:
-	docker-compose run --rm ${service_name} /bin/bash -c "cd docs && rm -rf build source/build source/_build source/autogen && SPHINX_APIDOC_OPTIONS=members sphinx-apidoc -d 2 -f -o ./source/autogen ../lineapy/ && make html"
+	cd docs && python gen_ref_pages.py && mkdocs serve
 
 test:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow and not integration" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc or kubeflow or argo or integration)" tests/
 
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}
@@ -64,10 +64,14 @@ test-github-action:
 # Additionally, the package pg and psycopg2 should be installed in the main service.
 test-parallel:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow)" tests/
+	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc or kubeflow or argo or integration)" tests/
 
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
+
+# Update pipeline integration specific snapshots.
+test-pipelines:
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "airflow or argo or dvc or ray or kubeflow" tests/unit/plugins/framework_specific/**/test_writer_*.py
 
 lint:
 	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . 
@@ -112,7 +116,7 @@ export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
 
 airflow_venv: 
 	python -m venv ${AIRFLOW_VENV}
-	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
+	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r test_pipeline_airflow_req.txt
 
 
 airflow_home: 

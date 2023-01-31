@@ -131,8 +131,10 @@ class Visualizer:
         """
         Create a graph for our public API, when showing a single node.
 
-        Note: The tracer won't be passed in this case, since it is happening
-        inside the executor and we don't have access to the tracer.
+        ??? note
+
+            The tracer won't be passed in this case, since it is happening
+            inside the executor and we don't have access to the tracer.
         """
         options = VisualGraphOptions(
             graph,

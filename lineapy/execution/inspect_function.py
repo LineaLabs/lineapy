@@ -138,7 +138,7 @@ def new_side_effect_without_all_positional_arg(
     """
     This method must NOT modify the original side_effect, since these
     annotations are dependent on the runtime values that are different
-    for each call---AllPositionalArgs will have a different set of arguments.
+    for each call &mdash; AllPositionalArgs will have a different set of arguments.
 
     Note that we might need to add something like "all keyword arguments", but
     that use case hasn't come up yet.

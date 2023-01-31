@@ -7,7 +7,7 @@
   with just two lines of code.</h3>
   <p>
     <a href="https://twitter.com/lineapy_oss">
-      <img alt="Follow LineaPy on Twitter!" src="https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter">
+      <img alt="Follow LineaPy on Twitter!" src="https://img.shields.io/badge/follow-%40lineapy_oss-1DA1F2?logo=twitter">
     </a>
     <a href="https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q">
       <img alt="Join the LineaPy Slack!" src="https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40">
@@ -30,7 +30,7 @@
 
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
-[![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/latest/index.html)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/fd4d79de-24d6-4b5b-a525-8e9a48820261/deploy-status)](https://app.netlify.com/sites/lineapy-docs/deploys)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
 
@@ -68,7 +68,7 @@ To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/
 
 ### Use Case 3: Building Pipelines
 
-As our notebooks become more mature, we may use them like pipelines. For example, our notebook might process the latest data to update a dashboard, or pre-process data and dump it into the file system for downstream model development. To keep our results up-to-date, we might be expected to re-execute these processes on a regular basis. Running notebooks manually is a brittle process that's prone to errors, so we may want to set up proper pipelines for production. If relevant engineering support is not available, we need to clean up and refactor our notebook code so that it can be used in orchestration systems or job schedulers, such as cron, Apache Airflow, or Prefect. Of course, this assumes that we already know how these tools work and how to use them &mdash; If not, we need to spend time learning about them in the first place! All this operational work is time-consuming, and detracts from the time that we can spend on our core duties as a data scientist.
+As our notebooks become more mature, we may use them like pipelines. For example, our notebook might process the latest data to update a dashboard, or pre-process data and dump it into the file system for downstream model development. To keep our results up-to-date, we might be expected to re-execute these processes on a regular basis. Running notebooks manually is a brittle process that's prone to errors, so we may want to set up proper pipelines for production. If relevant engineering support is not available, we need to clean up and refactor our notebook code so that it can be used in orchestration systems or job schedulers, such as cron, Apache Airflow, Argo, Kubeflow, DVC, or Ray. Of course, this assumes that we already know how these tools work and how to use them &mdash; If not, we need to spend time learning about them in the first place! All this operational work is time-consuming, and detracts from the time that we can spend on our core duties as a data scientist.
 
 To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/lineapy/blob/v0.2.x/.colab/create_a_simple_pipeline/create_a_simple_pipeline.ipynb) demo or <a href="https://bit.ly/3SJewuO"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>.
 
@@ -83,7 +83,7 @@ Check this [section](#what-problems-can-lineapy-solve) for types of problems tha
 
 ### Prerequisites
 
-LineaPy runs on `Python>=3.7` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
+LineaPy runs on `Python>=3.7,<3.11` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
 so you will need to [install one](https://jupyter.org/install) for interactive computing.
 
 ### Installation
@@ -95,10 +95,10 @@ pip install lineapy
 ```
 
 If you want to run the latest version of LineaPy directly from the source, follow instructions
-[here](https://docs.lineapy.org/en/latest/guides/contribute/setup.html#installation).
+[here](https://docs.lineapy.org/latest/guides/setup/#installing-lineapy).
 
 LineaPy offers several extras to extend its core capabilities, such as support for PostgreSQL or Amazon S3.
-Learn more about these and other installation options [here](https://docs.lineapy.org/en/latest/guides/installation.html#extras).
+Learn more about these and other installation options [here](https://docs.lineapy.org/latest/guides/setup/#extras).
 
 ### Interfaces
 
@@ -193,7 +193,7 @@ mod.fit(
 )
 ```
 
-Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://docs.lineapy.org/en/latest/concepts/artifact.html) with the following code:
+Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://docs.lineapy.org/latest/concepts/artifact/) with the following code:
 
 ```python
 # Save the model as an artifact
@@ -247,7 +247,7 @@ lineapy.to_pipeline(
 ```
 
 This command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
-[tutorial](https://docs.lineapy.org/en/latest/tutorials/02_pipeline_building.html) for more details.)
+[tutorial](https://docs.lineapy.org/latest/tutorials/02_pipeline_building/) for more details.)
 
 In short, LineaPy automates time-consuming, manual steps in a data science workflow, helping us get
 our work to production more quickly and easily.
@@ -267,7 +267,7 @@ export LINEAPY_DO_NOT_TRACK=true
 
 ## What Next?
 
-To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/en/latest/index.html)
+To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/latest/)
 which contains many examples you can follow with. Some key resources include:
 
 | Resource            | Description                                                                              |
@@ -280,10 +280,10 @@ which contains many examples you can follow with. Some key resources include:
 | **[Contribute]**    | Want to contribute? These instructions will help you get set up!                         |
 | **[Slack]**         | Have questions or issues unresolved? Join our community and ask away!                    |
 
-[Docs]: https://docs.lineapy.org/en/latest/index.html
-[Concepts]: https://docs.lineapy.org/en/latest/concepts/artifact.html
+[Docs]: https://docs.lineapy.org/latest/
+[Concepts]: https://docs.lineapy.org/latest/concepts/artifact/
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
-[API Reference]: https://docs.lineapy.org/en/latest/references/api_reference.html
-[Contribute]: https://docs.lineapy.org/en/latest/guides/contribute/index.html
+[API Reference]: https://docs.lineapy.org/latest/reference/lineapy/
+[Contribute]: https://docs.lineapy.org/latest/guides/contributing/process/
 [Slack]: https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q

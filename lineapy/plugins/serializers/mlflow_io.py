@@ -1,3 +1,22 @@
+"""
+Serializer and deserializer for MLflow supported model flavors. Only include 
+annotated modules at this time. 
+
+- [x] sklearn
+- [x] prophet
+- [ ] tensorflow (need update current annotation)
+- [ ] keras (need update current annotation)
+- [ ] h2o
+- [ ] gluon
+- [x] xgboost
+- [ ] lightgbm
+- [ ] catboost
+- [ ] spacy
+- [ ] fastai
+- [x] statsmodels
+
+"""
+
 import logging
 import sys
 from inspect import getmodule
@@ -6,26 +25,6 @@ from typing import Any, Optional
 from lineapy.data.types import MLflowArtifactInfo
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
-
-"""
-Serializer and deserializer for MLflow supported model flavors. Only include 
-annotated modules at this time. 
-
-[x] sklearn
-[x] prophet
-[ ] tensorflow (need update current annotation)
-[ ] keras (need update current annotation)
-[ ] h2o
-[ ] gluon
-[x] xgboost
-[ ] lightgbm
-[ ] catboost
-[ ] spacy
-[ ] fastai
-[x] statsmodels
-
-"""
-
 
 logger = logging.getLogger(__name__)
 configure_logging()

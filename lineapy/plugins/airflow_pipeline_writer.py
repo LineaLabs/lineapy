@@ -9,12 +9,12 @@ from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
     TaskSerializer,
-    render_task_io_serialize_blocks,
+    render_task_definitions,
 )
 from lineapy.plugins.taskgen import (
-    get_localpickle_setup_task_definition,
-    get_localpickle_teardown_task_definition,
     get_task_graph,
+    get_tmpdir_teardown_task_definition,
+    get_tmpdirpickle_setup_task_definition,
 )
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -56,7 +56,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "airflow_dockerfile.jinja"
+        return "airflow/airflow_dockerfile.jinja"
 
     def _write_dag(self) -> None:
 
@@ -72,7 +72,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         try:
             task_serialization = TaskSerializer[
-                self.dag_config.get("task_serialization", "LocalPickle")
+                self.dag_config.get("task_serialization", "TmpDirPickle")
             ]
         except KeyError:
             raise ValueError(
@@ -103,7 +103,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         Example of ``PythonOperatorPerSession`` if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session.
-        .. code-block:: python
+        ``` python
             import pickle
             import g2_z_module
             ...
@@ -116,10 +116,10 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     task_id="run_session_including_g2_task",
                     python_callable=task_run_session_including_g2,
                 )
-
+        ```
         Example of ``PythonOperatorPerArtifact``, if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session:
-        .. code-block:: python
+        ``` python
             import pickle
             import iris_module
             ...
@@ -142,12 +142,14 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     python_callable=task_iris_pred,
                 )
             iris_model >> iris_pred
-
+        ```
         This way, the generated Airflow DAG file opens room for engineers
         to control pipeline runs at a finer level and allows for further customization.
         """
 
-        DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
+        DAG_TEMPLATE = load_plugin_template(
+            "airflow/airflow_dag_PythonOperator.jinja"
+        )
 
         if dag_flavor == AirflowDagFlavor.PythonOperatorPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession
@@ -161,12 +163,12 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_breakdown=task_breakdown,
         )
 
-        # Add setup and teardown if local pickle serializer is selected
-        if task_serialization == TaskSerializer.LocalPickle:
-            task_defs["setup"] = get_localpickle_setup_task_definition(
+        # Add setup and teardown if temporary directory pickle serializer is selected
+        if task_serialization == TaskSerializer.TmpDirPickle:
+            task_defs["setup"] = get_tmpdirpickle_setup_task_definition(
                 self.pipeline_name
             )
-            task_defs["teardown"] = get_localpickle_teardown_task_definition(
+            task_defs["teardown"] = get_tmpdir_teardown_task_definition(
                 self.pipeline_name
             )
             # insert in order to task_names so that setup runs first and teardown runs last
@@ -213,26 +215,10 @@ class AirflowPipelineWriter(BasePipelineWriter):
         """
         Returns rendered tasks for the pipeline tasks.
         """
-        TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function.jinja"
+        rendered_task_defs: List[str] = render_task_definitions(
+            task_defs,
+            self.pipeline_name,
+            task_serialization=task_serialization,
         )
-        rendered_task_defs: List[str] = []
-        for task_name, task_def in task_defs.items():
-            loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, task_serialization
-            )
-            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-                function_name=task_name,
-                user_input_variables=", ".join(task_def.user_input_variables),
-                typing_blocks=task_def.typing_blocks,
-                loading_blocks=loading_blocks,
-                pre_call_block=task_def.pre_call_block,
-                call_block=task_def.call_block,
-                post_call_block=task_def.post_call_block,
-                dumping_blocks=dumping_blocks,
-                include_imports_locally=False,
-            )
-            rendered_task_defs.append(task_def_rendered)
 
-        # sort here to maintain deterministic behavior of writing
-        return sorted(rendered_task_defs)
+        return rendered_task_defs

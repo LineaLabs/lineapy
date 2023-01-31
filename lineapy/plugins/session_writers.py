@@ -19,7 +19,7 @@ class BaseSessionWriter:
 
     Take the following example function and the line to call it:
 
-    .. code-block:: python
+    ``` python
 
         def function_name(input_parameters):
             code_line_1
@@ -27,22 +27,25 @@ class BaseSessionWriter:
             return return_values
 
         function_name(input_parameters)
+    ```
 
     We define the code block
 
-    .. code-block:: python
+    ``` python
 
         code_line_1
         code_line_2
         return return_values
+    ```
 
     as the function body.
 
     The code block that calls the function
 
-    .. code-block:: python
+    ``` python
 
         function_name(input_parameters)
+    ```
 
     is called the function call block.
     """
@@ -102,33 +105,22 @@ class BaseSessionWriter:
         The actual function to produce the output variables is implemented in `get_function_definition`
         by the various implementations of NodeCollection.
 
-        :param UserCodeNodeCollection coll: the NodeCollection subgraph that we want to produce a call block for.
-        :param bool keep_lineapy_save: whether do lineapy.save() after execution
-        :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
-        :param str source_module: which module the function is coming from
+        Parameters
+        ----------
+        coll: UserCodeNodeCollection
+            the NodeCollection subgraph that we want to produce a call block for.
+        keep_lineapy_save: bool
+            whether do lineapy.save() after execution
+        source_module: str
+            which module the function is coming from
 
         Example output:
 
-        .. code-block:: python
-
-            p = get_multiplier()                        # function call block that calculates multiplier
-            lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
-            artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
-
-        The result_placeholder is a list to capture the artifact variables right
-        after calculation. Considering following code:
-
-        .. code-block:: python
-
-            a = 1
-            lineapy.save(a,'a')
-            a+=1
-            b = a+1
-            lineapy.save(b,'b')
-            c = a+1
-            lineapy.save(c,'c')
-
-        we need to record the artifact a before it is mutated.
+        ```python
+        p = get_multiplier()                        # function call block that calculates multiplier
+        lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
+        artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
+        ```
         """
 
         return_string = ", ".join(coll.return_variables)
@@ -165,13 +157,14 @@ class BaseSessionWriter:
 
         Example output:
 
-        .. code-block:: python
+        ``` python
 
             # Session contains artifacts for "multiplier" and "prod_p"
             p = get_multiplier()
             artifacts["multiplier"]=copy.deepcopy(p)
             b = get_prod_p(a, p)
             artifacts["prod_p"]=copy.deepcopy(b)
+        ```
 
         All artifacts in the session are saved in the return dictionary `artifacts`
         """
@@ -198,11 +191,12 @@ class BaseSessionWriter:
 
         Example output:
 
-        .. code-block:: python
+        ``` python
 
             # User called lineapy api with input_parameters=['a', 'p']
             a = 1,
             p = 2,
+        ```
 
         """
         return session_artifact.input_parameters_nodecollection.get_input_parameters_block(
@@ -267,7 +261,7 @@ class BaseSessionWriter:
 
         Example output:
 
-        .. code-block:: python
+        ``` python
 
             def run_session_including_multiplier(
                 a=1,
@@ -279,7 +273,7 @@ class BaseSessionWriter:
                 b = get_prod_p(a, p)
                 artifacts["prod_p"] = copy.deepcopy(b)
                 return artifacts
-
+        ```
         """
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
             "module/session_function.jinja"
@@ -307,10 +301,10 @@ class BaseSessionWriter:
 
         Example output:
 
-        .. code-block:: python
+        ``` python
 
             run_session_including_multiplier(a, p)
-
+        ```
         """
 
         session_function_name = self.get_session_function_name(

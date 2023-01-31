@@ -7,7 +7,8 @@ from typing import Any, Optional
 
 # Descriptor version
 class singledispatchmethod:
-    """Single-dispatch generic method descriptor.
+    """
+    Single-dispatch generic method descriptor.
 
     Supports wrapping existing descriptors and handles non-descriptor
     callables as instance methods.
@@ -21,7 +22,8 @@ class singledispatchmethod:
         self.func = func
 
     def register(self, cls, method=None):
-        """generic_method.register(cls, func) -> func
+        """
+        generic_method.register(cls, func) -> func
 
         Registers a new implementation for the given *cls* on a *generic_method*.
         """
@@ -43,7 +45,8 @@ class singledispatchmethod:
 
 
 def _splitlines_no_ff(source):
-    """Split a string into lines ignoring form feed and other chars.
+    """
+    Split a string into lines ignoring form feed and other chars.
 
     This mimics how the Python parser splits source code.
     """
@@ -79,11 +82,10 @@ def _pad_whitespace(source):
 
 
 def get_source_segment(source, node, padded=False):
-    """Get source code segment of the *source* that generated *node*.
+    """
+    Get source code segment of the *source* that generated *node*.
 
-
-    .. note::
-
+    !!! note
         This is a polyfill for the ast.get_source_segment function
         that was introduced in python 3.8.
 
@@ -92,8 +94,6 @@ def get_source_segment(source, node, padded=False):
 
         If *padded* is `True`, the first line of a multi-line statement will
         be padded with spaces to match its original position.
-
-
     """
     try:
         if node.end_lineno is None or node.end_col_offset is None:

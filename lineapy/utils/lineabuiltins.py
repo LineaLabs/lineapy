@@ -96,10 +96,12 @@ def l_dict(
     There is a special case for dictionary unpacking. In this case, the
     key will be an instance of _DictKwargsSentinel.
 
-    For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
-    then it will create a call like::
+    For example, if the user creates a dict like `{1: 2, **d, 3: 4}`,
+    then it will create a call like:
 
-        l_dict((1, 2), (l_dict_kwargs_sentinel(), d), (3, 4))
+    ```
+    l_dict((1, 2), (l_dict_kwargs_sentinel(), d), (3, 4))
+    ```
 
     We use a sentinel value instead of None, because None can be a valid
     dictionary key.
@@ -146,7 +148,10 @@ def l_exec_statement(code: str) -> None:
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    :return: None. Since the code is a statement, it will not return anything
+    Returns
+    -------
+    None
+        Since the code is a statement, it will not return anything.
     """
     # Move inside to avoid circular import with context using the lookups to trace
     from lineapy.execution.context import get_context
@@ -179,8 +184,10 @@ def l_exec_expr(code: str) -> object:
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    :return: it will return the result as well as the last argument.
-
+    Returns
+    -------
+    object
+        Result as well as the last argument.
     """
     from lineapy.execution.context import get_context
 

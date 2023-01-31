@@ -58,6 +58,7 @@ minimal_requirement = [
     "pandas",
     "alembic==1.8.0",
     "cloudpickle",
+    "typing-extensions>=4.0.0",
 ]
 
 graph_libs = [
@@ -102,11 +103,6 @@ benchmark_libs = [
 ]
 
 doc_libs = [
-    "sphinx",
-    "nbsphinx",
-    "sphinx_rtd_theme",
-    "sphinx-autobuild",
-    "sphinx_design",
     "pandoc",
 ]
 

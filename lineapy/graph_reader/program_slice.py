@@ -23,11 +23,19 @@ def get_slice_graph(
     Takes a full graph from the session
     and produces the subset responsible for the "sinks".
 
-    :param graph: A full graph objection from a session.
-    :param sinks: A list of node IDs desired for slicing.
-    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
-            Defaults to ``False``.
-    :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
+    Parameters
+    ----------
+    graph: Graph
+        A full graph objection from a session.
+    sinks: List[LineaID]
+        A list of node IDs desired for slicing.
+    keep_lineapy_save: bool
+        Whether to retain ``lineapy.save()`` in code slice.
+
+    Returns
+    -------
+    Graph
+        A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
     ancestors = get_subgraph_nodelist(graph, sinks, keep_lineapy_save)
@@ -196,16 +204,12 @@ def get_source_code_from_graph(
     """
     Returns the code from some subgraph, by including all lines that
     are included in the graphs source.
-
-    .. todo:: We need better analysis than just looking at the source code.
-        For example, what if we just need one expression from a line that defines
-        multiple expressions?
-
-        We should probably instead regenerate the source from our graph
-        representation.
-
-
     """
+    # TODO: We need better analysis than just looking at the source code.
+    # For example, what if we just need one expression from a line that defines
+    # multiple expressions? We should probably instead regenerate the source from
+    # our graph representation.
+
     # map of source code to set of included line numbers
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     import_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
@@ -337,12 +341,19 @@ def get_program_slice(
     """
     Find the necessary and sufficient code for computing the sink nodes.
 
-    :param graph: The computation graph.
-    :param sinks: Artifacts to get the code slice for.
-    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
-            Defaults to ``False``.
-    :return: String containing the necessary and sufficient code for
-            computing sinks.
+    Parameters
+    ----------
+    graph: Graph
+        The computation graph.
+    sinks: List[LineaID]
+        Artifacts to get the code slice for.
+    keep_lineapy_save: bool
+        Whether to retain ``lineapy.save()`` in code slice.
+
+    Returns
+    -------
+    CodeSlice
+        String containing the necessary and sufficient code for computing sinks
 
     """
     logger.debug("Slicing graph %s", graph)

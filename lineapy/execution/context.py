@@ -63,7 +63,7 @@ NO_CONTEXT_ERROR_MESSAGE = (
     "No context set. This could be because the LineaPy extension has not been loaded in your runtime environment. "
     "To load the extension, you need to launch your environment with the `lineapy` command, e.g., `lineapy jupyter notebook`. "
     "Or, to load the extension without relaunching the environment, execute `%load_ext lineapy` at the top of your session. "
-    "Check https://docs.lineapy.org/en/latest/guides/interfaces.html#jupyter-and-ipython for more detailed instructions."
+    "Check https://docs.lineapy.org/latest/guides/setup/#jupyter-and-ipython for more detailed instructions."
 )
 
 

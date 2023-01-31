@@ -57,13 +57,8 @@ logger = logging.getLogger(__name__)
 
 
 class NodeTransformer(BaseTransformer):
-    """
-    .. note::
-
-        - Need to be careful about the order by which these calls are invoked
-          so that the transformation do not get called more than once.
-
-    """
+    # Note: Need to be careful about the order by which these calls are invoked
+    # so that the transformation do not get called more than once.
 
     def generic_visit(self, node: ast.AST):
         """
@@ -139,8 +134,8 @@ class NodeTransformer(BaseTransformer):
 
     def visit_Call(self, node: ast.Call) -> Optional[CallNode]:
         """
-        Returns None if visiting special publish linea publish,
-          which cannot be chained
+        Returns `None` if visiting special publish linea publish,
+        which cannot be chained
         """
 
         # this is the normal case, non-publish
@@ -199,13 +194,10 @@ class NodeTransformer(BaseTransformer):
         )
 
     def visit_Assign(self, node: ast.Assign) -> None:
-        """
-        TODO
-        ----
-        - None variable assignment, should be turned into a setattr call
-          not an assignment, so we might need to change the return signature
-          from ast.Expr.
-        """
+        # TODO: None variable assignment, should be turned into a setattr call
+        # not an assignment, so we might need to change the return signature
+        # from ast.Expr.
+
         # target assignments are handled from left to right in Python
         # x = y = z -> x = z, y = z
         for target in node.targets:
@@ -246,7 +238,9 @@ class NodeTransformer(BaseTransformer):
         Visits assigning a target node to a value. This is extracted out of
         visit_assign, so we can call it multiple times and pass in the value as a node,
         instead of as AST, when we are assigning to a tuple.
+
         Assign currently special cases for:
+
         - Subscript, e.g., `ls[0] = 1`
         - Constant, e.g., `a = 1`
         - Call, e.g., `a = foo()`

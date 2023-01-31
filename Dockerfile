@@ -14,7 +14,7 @@ COPY ./setup.py ./
 COPY ./README.md ./
 COPY ./lineapy/__init__.py ./lineapy/
 COPY ./requirements.txt ./
-COPY ./airflow-requirements.txt ./
+COPY ./test_pipeline_airflow_req.txt ./
 COPY ./Makefile ./
 
 ENV AIRFLOW_HOME=/usr/src/airflow_home

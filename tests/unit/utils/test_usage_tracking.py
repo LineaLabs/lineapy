@@ -103,7 +103,7 @@ def test_device_id_persisted():
     # preserve the existing dev id so that we dont keep regenerating
     # random device ids for this test machine
     old_devid_path = devid_path.parent / (DEVICE_ID_FILE_NAME + ".old")
-    shutil.move(devid_path, old_devid_path)
+    shutil.move(str(devid_path), old_devid_path)
     try:
         # clear the device id lru cache
         _device_id.cache_clear()
@@ -112,4 +112,4 @@ def test_device_id_persisted():
             assert f.read() == new_dev_id
     finally:
         # restore the old devid back after the test
-        shutil.move(old_devid_path, devid_path)
+        shutil.move(str(old_devid_path), devid_path)

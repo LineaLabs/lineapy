@@ -22,10 +22,15 @@ def get_task_graph(
     task_breakdown parameter. This will give the main bulk of tasks that should
     be included in a pipeline dag file.
 
-    Returns a `task_definitions` dictionary, which maps a key corresponding to the task name to
-    Linea's TaskDefinition object.
-    Specific framework implementations of PipelineWriters should serialize the TaskDefinition
-    objects to match the format for pipeline arguments that is expected by that framework.
+    Returns
+    -------
+    Tuple[Dict[str, TaskDefinition], TaskGraph]
+        Returns a `task_definitions` dictionary, which maps a key corresponding
+        to the task name to Linea's TaskDefinition object.
+
+    Specific framework implementations of PipelineWriters should serialize the
+    TaskDefinition objects to match the format for pipeline arguments that is
+    expected by that framework.
     """
     if task_breakdown == DagTaskBreakdown.TaskAllSessions:
         return get_allsessions_task_definition_graph(
@@ -201,21 +206,21 @@ def get_allsessions_task_definition_graph(
     }, TaskGraph(nodes=["run_all"], edges={})
 
 
-def get_localpickle_setup_task_definition(pipeline_name):
+def get_tmpdirpickle_setup_task_definition(pipeline_name):
     """
-    Returns a TaskDefinition that is used to set up pipeline that uses local pickle type
-    serialization for inter task communication.
+    Returns a TaskDefinition that is used to set up pipeline that uses pickle
+    serialization to a temporary directory for inter task communication.
 
     This task should be used at the beginning of a pipeline.
     """
-    TASK_LOCALPICKLE_SETUP_TEMPLATE = load_plugin_template(
-        "task/localpickle/task_local_pickle_setup.jinja"
+    TASK_TMPDIRPICKLE_SETUP_TEMPLATE = load_plugin_template(
+        "task/tmpdirpickle/task_setup.jinja"
     )
-    call_block = TASK_LOCALPICKLE_SETUP_TEMPLATE.render(
+    call_block = TASK_TMPDIRPICKLE_SETUP_TEMPLATE.render(
         pipeline_name=pipeline_name
     )
     return TaskDefinition(
-        function_name="dag_setup",
+        function_name="setup",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
@@ -227,22 +232,21 @@ def get_localpickle_setup_task_definition(pipeline_name):
     )
 
 
-def get_localpickle_teardown_task_definition(pipeline_name):
+def get_tmpdir_teardown_task_definition(pipeline_name):
     """
-    Returns a TaskDefinition that is used to teardown a pipeline that uses local pickle type
-    serialization for inter task communication.
+    Returns a TaskDefinition that is used to teardown a pipeline that uses pickle
+    serialization to a temporary directory for inter task communication.
 
     This task should be used at the end of a pipeline.
-
     """
-    TASK_LOCALPICKLE_TEARDOWN_TEMPLATE = load_plugin_template(
-        "task/localpickle/task_local_pickle_teardown.jinja"
+    TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE = load_plugin_template(
+        "task/tmpdirpickle/task_teardown.jinja"
     )
-    call_block = TASK_LOCALPICKLE_TEARDOWN_TEMPLATE.render(
+    call_block = TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE.render(
         pipeline_name=pipeline_name
     )
     return TaskDefinition(
-        function_name="dag_teardown",
+        function_name="teardown",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
@@ -262,7 +266,7 @@ def get_noop_setup_task_definition(pipeline_name):
     This task should be used at the beginning of a pipeline.
     """
     return TaskDefinition(
-        function_name="dag_setup",
+        function_name="setup",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
@@ -283,7 +287,7 @@ def get_noop_teardown_task_definition(pipeline_name):
 
     """
     return TaskDefinition(
-        function_name="dag_teardown",
+        function_name="teardown",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],

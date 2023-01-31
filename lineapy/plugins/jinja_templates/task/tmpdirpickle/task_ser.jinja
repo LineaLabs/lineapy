@@ -1,0 +1,2 @@
+if not pathlib.Path('/tmp').joinpath('{{pipeline_name}}').exists(): pathlib.Path('/tmp').joinpath('{{pipeline_name}}').mkdir()
+pickle.dump({{return_variable}}, open('/tmp/{{pipeline_name}}/variable_{{return_variable}}.pickle','wb'))

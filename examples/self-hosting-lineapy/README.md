@@ -95,7 +95,7 @@ After creating a pipeline in the notebook, LineaPy will generate the pipeline's 
 Lineapy Configuration
 ---------------------
 
-This demo configures Lineapy with non-default options to demonstrate how to connect the `notebook` environment to the services hosting Lineapy. Documentation on Lineapy configuration can be found [here](https://docs.lineapy.org/en/latest/guides/configuration/index.html). Specifically, this demo configures Lineapy using a configuration file, which can be found under `lineapy-notebook/lineapy_config.json` and is mounted in the `notebook` container under `~/.lineapy/lineapy_config.json`.
+This demo configures Lineapy with non-default options to demonstrate how to connect the `notebook` environment to the services hosting Lineapy. Documentation on Lineapy configuration can be found [here](https://docs.lineapy.org/latest/guides/configuration/overview/). Specifically, this demo configures Lineapy using a configuration file, which can be found under `lineapy-notebook/lineapy_config.json` and is mounted in the `notebook` container under `~/.lineapy/lineapy_config.json`.
 
 Important to this demo are `storage_options`, `artifact_storage_dir`, and `database_url` options.
 `database_url` points to the DB hosting the artifact store.

@@ -11,6 +11,8 @@ def task_a():
 
     a = a_module.get_a()
 
+    if not pathlib.Path("/tmp").joinpath("a").exists():
+        pathlib.Path("/tmp").joinpath("a").mkdir()
     pickle.dump(a, open("/tmp/a/variable_a.pickle", "wb"))
 
 

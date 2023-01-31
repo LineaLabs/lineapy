@@ -3,10 +3,12 @@ import logging
 import pickle
 from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 
+from lineapy.api.models.linea_artifact import get_lineaartifactdef
+from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.node_collection import UserCodeNodeCollection
 from lineapy.graph_reader.types import InputVariable
@@ -192,10 +194,7 @@ class BasePipelineWriter:
 
         return prettify(module_text)
 
-    def _write_requirements(self) -> None:
-        """
-        Write out requirements file.
-        """
+    def _get_requirements(self) -> Dict:
         libraries = dict()
         for session_artifacts in self.session_artifacts_sorted:
             session_artifact_libs = session_artifacts.get_libraries()
@@ -205,6 +204,13 @@ class BasePipelineWriter:
                         lib.package_name, lib.package_name
                     )
                     libraries[lib_name] = lib.version
+        return libraries
+
+    def _write_requirements(self) -> None:
+        """
+        Write out requirements file.
+        """
+        libraries = self._get_requirements()
         lib_names_text = "\n".join(
             [
                 lib if lib == "lineapy" else f"{lib}=={ver}"
@@ -396,3 +402,40 @@ class BasePipelineWriter:
                 BaseSessionWriter().get_session_input_parameters_spec(sa)
             )
         return pipeline_args
+
+
+def get_base_pipeline_writer(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> BasePipelineWriter:
+    """Get the BasePipelineWriter given list of artifacts/input_parameters/reuse_pre_computed_artifacts
+
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+    input_parameters: List[str]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        Same as in [`get_function()`][lineapy.api.api.get_function].
+
+    Returns
+    -------
+        BasePipelineWriter
+    """
+    execution_context = get_context()
+    artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
+    ]
+    reuse_pre_computed_artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry)
+        for art_entry in reuse_pre_computed_artifacts
+    ]
+    art_collection = ArtifactCollection(
+        execution_context.executor.db,
+        artifact_defs,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+    )
+    return BasePipelineWriter(art_collection)

@@ -1,0 +1,13 @@
+{% if task_parameters|length>0 -%}
+import dvc.api
+{% endif %}
+import {{ MODULE_NAME }}
+import pickle
+
+{{ TASK_CODE }}
+
+if __name__ == "__main__":
+    {% for param in task_parameters -%}
+    {{param}} = dvc.api.params_show()["{{param}}"]
+    {% endfor -%}
+    task_{{ task_name }}({% for param in task_parameters -%}{{param}}{{ ", " if not loop.last else "" }}{% endfor %})
