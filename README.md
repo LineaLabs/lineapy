@@ -159,7 +159,7 @@ example using the [Iris dataset](https://en.wikipedia.org/wiki/Iris_flower_data_
 how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
 and 3) build an executable pipeline for the variable.
 
-The following development code fits a linear regression model to the Iris dataset: 
+The following development code fits a linear regression model to the Iris dataset:
 
 ```python
 import lineapy
