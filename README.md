@@ -159,7 +159,7 @@ example using the [Iris dataset](https://en.wikipedia.org/wiki/Iris_flower_data_
 how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
 and 3) build an executable pipeline for the variable.
 
-The following development code fits a linear regression model to the Iris dataset:
+The following development code fits a linear regression model to the Iris dataset: 
 
 ```python
 import lineapy
@@ -191,6 +191,13 @@ mod.fit(
     X=df[["petal.width", "d_versicolor", "d_virginica"]],
     y=df["sepal.width"],
 )
+```
+
+Here, we've assumed you already have `pandas`, `matplotlib`, and `scikit-learn` installed in your environment. 
+If not, you can install these dependencies with the following code:
+
+```bash
+pip install pandas scikit-learn matplotlib
 ```
 
 Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy [artifact](https://docs.lineapy.org/latest/concepts/artifact/) with the following code:
