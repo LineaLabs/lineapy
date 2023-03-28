@@ -46,6 +46,8 @@ __all__ = [
     "options",
     "tag",
     "__version__",
+    "LineaArtifact",
+    "Pipeline",
 ]
 
 
