@@ -1,6 +1,8 @@
 import atexit
 
 from lineapy.api.api import (
+    LineaArtifact,
+    Pipeline,
     artifact_store,
     create_pipeline,
     delete,
