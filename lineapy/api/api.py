@@ -5,7 +5,6 @@ User-facing APIs.
 import logging
 import warnings
 from datetime import datetime
-from pathlib import Path
 from types import ModuleType
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -384,7 +383,7 @@ def to_pipeline(
     generate_test: bool = False,
     pipeline_dag_config: Optional[Dict] = {},
     include_non_slice_as_comment: bool = False,
-) -> Path:
+) -> Pipeline:
     """
     Writes the pipeline job to a path on disk.
 
@@ -436,8 +435,8 @@ def to_pipeline(
 
     Returns
     -------
-    Path
-        Directory path where DAG and other pipeline files are saved.
+    Pipeline
+        Pipeline object
     """
     pipeline = Pipeline(
         artifacts=artifacts,
@@ -445,7 +444,7 @@ def to_pipeline(
         dependencies=dependencies,
     )
     pipeline.save()
-    return pipeline.export(
+    pipeline.export(
         framework=framework,
         output_dir=output_dir,
         input_parameters=input_parameters,
@@ -454,6 +453,7 @@ def to_pipeline(
         pipeline_dag_config=pipeline_dag_config,
         include_non_slice_as_comment=include_non_slice_as_comment,
     )
+    return pipeline
 
 
 def create_pipeline(
