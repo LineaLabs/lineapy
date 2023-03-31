@@ -51,6 +51,7 @@ class Pipeline:
 
         self.name = name or "_".join(artifact_safe_names)
         self.id = get_new_id()
+        self.output_dir = None
 
     def export(
         self,
@@ -107,6 +108,7 @@ class Pipeline:
             )
         )
 
+        self.output_dir = pipeline_writer.output_dir
         return pipeline_writer.output_dir
 
     def _get_artifact_collection(

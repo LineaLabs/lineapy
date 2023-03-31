@@ -46,11 +46,11 @@ def airflow_py_module_path(run_cell, add_config):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     if add_config:
-        to_pipeline_command = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+        to_pipeline_output = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'}).output_dir"
     else:
-        to_pipeline_command = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
+        to_pipeline_output = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/').output_dir"
 
-    py_module_path = run_cell(to_pipeline_command)
+    py_module_path = run_cell(to_pipeline_output)
     yield py_module_path
     # cleanup since this tests creates files
     shutil.rmtree(py_module_path)
