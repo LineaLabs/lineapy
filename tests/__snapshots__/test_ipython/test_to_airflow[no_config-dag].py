@@ -11,21 +11,21 @@ def task_a():
 
     a = a_module.get_a()
 
-    if not pathlib.Path("/tmp").joinpath("a").exists():
-        pathlib.Path("/tmp").joinpath("a").mkdir()
-    pickle.dump(a, open("/tmp/a/variable_a.pickle", "wb"))
+    if not pathlib.Path("/tmp").joinpath("").exists():
+        pathlib.Path("/tmp").joinpath("").mkdir()
+    pickle.dump(a, open("/tmp//variable_a.pickle", "wb"))
 
 
 def task_setup():
 
-    pickle_folder = pathlib.Path("/tmp").joinpath("a")
+    pickle_folder = pathlib.Path("/tmp").joinpath("")
     if not pickle_folder.exists():
         pickle_folder.mkdir()
 
 
 def task_teardown():
 
-    pickle_files = pathlib.Path("/tmp").joinpath("a").glob("*.pickle")
+    pickle_files = pathlib.Path("/tmp").joinpath("").glob("*.pickle")
     for f in pickle_files:
         f.unlink()
 
