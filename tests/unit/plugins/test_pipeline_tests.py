@@ -4,10 +4,10 @@ from pathlib import Path
 import pytest
 
 from lineapy.api.models.linea_artifact import get_lineaartifactdef
-from lineapy.data.types import PipelineType
+from lineapy.data.types import WorkflowType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
 from lineapy.plugins.utils import slugify
+from lineapy.plugins.workflow_writer_factory import WorkflowWriterFactory
 
 
 def check_requirements_txt(t1: str, t2: str):
@@ -15,15 +15,15 @@ def check_requirements_txt(t1: str, t2: str):
 
 
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, pipeline_name, dependencies",
+    "input_script1, input_script2, artifact_list, workflow_name, dependencies",
     [
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
-            "script_pipeline_a0_b0_dependencies",
+            "script_workflow_a0_b0_dependencies",
             {"a0": {"b0"}},
-            id="script_pipeline_a0_b0_dependencies",
+            id="script_workflow_a0_b0_dependencies",
         ),
         pytest.param(
             "complex",
@@ -37,20 +37,20 @@ def check_requirements_txt(t1: str, t2: str):
             "housing",
             "",
             ["y", "p value"],
-            "script_pipeline_housing_w_dependencies",
+            "script_workflow_housing_w_dependencies",
             {"p value": {"y"}},
-            id="script_pipeline_housing_w_dependencies",
+            id="script_workflow_housing_w_dependencies",
         ),
     ],
 )
-def test_pipeline_test_generation(
+def test_workflow_test_generation(
     tmp_path,
     linea_db,
     execute,
     input_script1,
     input_script2,
     artifact_list,
-    pipeline_name,
+    workflow_name,
     dependencies,
     snapshot,
 ):
@@ -72,25 +72,25 @@ def test_pipeline_test_generation(
         dependencies=dependencies,
     )
 
-    # Construct pipeline writer
-    pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType.SCRIPT,
+    # Construct workflow writer
+    workflow_writer = WorkflowWriterFactory.get(
+        workflow_type=WorkflowType.SCRIPT,
         artifact_collection=artifact_collection,
-        pipeline_name=pipeline_name,
+        workflow_name=workflow_name,
         output_dir=tmp_path,
         generate_test=True,
     )
 
-    # Write out pipeline files
-    pipeline_writer.write_pipeline_files()
+    # Write out workflow files
+    workflow_writer.write_workflow_files()
 
     # Compare generated vs. expected
-    path_generated = Path(tmp_path, f"test_{pipeline_name}.py")
+    path_generated = Path(tmp_path, f"test_{workflow_name}.py")
     content_generated = path_generated.read_text()
     assert content_generated == snapshot
 
     # Check if artifact values have been (re-)stored
-    # to serve as "ground truths" for pipeline testing
+    # to serve as "ground truths" for workflow testing
     for artname in artifact_list:
         path_generated = Path(
             tmp_path, "sample_output", f"{slugify(artname)}.pkl"
@@ -100,7 +100,7 @@ def test_pipeline_test_generation(
             "unit",
             "plugins",
             "expected",
-            pipeline_name,
+            workflow_name,
             "sample_output",
             f"{slugify(artname)}.pkl",
         )
