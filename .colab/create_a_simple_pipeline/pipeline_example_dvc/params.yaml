@@ -1,0 +1,3 @@
+url: https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv
+test_size: 0.33
+random_state: 42

@@ -1,0 +1,15 @@
+FROM python:3.9
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# Copy all the requirements to run current DAG
+COPY ./_requirements.txt ./
+
+# Install required libs
+RUN pip install -r ./_requirements.txt
+
+WORKDIR /home
+COPY ./_module.py ./
+
+ENTRYPOINT [ "python", "/home/_module.py" ]
