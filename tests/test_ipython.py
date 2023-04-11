@@ -46,26 +46,26 @@ def airflow_py_module_path(run_cell, add_config):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     if add_config:
-        to_pipeline_output = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'}).output_dir"
+        create_workflow_output = "lineapy.create_workflow([res.name], framework='AIRFLOW', workflow_name=res.name, output_dir='~/airflow/dags/', workflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'}).output_dir"
     else:
-        to_pipeline_output = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/').output_dir"
+        create_workflow_output = "lineapy.create_workflow([res.name], framework='AIRFLOW', workflow_name=res.name, output_dir='~/airflow/dags/').output_dir"
 
-    py_module_path = run_cell(to_pipeline_output)
+    py_module_path = run_cell(create_workflow_output)
     yield py_module_path
     # cleanup since this tests creates files
     shutil.rmtree(py_module_path)
 
 
 @pytest.mark.parametrize(
-    "pipeline_file", ["a_module.py", "a_dag.py"], ids=["module", "dag"]
+    "workflow_file", ["a_module.py", "a_dag.py"], ids=["module", "dag"]
 )
 @pytest.mark.parametrize(
     "add_config", [True, False], ids=["with_config", "no_config"]
 )
 @pytest.mark.slow
-def test_to_airflow(python_snapshot, airflow_py_module_path, pipeline_file):
+def test_to_airflow(python_snapshot, airflow_py_module_path, workflow_file):
     assert (
-        python_snapshot == (airflow_py_module_path / pipeline_file).read_text()
+        python_snapshot == (airflow_py_module_path / workflow_file).read_text()
     )
 
 
