@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
@@ -51,7 +51,7 @@ AirflowDagConfig = TypedDict(
 
 class AirflowPipelineWriter(BasePipelineWriter):
     """
-    Class for pipeline file writer. Corresponds to "AIRFLOW" framework.
+    Class for workflow file writer. Corresponds to "AIRFLOW" framework.
     """
 
     @property
@@ -83,7 +83,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         full_code = self._write_operators(dag_flavor, task_serialization)
 
         # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_dag.py"
+        file = self.output_dir / f"{self.workflow_name}_dag.py"
         file.write_text(prettify(full_code))
         logger.info(f"Generated DAG file: {file}")
 
@@ -101,7 +101,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         - ``PythonOperatorPerArtifact`` flavor, where each artifact gets its own
         Python operator.
 
-        Example of ``PythonOperatorPerSession`` if the two artifacts in our pipeline
+        Example of ``PythonOperatorPerSession`` if the two artifacts in our workflow
         (e.g., model and prediction) were created in the same session.
         ``` python
             import pickle
@@ -117,7 +117,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     python_callable=task_run_session_including_g2,
                 )
         ```
-        Example of ``PythonOperatorPerArtifact``, if the two artifacts in our pipeline
+        Example of ``PythonOperatorPerArtifact``, if the two artifacts in our workflow
         (e.g., model and prediction) were created in the same session:
         ``` python
             import pickle
@@ -144,7 +144,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             iris_model >> iris_pred
         ```
         This way, the generated Airflow DAG file opens room for engineers
-        to control pipeline runs at a finer level and allows for further customization.
+        to control workflow runs at a finer level and allows for further customization.
         """
 
         DAG_TEMPLATE = load_plugin_template(
@@ -159,17 +159,17 @@ class AirflowPipelineWriter(BasePipelineWriter):
         # Get task definitions based on dag_flavor
         task_defs, task_graph = get_task_graph(
             self.artifact_collection,
-            pipeline_name=self.pipeline_name,
+            workflow_name=self.workflow_name,
             task_breakdown=task_breakdown,
         )
 
         # Add setup and teardown if temporary directory pickle serializer is selected
         if task_serialization == TaskSerializer.TmpDirPickle:
             task_defs["setup"] = get_tmpdirpickle_setup_task_definition(
-                self.pipeline_name
+                self.workflow_name
             )
             task_defs["teardown"] = get_tmpdir_teardown_task_definition(
-                self.pipeline_name
+                self.workflow_name
             )
             # insert in order to task_names so that setup runs first and teardown runs last
             task_graph.insert_setup_task("setup")
@@ -183,14 +183,14 @@ class AirflowPipelineWriter(BasePipelineWriter):
             [f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges]
         )
 
-        # Get DAG parameters for an Airflow pipeline
+        # Get DAG parameters for an Airflow workflow
         input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
+        for parameter_name, input_spec in super().get_workflow_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
         full_code = DAG_TEMPLATE.render(
-            DAG_NAME=self.pipeline_name,
-            MODULE_NAME=self.pipeline_name + "_module",
+            DAG_NAME=self.workflow_name,
+            MODULE_NAME=self.workflow_name + "_module",
             OWNER=self.dag_config.get("owner", "airflow"),
             RETRIES=self.dag_config.get("retries", 2),
             START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
@@ -217,7 +217,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         """
         rendered_task_defs: List[str] = render_task_definitions(
             task_defs,
-            self.pipeline_name,
+            self.workflow_name,
             task_serialization=task_serialization,
         )
 

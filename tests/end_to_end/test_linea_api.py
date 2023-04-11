@@ -212,17 +212,17 @@ num_versions = len(versions)
         assert res.artifacts["x"]
 
 
-def test_two_pipelines_artifact_list(execute):
+def test_two_workflows_artifact_list(execute):
 
     c = """import lineapy
 a = 10
 b = 20
 lineapy.save(a, "a")
 lineapy.save(b, "b")
-lineapy.create_pipeline(["a", "b"], "x", persist=True)
-lineapy.create_pipeline(["b"], "y", persist=True)
-x = lineapy.get_pipeline("x")
-y = lineapy.get_pipeline("y")"""
+lineapy.create_workflow(["a", "b"], workflow_name="x")
+lineapy.create_workflow(["b"], workflow_name="y")
+x = lineapy.get_workflow("x")
+y = lineapy.get_workflow("y")"""
     res = execute(c, snapshot=False)
     assert res.values["x"].name == "x"
     assert res.values["y"].name == "y"
@@ -235,7 +235,7 @@ y = lineapy.get_pipeline("y")"""
     assert "b" in arts_y
 
 
-def test_pipeline_deps(execute):
+def test_workflow_deps(execute):
     c = """import lineapy
 a = 10
 b = 20
@@ -245,10 +245,10 @@ lineapy.save(b, "b")
 lineapy.save(c, "c")
 dep_x = {"a": {"b"}}
 dep_y = {"b": {"c", "a"}}
-lineapy.create_pipeline(["a", "b", "c"], "x", persist=True, dependencies=dep_x)
-lineapy.create_pipeline(["a", "b", "c"], "y", persist=True, dependencies=dep_y)
-x = lineapy.get_pipeline("x")
-y = lineapy.get_pipeline("y")"""
+lineapy.create_workflow(["a", "b", "c"], workflow_name="x", dependencies=dep_x)
+lineapy.create_workflow(["a", "b", "c"], workflow_name="y", dependencies=dep_y)
+x = lineapy.get_workflow("x")
+y = lineapy.get_workflow("y")"""
     res = execute(c, snapshot=False)
     assert res.values["x"].name == "x"
     assert res.values["y"].name == "y"
@@ -263,7 +263,7 @@ y = lineapy.get_pipeline("y")"""
     assert "a" in dep_y["b"]
 
 
-def test_pipeline_deps_pre_overlap(execute):
+def test_workflow_deps_pre_overlap(execute):
     c = """import lineapy
 a = 10
 b = 20
@@ -272,8 +272,8 @@ lineapy.save(a, "a")
 lineapy.save(b, "b")
 lineapy.save(c, "c")
 dep_x = {"a": {"c"}, "b": {"c", "a"}}
-lineapy.create_pipeline(["a", "b", "c"], "x", persist=True, dependencies=dep_x)
-x = lineapy.get_pipeline("x")"""
+lineapy.create_workflow(["a", "b", "c"], workflow_name="x", dependencies=dep_x)
+x = lineapy.get_workflow("x")"""
     res = execute(c, snapshot=False)
     assert res.values["x"].name == "x"
     dep_x = res.values["x"].dependencies

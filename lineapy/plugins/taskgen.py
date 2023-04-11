@@ -12,7 +12,7 @@ from lineapy.plugins.utils import load_plugin_template
 
 def get_task_graph(
     artifact_collection: ArtifactCollection,
-    pipeline_name: str,
+    workflow_name: str,
     task_breakdown: DagTaskBreakdown,
 ) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
@@ -34,15 +34,15 @@ def get_task_graph(
     """
     if task_breakdown == DagTaskBreakdown.TaskAllSessions:
         return get_allsessions_task_definition_graph(
-            artifact_collection, pipeline_name
+            artifact_collection, workflow_name
         )
     elif task_breakdown == DagTaskBreakdown.TaskPerSession:
         return get_session_task_definition_graph(
-            artifact_collection, pipeline_name
+            artifact_collection, workflow_name
         )
     elif task_breakdown == DagTaskBreakdown.TaskPerArtifact:
         return get_artifact_task_definition_graph(
-            artifact_collection, pipeline_name
+            artifact_collection, workflow_name
         )
     else:
         raise ValueError(
@@ -51,7 +51,7 @@ def get_task_graph(
 
 
 def get_artifact_task_definition_graph(
-    artifact_collection: ArtifactCollection, pipeline_name: str
+    artifact_collection: ArtifactCollection, workflow_name: str
 ) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_artifact_task_definitions returns a task definition for each artifact the pipeline produces.
@@ -88,7 +88,7 @@ def get_artifact_task_definition_graph(
             function_call_block = (
                 BaseSessionWriter().get_session_artifact_function_call_block(
                     nc,
-                    source_module=f"{pipeline_name}_module",
+                    source_module=f"{workflow_name}_module",
                 )
             )
 
@@ -101,7 +101,7 @@ def get_artifact_task_definition_graph(
                 call_block=function_call_block,
                 post_call_block="",
                 return_vars=nc.return_variables,
-                pipeline_name=pipeline_name,
+                workflow_name=workflow_name,
             )
             task_definitions[nc.safename] = task_def
 
@@ -112,7 +112,7 @@ def get_artifact_task_definition_graph(
 
 
 def get_session_task_definition_graph(
-    artifact_collection: ArtifactCollection, pipeline_name: str
+    artifact_collection: ArtifactCollection, workflow_name: str
 ) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_session_task_definition returns a task definition for each session in the pipeline.
@@ -142,7 +142,7 @@ def get_session_task_definition_graph(
         )
         # Call module's run session function and unpack the artifacts from it
         function_call_block = (
-            f"artifacts = {pipeline_name}_module.{raw_function_call_block}\n"
+            f"artifacts = {workflow_name}_module.{raw_function_call_block}\n"
         )
         unpack_vars_block = "\n".join(
             f'{nc.safename} = artifacts["{nc.name}"]'
@@ -169,7 +169,7 @@ def get_session_task_definition_graph(
             call_block=function_call_block,
             post_call_block=unpack_vars_block,
             return_vars=return_vars,
-            pipeline_name=pipeline_name,
+            workflow_name=workflow_name,
         )
 
         task_definitions[function_name] = task_def
@@ -184,7 +184,7 @@ def get_session_task_definition_graph(
 
 def get_allsessions_task_definition_graph(
     artifact_collection: ArtifactCollection,
-    pipeline_name: str,
+    workflow_name: str,
 ) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_allsessions_task_definition returns a single task definition for the whole pipeline.
@@ -198,15 +198,15 @@ def get_allsessions_task_definition_graph(
             loaded_input_variables=[],
             typing_blocks=[],
             pre_call_block="",
-            call_block=f"{indentation_block}artifacts = {pipeline_name}_module.run_all_sessions()",
+            call_block=f"{indentation_block}artifacts = {workflow_name}_module.run_all_sessions()",
             post_call_block="",
             return_vars=["artifacts"],
-            pipeline_name=pipeline_name,
+            workflow_name=workflow_name,
         )
     }, TaskGraph(nodes=["run_all"], edges={})
 
 
-def get_tmpdirpickle_setup_task_definition(pipeline_name):
+def get_tmpdirpickle_setup_task_definition(workflow_name):
     """
     Returns a TaskDefinition that is used to set up pipeline that uses pickle
     serialization to a temporary directory for inter task communication.
@@ -217,7 +217,7 @@ def get_tmpdirpickle_setup_task_definition(pipeline_name):
         "task/tmpdirpickle/task_setup.jinja"
     )
     call_block = TASK_TMPDIRPICKLE_SETUP_TEMPLATE.render(
-        pipeline_name=pipeline_name
+        workflow_name=workflow_name
     )
     return TaskDefinition(
         function_name="setup",
@@ -228,11 +228,11 @@ def get_tmpdirpickle_setup_task_definition(pipeline_name):
         call_block=call_block,
         post_call_block="",
         return_vars=[],
-        pipeline_name=pipeline_name,
+        workflow_name=workflow_name,
     )
 
 
-def get_tmpdir_teardown_task_definition(pipeline_name):
+def get_tmpdir_teardown_task_definition(workflow_name):
     """
     Returns a TaskDefinition that is used to teardown a pipeline that uses pickle
     serialization to a temporary directory for inter task communication.
@@ -243,7 +243,7 @@ def get_tmpdir_teardown_task_definition(pipeline_name):
         "task/tmpdirpickle/task_teardown.jinja"
     )
     call_block = TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE.render(
-        pipeline_name=pipeline_name
+        workflow_name=workflow_name
     )
     return TaskDefinition(
         function_name="teardown",
@@ -254,11 +254,11 @@ def get_tmpdir_teardown_task_definition(pipeline_name):
         call_block=call_block,
         post_call_block="",
         return_vars=[],
-        pipeline_name=pipeline_name,
+        workflow_name=workflow_name,
     )
 
 
-def get_noop_setup_task_definition(pipeline_name):
+def get_noop_setup_task_definition(workflow_name):
     """
     Returns a TaskDefinition that no-ops so that users can write
     their own setup tasks by replacing the setup call block.
@@ -274,11 +274,11 @@ def get_noop_setup_task_definition(pipeline_name):
         call_block="pass",
         post_call_block="",
         return_vars=[],
-        pipeline_name=pipeline_name,
+        workflow_name=workflow_name,
     )
 
 
-def get_noop_teardown_task_definition(pipeline_name):
+def get_noop_teardown_task_definition(workflow_name):
     """
     Returns a TaskDefinition that no-ops so that users can write
     their own teardown tasks by replacing the teardown call block.
@@ -295,5 +295,5 @@ def get_noop_teardown_task_definition(pipeline_name):
         call_block="pass",
         post_call_block="",
         return_vars=[],
-        pipeline_name=pipeline_name,
+        workflow_name=workflow_name,
     )

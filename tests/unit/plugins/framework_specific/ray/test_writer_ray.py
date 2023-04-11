@@ -2,51 +2,51 @@ from pathlib import Path
 
 import pytest
 
-from tests.unit.plugins.framework_specific.pipeline_helper import (
-    pipeline_file_generation_helper,
+from tests.unit.plugins.framework_specific.workflow_helper import (
+    workflow_file_generation_helper,
 )
 
 
 @pytest.mark.ray
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, pipeline_name, dependencies, input_parameters",
+    "input_script1, input_script2, artifact_list, workflow_name, dependencies, input_parameters",
     [
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
-            "ray_pipeline_a0_b0",
+            "ray_workflow_a0_b0",
             {},
             [],
-            id="ray_pipeline_a0_b0",
+            id="ray_workflow_a0_b0",
         ),
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
-            "ray_pipeline_a0_b0_dependencies",
+            "ray_workflow_a0_b0_dependencies",
             {"a0": {"b0"}},
             [],
-            id="ray_pipeline_a0_b0_dependencies",
+            id="ray_workflow_a0_b0_dependencies",
         ),
         pytest.param(
             "simple",
             "",
             ["a", "b0"],
-            "ray_pipeline_a_b0_inputpar",
+            "ray_workflow_a_b0_inputpar",
             {},
             ["b0"],
-            id="ray_pipeline_a_b0_inputpar",
+            id="ray_workflow_a_b0_inputpar",
         ),
         pytest.param(
             "simple_twovar",
             "",
             ["pn"],
-            "ray_pipeline_two_input_parameter",
+            "ray_workflow_two_input_parameter",
             {},
             ["n", "p"],
-            id="ray_pipeline_two_input_parameter",
+            id="ray_workflow_two_input_parameter",
         ),
         pytest.param(
             "complex",
@@ -61,28 +61,28 @@ from tests.unit.plugins.framework_specific.pipeline_helper import (
             "housing",
             "",
             ["p value"],
-            "ray_pipeline_housing_simple",
+            "ray_workflow_housing_simple",
             {},
             [],
-            id="ray_pipeline_housing_simple",
+            id="ray_workflow_housing_simple",
         ),
         pytest.param(
             "housing",
             "",
             ["y", "p value"],
-            "ray_pipeline_housing_multiple",
+            "ray_workflow_housing_multiple",
             {},
             [],
-            id="ray_pipeline_housing_multiple",
+            id="ray_workflow_housing_multiple",
         ),
         pytest.param(
             "housing",
             "",
             ["y", "p value"],
-            "ray_pipeline_housing_w_dependencies",
+            "ray_workflow_housing_w_dependencies",
             {"p value": {"y"}},
             [],
-            id="ray_pipeline_housing_w_dependencies",
+            id="ray_workflow_housing_w_dependencies",
         ),
         pytest.param(
             "simple",
@@ -100,33 +100,33 @@ from tests.unit.plugins.framework_specific.pipeline_helper import (
     [
         pytest.param(
             {"dag_flavor": "TaskPerSession"},
-            id="ray_pipeline_task_per_session",
+            id="ray_workflow_task_per_session",
         ),
         pytest.param(
             {"dag_flavor": "TaskPerArtifact"},
-            id="ray_pipeline_task_per_artifact",
+            id="ray_workflow_task_per_artifact",
         ),
     ],
 )
-def test_pipeline_generation(
+def test_workflow_generation(
     tmp_path,
     linea_db,
     execute,
     input_script1,
     input_script2,
     artifact_list,
-    pipeline_name,
+    workflow_name,
     dependencies,
     dag_config,
     input_parameters,
     snapshot,
 ):
     """
-    Snapshot tests for Ray pipelines.
+    Snapshot tests for Ray workflows.
     """
 
     try:
-        pipeline_file_generation_helper(
+        workflow_file_generation_helper(
             tmp_path,
             linea_db,
             execute,
@@ -134,7 +134,7 @@ def test_pipeline_generation(
             input_script2,
             artifact_list,
             "RAY",
-            pipeline_name,
+            workflow_name,
             dependencies,
             dag_config,
             input_parameters,
@@ -148,7 +148,7 @@ def test_pipeline_generation(
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt", "_dag.py"]
 
-    file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
+    file_names = [workflow_name + file_suffix for file_suffix in file_endings]
 
     # Compare generated vs. expected
     for expected_file_name in file_names:

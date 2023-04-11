@@ -2,53 +2,53 @@ from pathlib import Path
 
 import pytest
 
-from tests.unit.plugins.framework_specific.pipeline_helper import (
-    pipeline_file_generation_helper,
+from tests.unit.plugins.framework_specific.workflow_helper import (
+    workflow_file_generation_helper,
 )
 
 
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, pipeline_name, dependencies, dag_config, input_parameters",
+    "input_script1, input_script2, artifact_list, workflow_name, dependencies, dag_config, input_parameters",
     [
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
-            "script_pipeline_a0_b0",
+            "script_workflow_a0_b0",
             {},
             {},
             [],
-            id="script_pipeline_a0_b0",
+            id="script_workflow_a0_b0",
         ),
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
-            "script_pipeline_a0_b0_dependencies",
+            "script_workflow_a0_b0_dependencies",
             {"a0": {"b0"}},
             {},
             [],
-            id="script_pipeline_a0_b0_dependencies",
+            id="script_workflow_a0_b0_dependencies",
         ),
         pytest.param(
             "simple",
             "",
             ["a", "b0"],
-            "script_pipeline_a_b0_inputpar",
+            "script_workflow_a_b0_inputpar",
             {},
             {},
             ["b0"],
-            id="script_pipeline_a_b0_inputpar",
+            id="script_workflow_a_b0_inputpar",
         ),
         pytest.param(
             "simple_twovar",
             "",
             ["pn"],
-            "script_pipeline_two_input_parameter",
+            "script_workflow_two_input_parameter",
             {},
             {},
             ["n", "p"],
-            id="script_pipeline_two_input_parameter",
+            id="script_workflow_two_input_parameter",
         ),
         pytest.param(
             "complex",
@@ -64,52 +64,52 @@ from tests.unit.plugins.framework_specific.pipeline_helper import (
             "housing",
             "",
             ["p value"],
-            "script_pipeline_housing_simple",
+            "script_workflow_housing_simple",
             {},
             {},
             [],
-            id="script_pipeline_housing_simple",
+            id="script_workflow_housing_simple",
         ),
         pytest.param(
             "housing",
             "",
             ["y", "p value"],
-            "script_pipeline_housing_multiple",
+            "script_workflow_housing_multiple",
             {},
             {},
             [],
-            id="script_pipeline_housing_multiple",
+            id="script_workflow_housing_multiple",
         ),
         pytest.param(
             "housing",
             "",
             ["y", "p value"],
-            "script_pipeline_housing_w_dependencies",
+            "script_workflow_housing_w_dependencies",
             {"p value": {"y"}},
             {},
             [],
-            id="script_pipeline_housing_w_dependencies",
+            id="script_workflow_housing_w_dependencies",
         ),
     ],
 )
-def test_pipeline_generation(
+def test_workflow_generation(
     tmp_path,
     linea_db,
     execute,
     input_script1,
     input_script2,
     artifact_list,
-    pipeline_name,
+    workflow_name,
     dependencies,
     dag_config,
     input_parameters,
     snapshot,
 ):
     """
-    Snapshot tests for Script type pipelines.
+    Snapshot tests for Script type workflows.
     """
 
-    pipeline_file_generation_helper(
+    workflow_file_generation_helper(
         tmp_path,
         linea_db,
         execute,
@@ -117,7 +117,7 @@ def test_pipeline_generation(
         input_script2,
         artifact_list,
         "SCRIPT",
-        pipeline_name,
+        workflow_name,
         dependencies,
         dag_config,
         input_parameters,
@@ -126,7 +126,7 @@ def test_pipeline_generation(
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt"]
 
-    file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
+    file_names = [workflow_name + file_suffix for file_suffix in file_endings]
 
     # Compare generated vs. expected
     for expected_file_name in file_names:

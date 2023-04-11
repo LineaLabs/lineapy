@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
@@ -84,7 +84,7 @@ class DVCPipelineWriter(BasePipelineWriter):
         )
 
         full_code = DAG_TEMPLATE.render(
-            MODULE_COMMAND=f"python {self.pipeline_name}_module.py",
+            MODULE_COMMAND=f"python {self.workflow_name}_module.py",
         )
 
         return full_code
@@ -101,12 +101,12 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         task_defs, _ = get_task_graph(
             self.artifact_collection,
-            pipeline_name=self.pipeline_name,
+            workflow_name=self.workflow_name,
             task_breakdown=DagTaskBreakdown.TaskPerArtifact,
         )
 
         full_code = DAG_TEMPLATE.render(
-            MODULE_NAME=f"{self.pipeline_name}_module", TASK_DEFS=task_defs
+            MODULE_NAME=f"{self.workflow_name}_module", TASK_DEFS=task_defs
         )
 
         self._write_params()
@@ -118,7 +118,7 @@ class DVCPipelineWriter(BasePipelineWriter):
     def _write_params(self):
         # Get DAG parameters for an DVC pipeline
         input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
+        for parameter_name, input_spec in super().get_workflow_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
         PARAMS_TEMPLATE = load_plugin_template("dvc/dvc_dag_params.jinja")
@@ -143,7 +143,7 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         rendered_task_defs = render_task_definitions(
             task_defs,
-            self.pipeline_name,
+            self.workflow_name,
             task_serialization=TaskSerializer.CWDPickle,
         )
 
@@ -151,7 +151,7 @@ class DVCPipelineWriter(BasePipelineWriter):
         # since they are returned in the same order as the keys in task_defs
         for index, (task_name, task_def) in enumerate(task_defs.items()):
             stage_code = STAGE_TEMPLATE.render(
-                MODULE_NAME=f"{self.pipeline_name}_module",
+                MODULE_NAME=f"{self.workflow_name}_module",
                 TASK_CODE=rendered_task_defs[index],
                 task_name=task_name,
                 # DVC tasks read each input variable and cannot rely on DAG to provide them

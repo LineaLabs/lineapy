@@ -2,18 +2,17 @@ import atexit
 
 from lineapy.api.api import (
     LineaArtifact,
-    Pipeline,
+    Workflow,
     artifact_store,
-    create_pipeline,
+    create_workflow,
     delete,
     get,
     get_function,
     get_module,
     get_module_definition,
-    get_pipeline,
+    get_workflow,
     reload,
     save,
-    to_pipeline,
 )
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
@@ -30,15 +29,14 @@ __all__ = [
     "Tracer",
     "save",
     "get",
-    "get_pipeline",
+    "get_workflow",
     "get_function",
     "get_module",
     "get_module_definition",
     "artifact_store",
     "delete",
     "reload",
-    "to_pipeline",
-    "create_pipeline",
+    "create_workflow",
     "SessionType",
     "ValueType",
     "_is_executing",
@@ -49,7 +47,7 @@ __all__ = [
     "tag",
     "__version__",
     "LineaArtifact",
-    "Pipeline",
+    "Workflow",
 ]
 
 

@@ -34,7 +34,7 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.airflow_pipeline_writer import AirflowPipelineWriter
+from lineapy.plugins.airflow_workflow_writer import AirflowPipelineWriter
 from lineapy.plugins.utils import slugify
 from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
@@ -477,15 +477,15 @@ def python_cli(
             dependencies=task_dependencies,
         )
 
-        # Construct pipeline writer
-        pipeline_writer = AirflowPipelineWriter(
+        # Construct workflow writer
+        workflow_writer = AirflowPipelineWriter(
             artifact_collection=artifact_collection,
-            pipeline_name=export_slice_to_airflow_dag,
+            workflow_name=export_slice_to_airflow_dag,
             output_dir=export_dir,
         )
 
-        # Write out pipeline files
-        pipeline_writer.write_pipeline_files()
+        # Write out workflow files
+        workflow_writer.write_workflow_files()
 
     db.close()
     if print_graph:

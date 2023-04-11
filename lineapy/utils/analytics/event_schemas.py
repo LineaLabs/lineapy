@@ -10,7 +10,7 @@ class ErrorType(Enum):
     SAVE = "save_API_exception"
     DELETE = "delete_API_exception"
     RETRIEVE = "retrieve_API_exception"
-    PIPELINE = "pipeline_API_exception"
+    WORKFLOW = "workflow_API_exception"
     DATABASE = "database_error"
     USER = "user_exception"
 
@@ -34,7 +34,7 @@ class CatalogEvent:
 
 
 @dataclass
-class ToPipelineEvent:
+class CreateWorkflowEvent:
     engine: str  # AIRFLOW, SCRIPT
     artifact_count: int
     has_task_dependency: bool
@@ -85,7 +85,7 @@ TrackingEvent = Union[
     ExceptionEvent,
     GetEvent,
     SaveEvent,
-    ToPipelineEvent,
+    CreateWorkflowEvent,
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,

@@ -160,7 +160,7 @@ class TaskDefinition:
         line of code to call the function in module file
     return_vars: List[str]
         outputs that need to be serialized to be used
-    pipeline_name: str
+    workflow_name: str
         overall pipeline name
 
     """
@@ -173,7 +173,7 @@ class TaskDefinition:
     call_block: str
     post_call_block: str
     return_vars: List[str]
-    pipeline_name: str
+    workflow_name: str
 
 
 class DagTaskBreakdown(Enum):
@@ -201,7 +201,7 @@ class TaskSerializer(Enum):
 
 def render_task_definitions(
     task_defs: Dict[str, TaskDefinition],
-    pipeline_name: str,
+    workflow_name: str,
     task_serialization: Optional[TaskSerializer],
     task_name_fn: Callable = lambda task_def: task_def.function_name,
     function_decorator_fn: Callable = lambda task_def: "",
@@ -229,7 +229,7 @@ def render_task_definitions(
             loading_blocks, dumping_blocks = [], []
 
         task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-            MODULE_NAME=pipeline_name + "_module",
+            MODULE_NAME=workflow_name + "_module",
             function_name=task_name_fn(task_def),
             function_decorator=function_decorator_fn(task_def),
             user_input_variables=user_input_variables_fn(task_def),
@@ -288,14 +288,14 @@ def render_task_io_serialize_blocks(
         task_deserialization_block.append(
             DESERIALIZER_TEMPLATE.render(
                 loaded_input_variable=loaded_input_variable,
-                pipeline_name=taskdef.pipeline_name,
+                workflow_name=taskdef.workflow_name,
             )
         )
     for return_variable in taskdef.return_vars:
         task_serialization_blocks.append(
             SERIALIZER_TEMPLATE.render(
                 return_variable=return_variable,
-                pipeline_name=taskdef.pipeline_name,
+                workflow_name=taskdef.workflow_name,
             )
         )
 

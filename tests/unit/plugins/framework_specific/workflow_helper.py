@@ -1,12 +1,12 @@
 from pathlib import Path
 
 from lineapy.api.models.linea_artifact import get_lineaartifactdef
-from lineapy.data.types import PipelineType
+from lineapy.data.types import WorkflowType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
+from lineapy.plugins.workflow_writer_factory import WorkflowWriterFactory
 
 
-def pipeline_file_generation_helper(
+def workflow_file_generation_helper(
     tmp_path,
     linea_db,
     execute,
@@ -14,16 +14,16 @@ def pipeline_file_generation_helper(
     input_script2,
     artifact_list,
     framework,
-    pipeline_name,
+    workflow_name,
     dependencies,
     dag_config,
     input_parameters,
 ):
     """
-    Helper function for tests that need to run pipeline writers.
+    Helper function for tests that need to run workflow writers.
 
-    Runs input_script1, then input_script2, and then creates pipeline files
-    in tmp_path based on the other parameters to config the pipeline.
+    Runs input_script1, then input_script2, and then creates workflow files
+    in tmp_path based on the other parameters to config the workflow.
     """
 
     code1 = Path(
@@ -45,14 +45,14 @@ def pipeline_file_generation_helper(
         dependencies=dependencies,
     )
 
-    # Construct pipeline writer
-    pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType[framework],
+    # Construct workflow writer
+    workflow_writer = WorkflowWriterFactory.get(
+        workflow_type=WorkflowType[framework],
         artifact_collection=artifact_collection,
-        pipeline_name=pipeline_name,
+        workflow_name=workflow_name,
         output_dir=tmp_path,
         dag_config=dag_config,
     )
 
-    # Write out pipeline files
-    pipeline_writer.write_pipeline_files()
+    # Write out workflow files
+    workflow_writer.write_workflow_files()

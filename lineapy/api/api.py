@@ -13,13 +13,15 @@ import fsspec
 from lineapy.api.artifact_serializer import serialize_artifact
 from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
-from lineapy.api.models.pipeline import Pipeline
+from lineapy.api.models.workflow import Workflow
 from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, Artifact, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.base_pipeline_writer import get_base_pipeline_writer
+
+# TODO: base_workflow_writer -> base_workflow_writer
+from lineapy.plugins.base_workflow_writer import get_base_workflow_writer
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
@@ -81,7 +83,7 @@ def save(
     LineaArtifact
         Returned value offers methods to access
         information we have stored about the artifact (value, version),
-        and other automation capabilities, such as [`to_pipeline()`][lineapy.api.api.to_pipeline].
+        and other automation capabilities, such as [`create_workflow()`][lineapy.api.api.create_workflow].
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -307,21 +309,21 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
-def get_pipeline(name: str) -> Pipeline:
+def get_workflow(name: str) -> Workflow:
 
     execution_context = get_context()
     db = execution_context.executor.db
 
-    pipeline_orm = db.get_pipeline_by_name(name)
+    workflow_orm = db.get_workflow_by_name(name)
 
     artifact_names = [
         artifact.name
-        for artifact in pipeline_orm.artifacts
+        for artifact in workflow_orm.artifacts
         if artifact.name is not None
     ]
 
     dependencies = dict()
-    for dep_orm in pipeline_orm.dependencies:
+    for dep_orm in workflow_orm.dependencies:
         post_artifact = dep_orm.post_artifact
         if post_artifact is None:
             continue
@@ -337,7 +339,7 @@ def get_pipeline(name: str) -> Pipeline:
             ]
         )
         dependencies[post_name] = pre_names
-    return Pipeline(
+    return Workflow(
         artifacts=artifact_names,
         name=name,
         dependencies=dependencies,
@@ -372,31 +374,31 @@ def artifact_store() -> LineaArtifactStore:
 
 # TODO - this piece needs to test more than just the output of jupyter cell.
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
-def to_pipeline(
+def create_workflow(
     artifacts: List[str],
     framework: str = "SCRIPT",
-    pipeline_name: Optional[str] = None,
+    workflow_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     output_dir: str = ".",
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[str] = [],
     generate_test: bool = False,
-    pipeline_dag_config: Optional[Dict] = {},
+    workflow_dag_config: Optional[Dict] = {},
     include_non_slice_as_comment: bool = False,
-) -> Pipeline:
+) -> Workflow:
     """
-    Writes the pipeline job to a path on disk.
+    Writes the workflow job to a path on disk.
 
     Parameters
     ----------
     artifacts: List[str]
-        Names of artifacts to be included in the pipeline.
+        Names of artifacts to be included in the workflow.
     framework: str
         Name of the framework to be used.
-        Defined by enum PipelineTypes in lineapy/data/types.py.
+        Defined by enum WorkflowTypes in lineapy/data/types.py.
         Defaults to "SCRIPT" if not specified.
-    pipeline_name: Optional[str]
-        Name of the pipeline.
+    workflow_name: Optional[str]
+        Name of the workflow.
     dependencies: TaskGraphEdge
         Task dependencies in graphlib format, e.g., ``{"B": {"A", "C"}}``
         means task A and C are prerequisites for task B.
@@ -405,28 +407,28 @@ def to_pipeline(
         information; instead, the user is expected to provide dependency information
         among artifacts across different sessions.
     output_dir: str
-        Directory path to save DAG and other pipeline files.
+        Directory path to save DAG and other workflow files.
     input_parameters: List[str]
-        Names of variables to be used as parameters in the pipeline.
+        Names of variables to be used as parameters in the workflow.
         Currently, it only accepts variables from literal assignment
         such as ``a = '123'``. For each variable to be parametrized,
         there should be only one literal assignment across all
-        artifact code for the pipeline. For instance, if both ``a = '123'``
-        and ``a = 'abc'`` exist in the pipeline's artifact code,
+        artifact code for the workflow. For instance, if both ``a = '123'``
+        and ``a = 'abc'`` exist in the workflow's artifact code,
         we cannot make ``a`` an input parameter since its reference is
         ambiguous, i.e., we are not sure which literal assignment ``a``
         refers to.
     reuse_pre_computed_artifacts: List[str]
-        Names of artifacts in the pipeline for which pre-computed value
+        Names of artifacts in the workflow for which pre-computed value
         is to be used (rather than recomputing the value).
     generate_test: bool
-        Whether to generate scaffold/template for pipeline testing.
+        Whether to generate scaffold/template for workflow testing.
         Defaults to ``False``. The scaffold contains placeholders for testing
-        each function in the pipeline module file and is meant to be fleshed
+        each function in the workflow module file and is meant to be fleshed
         out by the user to suit their needs. When run out of the box, it performs
         a naive form of equality evaluation for each function's output,
         which demands validation and customization by the user.
-    pipeline_dag_config: Optional[AirflowDagConfig]
+    workflow_dag_config: Optional[AirflowDagConfig]
         A dictionary of parameters to configure DAG file to be generated.
         Not applicable for "SCRIPT" framework as it does not generate a separate
         DAG file. For "AIRFLOW" framework, Airflow-native config params such as
@@ -435,42 +437,25 @@ def to_pipeline(
 
     Returns
     -------
-    Pipeline
-        Pipeline object
+    Workflow
+        Workflow object
     """
-    pipeline = Pipeline(
+    workflow = Workflow(
         artifacts=artifacts,
-        name=pipeline_name,
+        name=workflow_name,
         dependencies=dependencies,
     )
-    pipeline.save()
-    pipeline.export(
+    workflow.export(
         framework=framework,
         output_dir=output_dir,
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
         generate_test=generate_test,
-        pipeline_dag_config=pipeline_dag_config,
+        workflow_dag_config=workflow_dag_config,
         include_non_slice_as_comment=include_non_slice_as_comment,
     )
-    return pipeline
-
-
-def create_pipeline(
-    artifacts: List[str],
-    pipeline_name: Optional[str] = None,
-    dependencies: TaskGraphEdge = {},
-    persist: bool = False,
-) -> Pipeline:
-    pipeline = Pipeline(
-        artifacts=artifacts,
-        name=pipeline_name,
-        dependencies=dependencies,
-    )
-    if persist:
-        pipeline.save()
-
-    return pipeline
+    workflow.save()
+    return workflow
 
 
 def get_function(
@@ -545,7 +530,7 @@ def get_module_definition(
     str
         Module definition of [`get_module()`][lineapy.api.api.get_module].
     """
-    writer = get_base_pipeline_writer(
+    writer = get_base_workflow_writer(
         artifacts, input_parameters, reuse_pre_computed_artifacts
     )
     return writer._compose_module()
@@ -574,7 +559,7 @@ def get_module(
         A python module that includes the definition of [`get_function()`][lineapy.api.api.get_function]
         as `run_all_sessions`.
     """
-    writer = get_base_pipeline_writer(
+    writer = get_base_workflow_writer(
         artifacts, input_parameters, reuse_pre_computed_artifacts
     )
     module = load_as_module(writer)

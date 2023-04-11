@@ -38,7 +38,7 @@ class BasePipelineWriter:
         self,
         artifact_collection: ArtifactCollection,
         keep_lineapy_save: bool = False,
-        pipeline_name: str = "pipeline",
+        workflow_name: str = "pipeline",
         output_dir: str = ".",
         generate_test: bool = False,
         dag_config: Optional[Dict] = None,
@@ -46,7 +46,7 @@ class BasePipelineWriter:
     ) -> None:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
-        self.pipeline_name = slugify(pipeline_name)
+        self.workflow_name = slugify(workflow_name)
         self.output_dir = Path(output_dir).expanduser()
         self.generate_test = generate_test
         self.dag_config = dag_config or {}
@@ -69,7 +69,7 @@ class BasePipelineWriter:
     @property
     def docker_template_params(self) -> Dict[str, str]:
         return {
-            "pipeline_name": self.pipeline_name,
+            "workflow_name": self.workflow_name,
             "python_version": get_system_python_version(),
         }
 
@@ -80,7 +80,7 @@ class BasePipelineWriter:
         module_text = self._compose_module(
             indentation=4,
         )
-        file = self.output_dir / f"{self.pipeline_name}_module.py"
+        file = self.output_dir / f"{self.workflow_name}_module.py"
         file.write_text(prettify(module_text))
         logger.info(f"Generated module file: {file}")
 
@@ -217,7 +217,7 @@ class BasePipelineWriter:
                 for lib, ver in libraries.items()
             ]
         )
-        file = self.output_dir / f"{self.pipeline_name}_requirements.txt"
+        file = self.output_dir / f"{self.workflow_name}_requirements.txt"
         file.write_text(lib_names_text)
         logger.info(f"Generated requirements file: {file}")
 
@@ -329,8 +329,8 @@ class BasePipelineWriter:
         ]
 
         # Format other components to be passed into file template
-        module_name = f"{self.pipeline_name}_module"
-        test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
+        module_name = f"{self.workflow_name}_module"
+        test_class_name = f"Test{self.workflow_name.title().replace('_', '')}"
 
         # Fill in file template and write it out
         MODULE_TEST_TEMPLATE = load_plugin_template("module/module_test.jinja")
@@ -342,7 +342,7 @@ class BasePipelineWriter:
             FUNCTION_METADATA_DICT=function_metadata_dict,
             INTERMEDIATE_OUTPUT_NAMES=intermediate_output_names,
         )
-        file = self.output_dir / f"test_{self.pipeline_name}.py"
+        file = self.output_dir / f"test_{self.workflow_name}.py"
         file.write_text(prettify(module_test_text))
         logger.info(f"Generated test scaffold file: {file}")
         logger.warning(
@@ -373,11 +373,11 @@ class BasePipelineWriter:
         dockerfile_text = DOCKERFILE_TEMPLATE.render(
             **self.docker_template_params
         )
-        file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
+        file = self.output_dir / f"{self.workflow_name}_Dockerfile"
         file.write_text(dockerfile_text)
         logger.info(f"Generated Docker file: {file}")
 
-    def write_pipeline_files(self) -> None:
+    def write_workflow_files(self) -> None:
         """
         Write out pipeline files.
         """
@@ -387,9 +387,9 @@ class BasePipelineWriter:
         self._write_docker()
         self._create_test()
 
-    def get_pipeline_args(self) -> Dict[str, InputVariable]:
+    def get_workflow_args(self) -> Dict[str, InputVariable]:
         """
-        get_pipeline_args returns the arguments that are required as inputs to the whole pipeline.
+        get_workflow_args returns the arguments that are required as inputs to the whole pipeline.
 
         Returns a `pipeline_args` dictionary, which maps a key corresponding to the argument name to
         Linea's InputVariable object.
@@ -404,7 +404,7 @@ class BasePipelineWriter:
         return pipeline_args
 
 
-def get_base_pipeline_writer(
+def get_base_workflow_writer(
     artifacts: List[Union[str, Tuple[str, int]]],
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
