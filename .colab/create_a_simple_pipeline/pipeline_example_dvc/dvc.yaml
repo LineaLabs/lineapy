@@ -1,0 +1,38 @@
+stages:
+
+    iris_preprocessed:
+        cmd: python task_iris_preprocessed.py
+        deps:
+            - iris_pipeline_module.py
+            - task_iris_preprocessed.py
+        outs:
+            - df.pickle
+
+    split_samples_for_artifact_iris_model_and_downstream:
+        cmd: python task_split_samples_for_artifact_iris_model_and_downstream.py
+        deps:
+            - iris_pipeline_module.py
+            - task_split_samples_for_artifact_iris_model_and_downstream.py
+            - df.pickle
+        outs:
+            - split_samples.pickle
+
+    iris_model:
+        cmd: python task_iris_model.py
+        deps:
+            - iris_pipeline_module.py
+            - task_iris_model.py
+            - split_samples.pickle
+        outs:
+            - mod.pickle
+
+    iris_model_evaluation:
+        cmd: python task_iris_model_evaluation.py
+        deps:
+            - iris_pipeline_module.py
+            - task_iris_model_evaluation.py
+            - mod.pickle
+            - split_samples.pickle
+        outs:
+            - mod_eval_test.pickle
+

@@ -1,0 +1,18 @@
+FROM python:3.9
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# Copy all the requirements to run current DAG
+COPY ./_requirements.txt ./
+
+# Install ray
+RUN apt update
+RUN pip install ray
+
+# Install required libs
+RUN pip install -r ./_requirements.txt
+
+WORKDIR /home
+COPY ./_module.py ./
+COPY ./_dag.py ./
