@@ -20,7 +20,7 @@ x[0].append(11)
         importl + code_body + artifact_f_save, snapshot=False
     )
     # get the artifact from the first execution. we will use just this to recreate
-    # the code slice/graph/airflow pipeline etc.
+    # the code slice/graph/airflow workflow etc.
     # In this test we'll only test to see if code slice matches assuming
     # the rest will make sense if we have code slice.
     artifact_f = first_tracer.values["use_y"]

@@ -4,7 +4,7 @@ import tempfile
 from importlib.abc import Loader
 from pathlib import Path
 
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.utils.utils import prettify
 
 

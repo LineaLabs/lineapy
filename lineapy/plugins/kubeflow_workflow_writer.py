@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
@@ -55,7 +55,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         full_code = self._write_operators(dag_flavor)
 
         # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_dag.py"
+        file = self.output_dir / f"{self.workflow_name}_dag.py"
         file.write_text(full_code)
         logger.info(f"Generated DAG file: {file}")
 
@@ -77,13 +77,13 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         # Get task definitions based on dag_flavor
         task_defs, task_graph = get_task_graph(
             self.artifact_collection,
-            pipeline_name=self.pipeline_name,
+            workflow_name=self.workflow_name,
             task_breakdown=task_breakdown,
         )
 
-        task_defs["setup"] = get_noop_setup_task_definition(self.pipeline_name)
+        task_defs["setup"] = get_noop_setup_task_definition(self.workflow_name)
         task_defs["teardown"] = get_noop_teardown_task_definition(
-            self.pipeline_name
+            self.workflow_name
         )
         # insert in order to task_names so that setup runs first and teardown runs last
         task_graph.insert_setup_task("setup")
@@ -98,7 +98,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         )
 
         input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
+        for parameter_name, input_spec in super().get_workflow_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
         task_dependencies = sorted(
@@ -109,7 +109,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         )
 
         full_code = DAG_TEMPLATE.render(
-            DAG_NAME=self.pipeline_name,
+            DAG_NAME=self.workflow_name,
             HOST_URL=self.dag_config.get("host_url", "http://localhost:3000"),
             dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
@@ -168,7 +168,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
 
         rendered_task_defs: List[str] = render_task_definitions(
             task_defs,
-            self.pipeline_name,
+            self.workflow_name,
             task_serialization=TaskSerializer.ParametrizedPickle,
             user_input_variables_fn=user_input_variables_fn,
             include_imports_locally=True,

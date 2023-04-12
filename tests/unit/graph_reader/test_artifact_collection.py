@@ -5,7 +5,7 @@ import pytest
 
 from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.plugins.loader import load_as_module
 
 

@@ -51,11 +51,11 @@ from lineapy.db.relational import (
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
-    PipelineORM,
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
     VariableNodeORM,
+    WorkflowORM,
 )
 from lineapy.db.utils import create_lineadb_engine
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -368,19 +368,19 @@ class RelationalLineaDB:
         self.session.add(mlflowmetadataorm)
         self.renew_session()
 
-    def write_pipeline(
-        self, dependencies: List[ArtifactDependencyORM], pipeline: PipelineORM
+    def write_workflow(
+        self, dependencies: List[ArtifactDependencyORM], workflow: WorkflowORM
     ) -> None:
         for dep in dependencies:
             self.session.add(dep)
-        self.session.add(pipeline)
+        self.session.add(workflow)
         self.renew_session()
 
-    def get_pipeline_by_name(self, name: str) -> PipelineORM:
+    def get_workflow_by_name(self, name: str) -> WorkflowORM:
 
         res = (
-            self.session.query(PipelineORM)
-            .filter(PipelineORM.name == name)
+            self.session.query(WorkflowORM)
+            .filter(WorkflowORM.name == name)
             .first()
         )
         if res is None:

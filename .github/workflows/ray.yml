@@ -11,19 +11,19 @@ on:
       - "lineapy/plugins/jinja_templates/ray/*"
       - "lineapy/plugins/jinja_templates/task/*"
       - "lineapy/plugins/jinja_templates/module/*"
-      - "lineapy/plugins/ray_pipeline_writer.py"
-      - "lineapy/plugins/base_pipeline_writer.py"
+      - "lineapy/plugins/ray_workflow_writer.py"
+      - "lineapy/plugins/base_workflow_writer.py"
       - "tests/unit/plugins/framework_specific/ray/*"
-      - "test_pipeline_ray_req.txt"
+      - "test_workflow_ray_req.txt"
   pull_request:
     paths:
       - "lineapy/plugins/jinja_templates/ray/*"
       - "lineapy/plugins/jinja_templates/task/*"
       - "lineapy/plugins/jinja_templates/module/*"
-      - "lineapy/plugins/ray_pipeline_writer.py"
-      - "lineapy/plugins/base_pipeline_writer.py"
+      - "lineapy/plugins/ray_workflow_writer.py"
+      - "lineapy/plugins/base_workflow_writer.py"
       - "tests/unit/plugins/framework_specific/ray/*"
-      - "test_pipeline_ray_req.txt"
+      - "test_workflow_ray_req.txt"
 jobs:
   ray:
     runs-on: ubuntu-latest

@@ -39,7 +39,7 @@ configure_logging()
 @dataclass
 class SessionArtifacts:
     """
-    Refactor a given session graph for use in a downstream task (e.g., pipeline building).
+    Refactor a given session graph for use in a downstream task (e.g., workflow building).
     """
 
     _session_id: LineaID

@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
@@ -69,7 +69,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
         full_code = self._write_operators(dag_flavor)
 
         # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_dag.py"
+        file = self.output_dir / f"{self.workflow_name}_dag.py"
         file.write_text(prettify(full_code))
         logger.info(f"Generated DAG file: {file}")
 
@@ -86,13 +86,13 @@ class ARGOPipelineWriter(BasePipelineWriter):
         # Get task definitions based on dag_flavor
         task_defs, task_graph = get_task_graph(
             self.artifact_collection,
-            pipeline_name=self.pipeline_name,
+            workflow_name=self.workflow_name,
             task_breakdown=task_breakdown,
         )
 
-        task_defs["setup"] = get_noop_setup_task_definition(self.pipeline_name)
+        task_defs["setup"] = get_noop_setup_task_definition(self.workflow_name)
         task_defs["teardown"] = get_noop_teardown_task_definition(
-            self.pipeline_name
+            self.workflow_name
         )
         # insert in order to task_names so that setup runs first and teardown runs last
         task_graph.insert_setup_task("setup")
@@ -112,7 +112,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         # Get DAG parameters for an ARGO pipeline
         input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
+        for parameter_name, input_spec in super().get_workflow_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
         # set kube config to be user given path or expand default ~/.kube/config
@@ -122,16 +122,16 @@ class ARGOPipelineWriter(BasePipelineWriter):
             kube_config = 'os.path.expanduser("~/.kube/config")'
 
         full_code = DAG_TEMPLATE.render(
-            DAG_NAME=self.pipeline_name,
-            MODULE_NAME=self.pipeline_name + "_module",
+            DAG_NAME=self.workflow_name,
+            MODULE_NAME=self.workflow_name + "_module",
             NAMESPACE=self.dag_config.get("namespace", "argo"),
             HOST=self.dag_config.get("host", "https://localhost:2746"),
             VERIFY_SSL=self.dag_config.get("verify_ssl", "False"),
             WORFLOW_NAME=self.dag_config.get(
-                "workflow_name", self.pipeline_name.replace("_", "-")
+                "workflow_name", self.workflow_name.replace("_", "-")
             ),
             IMAGE=self.dag_config.get(
-                "image", f"{self.pipeline_name}:lineapy"
+                "image", f"{self.workflow_name}:lineapy"
             ),
             IMAGE_PULL_POLICY=self.dag_config.get(
                 "image_pull_policy", "Never"
@@ -176,7 +176,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         rendered_task_defs: List[str] = render_task_definitions(
             task_defs,
-            self.pipeline_name,
+            self.workflow_name,
             task_serialization=TaskSerializer.TmpDirPickle,
             include_imports_locally=True,
         )

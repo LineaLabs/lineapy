@@ -28,7 +28,7 @@ class ArtifactCollection:
     `ArtifactCollection` can be thought of as a box where the inserted group of artifacts and
     their graph(s) get refactored into reusable components (i.e., functions with non-overlapping
     operations). With this modularization, it can then support various downstream code generation
-    tasks such as pipeline file writing.
+    tasks such as workflow file writing.
 
     For now, `ArtifactCollection` is meant to be kept and used as an abstraction/tool for internal
     dev use only. That is, the class and its methods will NOT be exposed directly to the user.

@@ -512,24 +512,24 @@ class AssignedVariable:
     assigned_variable: str
 
 
-class PipelineType(Enum):
+class WorkflowType(Enum):
     """
-    Pipeline types allow the `to_pipeline` to know what to expect
+    Workflow types allow the `create_workflow` to know what to expect
 
     Attributes
     ----------
     SCRIPT: int
-        the pipeline is wrapped as a python script
+        the workflow is wrapped as a python script
     AIRFLOW: int
-        the pipeline is wrapped as an airflow dag
+        the workflow is wrapped as an airflow dag
     DVC: int
-        the pipeline is wrapped as a DVC
+        the workflow is wrapped as a DVC
     ARGO: int
-        the pipeline is wrapped as an Argo workflow dag
+        the workflow is wrapped as an Argo workflow dag
     KUBEFLOW: int
-        the pipeline is defined using Kubeflow's python SDK
+        the workflow is defined using Kubeflow's python SDK
     RAY: int
-        the pipeline is wrapped as a Ray DAG
+        the workflow is wrapped as a Ray DAG
     """
 
     SCRIPT = 1

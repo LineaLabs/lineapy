@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
-from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.base_workflow_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
@@ -50,7 +50,7 @@ class RayPipelineWriter(BasePipelineWriter):
         full_code = self._write_operators(dag_flavor)
 
         # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_dag.py"
+        file = self.output_dir / f"{self.workflow_name}_dag.py"
         file.write_text(full_code)
         logger.info(f"Generated DAG file: {file}")
 
@@ -75,7 +75,7 @@ class RayPipelineWriter(BasePipelineWriter):
         # Get task definitions based on dag_flavor
         task_defs, task_graph = get_task_graph(
             self.artifact_collection,
-            pipeline_name=self.pipeline_name,
+            workflow_name=self.workflow_name,
             task_breakdown=task_breakdown,
         )
 
@@ -91,7 +91,7 @@ class RayPipelineWriter(BasePipelineWriter):
         rendered_task_defs = self.get_rendered_task_definitions(task_defs)
 
         input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
+        for parameter_name, input_spec in super().get_workflow_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
         # set ray working dir to local directory so that module file can be picked up
@@ -101,8 +101,8 @@ class RayPipelineWriter(BasePipelineWriter):
             ray_runtime_env["working_dir"] = "."
 
         full_code = DAG_TEMPLATE.render(
-            DAG_NAME=self.pipeline_name,
-            MODULE_NAME=self.pipeline_name + "_module",
+            DAG_NAME=self.workflow_name,
+            MODULE_NAME=self.workflow_name + "_module",
             RAY_RUNTIME_ENV=ray_runtime_env,
             RAY_STORAGE=self.dag_config.get("storage", "/tmp"),
             task_definitions=rendered_task_defs,
@@ -163,7 +163,7 @@ class RayPipelineWriter(BasePipelineWriter):
 
         rendered_task_defs: List[str] = render_task_definitions(
             task_defs,
-            self.pipeline_name,
+            self.workflow_name,
             task_serialization=None,
             function_decorator_fn=function_decorator_fn,
             user_input_variables_fn=user_input_variables_fn,

@@ -135,7 +135,7 @@ class MLflowArtifactMetadataORM(Base):
     delete_time = Column(DateTime, nullable=True)
 
 
-class PipelineORM(Base):
+class WorkflowORM(Base):
     __tablename__ = "pipeline"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
@@ -153,7 +153,7 @@ class ArtifactDependencyORM(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
     pipeline = relationship(
-        PipelineORM, back_populates="dependencies", uselist=False
+        WorkflowORM, back_populates="dependencies", uselist=False
     )
     post_artifact_id = Column(
         Integer, ForeignKey("artifact.id"), nullable=False
