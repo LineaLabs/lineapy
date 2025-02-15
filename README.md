@@ -287,3 +287,4 @@ which contains many examples you can follow with. Some key resources include:
 [API Reference]: https://docs.lineapy.org/latest/reference/lineapy/
 [Contribute]: https://docs.lineapy.org/latest/guides/contributing/process/
 [Slack]: https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q
+
