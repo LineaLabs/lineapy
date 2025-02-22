@@ -11,7 +11,7 @@ fastparquet==0.8.0
 flake8==4.0.1
 graphviz==0.19.2
 isort==5.10.1
-jupyterlab==4.2.5
+jupyterlab==3.3.3
 matplotlib==3.5.1
 mypy==0.931
 nbconvert==6.5.1
