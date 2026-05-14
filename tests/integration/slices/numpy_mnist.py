@@ -15,7 +15,7 @@ data_sources = {
 headers = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0"
 }
-request_opts = {"headers": headers, "params": {"raw": "true"}}
+request_opts = {"headers": headers, "params": {"raw": "true"}, "timeout": 30}
 import os
 import requests
 
